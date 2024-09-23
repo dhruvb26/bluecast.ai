@@ -53,7 +53,7 @@ export async function POST(req: Request) {
           console.log("Invalid customer ID");
           return NextResponse.json(
             { error: "Invalid customer ID" },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
           console.log("Price ID not found");
           return NextResponse.json(
             { error: "Price ID not found" },
-            { status: 400 },
+            { status: 400 }
           );
         }
         console.log("Price ID:", priceId);
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
           console.log("Plan not found");
           return NextResponse.json(
             { error: "Plan not found" },
-            { status: 404 },
+            { status: 404 }
           );
         }
         console.log("Plan found:", plan.priceId);
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
           console.log("Customer has been deleted");
           return NextResponse.json(
             { error: "Customer not found" },
-            { status: 404 },
+            { status: 404 }
           );
         }
 
@@ -108,7 +108,7 @@ export async function POST(req: Request) {
             console.log("User not found in database");
             return NextResponse.json(
               { error: "User not found" },
-              { status: 404 },
+              { status: 404 }
             );
           }
           console.log("User found:", user.id);
@@ -116,8 +116,9 @@ export async function POST(req: Request) {
           const subscriptionId = session.subscription as string;
           console.log("Subscription ID from session:", subscriptionId);
 
-          const subscription =
-            await stripe.subscriptions.retrieve(subscriptionId);
+          const subscription = await stripe.subscriptions.retrieve(
+            subscriptionId
+          );
           console.log("Subscription retrieved:", subscription.id);
 
           try {
@@ -136,7 +137,7 @@ export async function POST(req: Request) {
             console.error("Error updating database:", error);
             return NextResponse.json(
               { error: "Database update failed" },
-              { status: 500 },
+              { status: 500 }
             );
           }
         } else {
@@ -153,7 +154,7 @@ export async function POST(req: Request) {
         ) {
           return NextResponse.json(
             { error: "Invalid customer ID" },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
@@ -164,7 +165,7 @@ export async function POST(req: Request) {
         if (!user) {
           return NextResponse.json(
             { error: "User not found" },
-            { status: 404 },
+            { status: 404 }
           );
         }
 
@@ -184,8 +185,9 @@ export async function POST(req: Request) {
         const invoice = data as Stripe.Invoice;
         if (invoice.billing_reason === "subscription_cycle") {
           const subscriptionId = invoice.subscription as string;
-          const subscription =
-            await stripe.subscriptions.retrieve(subscriptionId);
+          const subscription = await stripe.subscriptions.retrieve(
+            subscriptionId
+          );
 
           const user = await db.query.users.findFirst({
             where: eq(users.stripeCustomerId, subscription.customer as string),
@@ -212,7 +214,7 @@ export async function POST(req: Request) {
         ) {
           return NextResponse.json(
             { error: "Invalid customer ID" },
-            { status: 400 },
+            { status: 400 }
           );
         }
 
@@ -223,7 +225,7 @@ export async function POST(req: Request) {
         if (!user) {
           return NextResponse.json(
             { error: "User not found" },
-            { status: 404 },
+            { status: 404 }
           );
         }
 
@@ -242,8 +244,9 @@ export async function POST(req: Request) {
       case "invoice.payment_failed": {
         const invoice = data as Stripe.Invoice;
         const subscriptionId = invoice.subscription as string;
-        const subscription =
-          await stripe.subscriptions.retrieve(subscriptionId);
+        const subscription = await stripe.subscriptions.retrieve(
+          subscriptionId
+        );
 
         const user = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, subscription.customer as string),

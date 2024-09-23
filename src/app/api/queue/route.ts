@@ -1,4 +1,3 @@
-"use server";
 import { getQueue } from "@/server/bull/queue";
 import { NextResponse } from "next/server";
 import { getJobId, deleteJobId } from "@/server/bull/redis";
