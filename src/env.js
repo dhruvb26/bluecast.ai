@@ -11,9 +11,9 @@ export const env = createEnv({
     REDIS_CLOUD_PASSWORD: z.string(),
     DATABASE_PASSWORD: z.string(),
 
-    NEXTAUTH_SECRET: z.string(),
     LINKEDIN_CLIENT_ID: z.string(),
     LINKEDIN_CLIENT_SECRET: z.string(),
+    CALLBACK_URL: z.string(),
 
     UPLOADTHING_SECRET: z.string(),
     UPLOADTHING_APP_ID: z.string(),
@@ -21,8 +21,12 @@ export const env = createEnv({
     SPIREO_SECRET_KEY: z.string(),
     MODEL: z.string(),
 
+    AIGATEWAY_ACCOUNT_ID: z.string(),
+    AIGATEWAY_ID: z.string(),
+
     ASSEMBLY_API_KEY: z.string(),
     RAPIDAPI_KEY: z.string(),
+    RAPIDAPI_HOST: z.string(),
     FRIGADE_API_KEY: z.string(),
 
     STRIPE_SECRET_KEY: z.string(),
@@ -32,7 +36,10 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     CRON_SECRET: z.string(),
-    VERCEL_URL: z.string(),
+    BASE_URL: z.string(),
+
+    CLERK_SECRET_KEY: z.string(),
+    WEBHOOK_SECRET: z.string(),
   },
 
   /**
@@ -45,6 +52,9 @@ export const env = createEnv({
       .enum(["development", "test", "production"])
       .default("development"),
     NEXT_PUBLIC_BASE_URL: z.string(),
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string(),
+    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
   },
 
   /**
@@ -52,6 +62,12 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
+      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL,
+    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL:
+      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
@@ -59,19 +75,24 @@ export const env = createEnv({
     MODEL: process.env.MODEL,
     UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
     UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
-    VERCEL_URL: process.env.VERCEL_URL,
+    AIGATEWAY_ACCOUNT_ID: process.env.AIGATEWAY_ACCOUNT_ID,
+    AIGATEWAY_ID: process.env.AIGATEWAY_ID,
     NODE_ENV: process.env.NODE_ENV,
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
     ASSEMBLY_API_KEY: process.env.ASSEMBLY_API_KEY,
+    BASE_URL: process.env.BASE_URL,
     SPIREO_SECRET_KEY: process.env.SPIREO_SECRET_KEY,
+    CALLBACK_URL: process.env.CALLBACK_URL,
     LINKEDIN_CLIENT_ID: process.env.LINKEDIN_CLIENT_ID,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     LINKEDIN_CLIENT_SECRET: process.env.LINKEDIN_CLIENT_SECRET,
     REDIS_CLOUD_PASSWORD: process.env.REDIS_CLOUD_PASSWORD,
     FRIGADE_API_KEY: process.env.FRIGADE_API_KEY,
     NEXT_PUBLIC_NODE_ENV: process.env.NEXT_PUBLIC_NODE_ENV,
+    RAPIDAPI_HOST: process.env.RAPIDAPI_HOST,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
+    CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    WEBHOOK_SECRET: process.env.WEBHOOK_SECRET,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

@@ -1,9 +1,8 @@
 import "@/styles/globals.css";
 import "@uploadthing/react/styles.css";
 import { Toaster } from "sonner";
-import * as Frigade from "@frigade/react";
 import { Inter } from "next/font/google";
-import { getUser } from "@/actions/user";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -21,7 +20,6 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getUser();
   const FRIGADE_THEME_OVERRIDES = {
     colors: {
       primary: {
@@ -39,24 +37,25 @@ export default async function RootLayout({
     },
   };
   return (
-    <Frigade.Provider
-      theme={FRIGADE_THEME_OVERRIDES}
-      apiKey="api_public_M7QhrYdEIODS2CMpemUNO3jTudHN7yrVCuHQSHzplE0d21HHYVzEdT18GMjtQM7d"
-      userId={user?.id}
-      userProperties={{
-        name: user?.name,
-        email: user?.email,
-        id: user?.id,
-        account: !!user,
-        preferences: !!user?.onboardingData,
-      }}
-    >
+    <ClerkProvider afterSignOutUrl={"https://www.bluecast.ai/"}>
+      {/* // <Frigade.Provider
+    //   theme={FRIGADE_THEME_OVERRIDES}
+    //   apiKey="api_public_M7QhrYdEIODS2CMpemUNO3jTudHN7yrVCuHQSHzplE0d21HHYVzEdT18GMjtQM7d"
+    //   userId={user?.id}
+    //   userProperties={{
+    //     name: user?.name,
+    //     email: user?.email,
+    //     id: user?.id,
+    //     account: !!user,
+    //     preferences: !!user?.onboardingData,
+    //   }}
+    // > */}
       <html lang="en" className={`${inter.className}`}>
         <body>
           {children}
-          <Toaster className="mt-8" position="top-right" richColors />
+          <Toaster position="bottom-right" />
         </body>
       </html>
-    </Frigade.Provider>
+    </ClerkProvider>
   );
 }

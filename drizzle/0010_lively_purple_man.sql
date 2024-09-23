@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_account" ADD COLUMN "expires_at" integer;

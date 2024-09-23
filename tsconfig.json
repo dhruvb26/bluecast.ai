@@ -19,7 +19,6 @@
       }
     ],
     "paths": {
-      // "crypto": ["node_modules/crypto-browserify"],
       "@/*": ["./src/*"]
     },
     "types": ["@cloudflare/workers-types/2023-07-01"]

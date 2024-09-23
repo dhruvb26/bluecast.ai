@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAccessToken, getLinkedInId, checkAccess } from "@/actions/user";
+import { getLinkedInId, checkAccess, getUser } from "@/actions/user";
 import { RouteHandlerResponse } from "@/types";
-import { updateDownloadUrl } from "@/actions/draft";
+import { updateDraftField } from "@/actions/draft";
+import { env } from "@/env";
+import { eq } from "drizzle-orm";
+import { db } from "@/server/db";
+import { accounts } from "@/server/db/schema";
 
 export async function POST(req: Request): Promise<
   NextResponse<
@@ -13,9 +17,16 @@ export async function POST(req: Request): Promise<
 > {
   try {
     await checkAccess();
-
-    const accessToken = await getAccessToken();
     const linkedInId = await getLinkedInId();
+    const user = await getUser();
+    const userId = user.id;
+
+    const account = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+      .limit(1);
+    const accessToken = account[0].access_token;
 
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/documents?action=initializeUpload",
@@ -135,7 +146,8 @@ export async function POST(req: Request): Promise<
     }
 
     if (postId) {
-      await updateDownloadUrl(postId, documentData.downloadUrl);
+      await updateDraftField(postId, "downloadUrl", documentData.downloadUrl);
+      await updateDraftField(postId, "documentUrn", documentUrn);
     }
 
     return NextResponse.json(

@@ -12,6 +12,7 @@ import {
   pgEnum,
   text,
   jsonb,
+  bigint,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
 
@@ -29,10 +30,11 @@ export const statusEnum = pgEnum("status", ["saved", "scheduled", "published"]);
 export const drafts = createTable("draft", {
   id: varchar("id", { length: 512 }).primaryKey().notNull(),
   name: varchar("name", { length: 512 }),
-  status: statusEnum("status"),
-  userId: varchar("user_id", { length: 512 }),
+  status: statusEnum("status").notNull(),
+  userId: varchar("user_id", { length: 512 })
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
   scheduledFor: timestamp("scheduled_for", { withTimezone: true }),
-  linkedInId: varchar("linked_in_id", { length: 512 }),
   content: text("content"),
   documentUrn: varchar("document_urn", { length: 512 }),
   documentTitle: varchar("document_title", { length: 512 }),
@@ -49,7 +51,10 @@ export const drafts = createTable("draft", {
 
 export const ideas = createTable("idea", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  userId: varchar("user_id", { length: 256 }),
+  userId: varchar("user_id", { length: 256 }).references(() => users.id, {
+    onDelete: "cascade",
+  }),
+
   content: text("content"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -62,7 +67,9 @@ export const ideas = createTable("idea", {
 
 export const postFormats = createTable("post_format", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  userId: varchar("user_id", { length: 256 }).references(() => users.id),
+  userId: varchar("user_id", { length: 256 }).references(() => users.id, {
+    onDelete: "cascade",
+  }),
   templates: jsonb("templates").notNull().$type<string[]>(),
   category: varchar("category", { length: 256 }).notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
@@ -76,11 +83,15 @@ export const postFormats = createTable("post_format", {
 
 export const contentStyles = createTable("content_style", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  userId: varchar("user_id", { length: 256 })
-    .notNull()
-    .references(() => users.id),
+  userId: varchar("user_id", { length: 256 }).references(() => users.id, {
+    onDelete: "cascade",
+  }),
+
+  creatorId: varchar("creator_id", { length: 256 }).references(
+    () => creators.id
+  ),
   name: varchar("name", { length: 256 }).notNull(),
-  examples: text("examples").notNull(),
+  examples: jsonb("examples").notNull().$type<string[]>(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
@@ -99,22 +110,31 @@ export const contentStyleRelations = relations(contentStyles, ({ one }) => ({
 }));
 
 // Inspiration
-export const creators = createTable("creator", {
-  id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  profile_url: varchar("profile_url", { length: 256 }),
-  full_name: varchar("full_name", { length: 128 }),
-  profile_image_url: varchar("profile_image_url", { length: 256 }),
-  headline: varchar("headline", { length: 128 }),
-});
+export const creators = createTable(
+  "creator",
+  {
+    id: varchar("id", { length: 256 }).primaryKey().notNull(),
+    profileUrl: varchar("profile_url", { length: 512 }),
+    fullName: varchar("full_name", { length: 256 }),
+    profileImageUrl: varchar("profile_image_url", { length: 512 }),
+    headline: varchar("headline", { length: 512 }),
+    urn: varchar("urn", { length: 256 }),
+  },
+  (table) => {
+    return {
+      dropCascade: true,
+    };
+  }
+);
 
 export const posts = createTable("post", {
   id: varchar("id", { length: 256 }).primaryKey().notNull(),
   creatorId: varchar("creator_id", { length: 256 })
     .notNull()
     .references(() => creators.id),
-  images: jsonb("images").$type<string[]>(),
-  document: jsonb("document").$type<Record<string, any>>(),
-  video: jsonb("video").$type<Record<string, any>>(),
+  images: jsonb("images").$type<string[] | null>(),
+  document: jsonb("document").$type<Record<string, any> | null>(),
+  video: jsonb("video").$type<Record<string, any> | null>(),
   numAppreciations: integer("num_appreciations").default(0),
   numComments: integer("num_comments").default(0),
   numEmpathy: integer("num_empathy").default(0),
@@ -152,6 +172,7 @@ export const users = createTable("user", {
   name: varchar("name", { length: 255 }),
   email: varchar("email", { length: 255 }).notNull(),
   emailVerified: timestamp("emailVerified", { mode: "date" }),
+  linkedInId: varchar("linkedin_id", { length: 128 }),
   image: varchar("image", { length: 255 }),
   hasAccess: boolean("hasAccess").default(true),
   priceId: varchar("price_id", { length: 255 }),
@@ -159,37 +180,11 @@ export const users = createTable("user", {
   headline: varchar("headline", { length: 255 }),
   stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
   trialEndsAt: timestamp("trial_ends_at"),
-  onboardingCompleted: boolean("onboarding_complete").default(false),
+  onboardingComplete: boolean("onboarding_complete").default(false),
   generatedWords: integer("generated_words").default(0).notNull(),
   onboardingData: jsonb("onboarding_data"),
   specialAccess: boolean("special_access").default(false),
 });
-
-export const accounts = createTable(
-  "account",
-  {
-    userId: varchar("userId", { length: 255 })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: varchar("type", { length: 255 })
-      .$type<AdapterAccount["type"]>()
-      .notNull(),
-    provider: varchar("provider", { length: 255 }).notNull(),
-    providerAccountId: varchar("providerAccountId", { length: 255 }).notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: varchar("token_type", { length: 255 }),
-    scope: varchar("scope", { length: 255 }),
-    id_token: text("id_token"),
-    session_state: varchar("session_state", { length: 255 }),
-  },
-  (account) => ({
-    compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
-  })
-);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
@@ -198,9 +193,83 @@ export const usersRelations = relations(users, ({ many }) => ({
   drafts: many(drafts),
 }));
 
+export const accounts = createTable(
+  "account",
+  {
+    userId: varchar("userId", { length: 256 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: varchar("provider", { length: 128 }).notNull(),
+    providerAccountId: varchar("providerAccountId", { length: 128 }).notNull(),
+    refresh_token: text("refresh_token"),
+    refresh_token_expires_in: integer("refresh_token_expires_in"),
+    access_token: text("access_token"),
+    expires_at: bigint("expires_at", { mode: "number" }),
+    expires_in: integer("expires_in"),
+    token_type: varchar("token_type", { length: 256 }),
+    scope: varchar("scope", { length: 256 }),
+    id_token: text("id_token"),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  })
+);
+
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
 }));
+
+export const creatorLists = createTable("creator_list", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  userId: varchar("user_id", { length: 256 }).references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+});
+
+export const creatorListItems = createTable("creator_list_item", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  creatorListId: varchar("creator_list_id", { length: 256 })
+    .notNull()
+    .references(() => creatorLists.id, { onDelete: "cascade" }),
+  creatorId: varchar("creator_id", { length: 256 })
+    .notNull()
+    .references(() => creators.id),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const creatorListsRelations = relations(
+  creatorLists,
+  ({ one, many }) => ({
+    user: one(users, { fields: [creatorLists.userId], references: [users.id] }),
+    items: many(creatorListItems),
+  })
+);
+
+export const creatorListItemsRelations = relations(
+  creatorListItems,
+  ({ one }) => ({
+    list: one(creatorLists, {
+      fields: [creatorListItems.creatorListId],
+      references: [creatorLists.id],
+    }),
+    creator: one(creators, {
+      fields: [creatorListItems.creatorId],
+      references: [creators.id],
+    }),
+  })
+);
 
 // Auth schemas
 export const sessions = createTable("session", {

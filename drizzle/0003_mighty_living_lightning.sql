@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_content_style" ALTER COLUMN "user_id" DROP NOT NULL;

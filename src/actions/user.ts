@@ -1,63 +1,30 @@
 "use server";
 
-import { getServerAuthSession } from "@/server/auth";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/server/db";
-import {
-  users,
-  accounts,
-  sessions,
-  drafts,
-  ideas,
-  verificationTokens,
-} from "@/server/db/schema";
-
-export async function getAccessToken() {
-  try {
-    const session = await getServerAuthSession();
-
-    if (!session) {
-      throw new Error("No session found for the user.");
-    }
-
-    const account = await db.query.accounts.findFirst({
-      where: eq(accounts.userId, session.user.id),
-      columns: {
-        access_token: true,
-        expires_at: true,
-      },
-    });
-
-    if (!account) {
-      throw new Error("No LinkedIn account found for the user.");
-    }
-
-    return account.access_token;
-  } catch (error) {
-    console.error("Error in getAccessToken:", error);
-    throw error;
-  }
-}
-
+import { accounts, users } from "@/server/db/schema";
+import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 export async function getLinkedInId() {
   try {
-    const session = await getServerAuthSession();
+    const user = await currentUser();
 
-    if (!session) {
-      throw new Error("No session found for the user.");
+    if (!user) {
+      throw new Error("No user found.");
     }
 
-    const account = await db
-      .select({ providerAccountId: accounts.providerAccountId })
+    const linkedInAccount = await db
+      .select()
       .from(accounts)
-      .where(eq(accounts.userId, session.user.id))
+      .where(eq(accounts.userId, user.id))
       .limit(1);
 
-    if (!account[0]) {
+    if (!linkedInAccount) {
       throw new Error("No LinkedIn account found for the user.");
     }
 
-    return account[0].providerAccountId;
+    return linkedInAccount;
   } catch (error) {
     console.error("Error in getLinkedInId:", error);
     throw error;
@@ -66,20 +33,24 @@ export async function getLinkedInId() {
 
 export async function getUser() {
   try {
-    const session = await getServerAuthSession();
+    const userClerk = await currentUser();
 
-    if (!session) {
-      throw new Error("No session found for the user.");
+    if (!userClerk) {
+      throw new Error("No user found.");
     }
 
+    const userId = userClerk.id;
+
     const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
+      where: eq(users.id, userId),
       columns: {
         id: true,
         name: true,
         email: true,
         image: true,
         headline: true,
+        trialEndsAt: true,
+        specialAccess: true,
         onboardingData: true,
       },
     });
@@ -97,12 +68,13 @@ export async function getUser() {
 
 export async function checkAccess() {
   try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
     }
 
-    const userId = session.user.id;
+    const userId = userClerk.id;
     const user = await db
       .select({
         specialAccess: users.specialAccess,
@@ -116,10 +88,10 @@ export async function checkAccess() {
     if (!user[0]) {
       throw new Error("User not found in the database.");
     }
-
+    console.log("Called checking access: returning access");
     if (user[0].specialAccess) return true;
 
-    return user[0].hasAccess && user[0].generatedWords < 10000;
+    return user[0].hasAccess;
   } catch (error) {
     console.error("Error in checkAccess:", error);
     throw error;
@@ -128,12 +100,13 @@ export async function checkAccess() {
 
 export async function checkValidity() {
   try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
     }
 
-    const userId = session.user.id;
+    const userId = userClerk.id;
     const user = await db
       .select({ trialEndsAt: users.trialEndsAt })
       .from(users)
@@ -151,14 +124,15 @@ export async function checkValidity() {
   }
 }
 
-export async function updateGeneratedWords(words: number) {
+export async function setGeneratedWords(words: number) {
   try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
     }
 
-    const userId = session.user.id;
+    const userId = userClerk.id;
     await db
       .update(users)
       .set({
@@ -166,19 +140,20 @@ export async function updateGeneratedWords(words: number) {
       })
       .where(eq(users.id, userId));
   } catch (error) {
-    console.error("Error in updateGeneratedWords:", error);
+    console.error("Error in setGeneratedWords:", error);
     throw error;
   }
 }
 
 export async function getGeneratedWords() {
   try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
     }
 
-    const userId = session.user.id;
+    const userId = userClerk.id;
     const result = await db
       .select({ generatedWords: users.generatedWords })
       .from(users)
@@ -196,116 +171,36 @@ export async function getGeneratedWords() {
   }
 }
 
-export async function deleteUser() {
+export async function completeOnboarding(onboardingData: any) {
   try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
+    const { userId } = auth();
+    if (!userId) {
+      throw new Error("Unauthorized");
     }
 
-    const userId = session.user.id;
-
-    await db.transaction(async (tx) => {
-      // Delete related records first
-      await tx.delete(accounts).where(eq(accounts.userId, userId));
-      await tx.delete(sessions).where(eq(sessions.userId, userId));
-      await tx.delete(drafts).where(eq(drafts.userId, userId));
-      await tx.delete(ideas).where(eq(ideas.userId, userId));
-      await tx
-        .delete(verificationTokens)
-        .where(eq(verificationTokens.identifier, userId));
-
-      // Delete the user last
-      await tx.delete(users).where(eq(users.id, userId));
-    });
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error in deleteUser:", error);
-    throw error;
-  }
-}
-
-export async function setUserOnboarding(completed: boolean) {
-  try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
+    if (!onboardingData) {
+      throw new Error("Invalid onboarding data");
     }
 
+    // Update user's information in the database
     await db
       .update(users)
-      .set({ onboardingCompleted: completed })
-      .where(eq(users.id, session.user.id));
-    return { success: true };
-  } catch (error) {
-    console.error("Error in setUserOnboarding:", error);
-    throw error;
-  }
-}
-
-export async function setUserOnboardingData(formData: {
-  role: string;
-  heardFrom: string;
-  topics: string[];
-}) {
-  const session = await getServerAuthSession();
-  if (!session) throw new Error("Unauthorized");
-
-  const userId = session.user.id;
-  const onboardingData = {
-    ...formData,
-    completedAt: new Date(),
-  };
-
-  try {
-    const result = await db
-      .update(users)
       .set({
-        onboardingData: sql`${JSON.stringify(onboardingData)}::jsonb`,
-        onboardingCompleted: true,
+        onboardingData: onboardingData,
+        onboardingComplete: true,
       })
-      .where(eq(users.id, userId))
-      .returning({ updatedId: users.id });
+      .where(eq(users.id, userId));
 
-    if (result.length === 0) throw new Error("User not found or update failed");
-    return { success: true };
-  } catch (error) {
-    console.error("Error completing onboarding:", error);
-    throw new Error("Failed to complete onboarding");
-  }
-}
-
-export async function getUserOnboardingData() {
-  try {
-    const session = await getServerAuthSession();
-    if (!session) {
-      throw new Error("No session found for the user.");
-    }
-
-    const userId = session.user.id;
-    const result = await db
-      .select({
-        onboardingData: users.onboardingData,
-        onboardingCompleted: users.onboardingCompleted,
-      })
-      .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
-
-    if (result.length === 0) {
-      throw new Error("User not found in the database");
-    }
-
-    return {
-      success: true,
-      data: {
-        onboardingData: result[0].onboardingData,
-        onboardingCompleted: result[0].onboardingCompleted,
+    // Update Clerk user metadata
+    await clerkClient().users.updateUserMetadata(userId, {
+      publicMetadata: {
+        onboardingComplete: true,
       },
-    };
+    });
+
+    return { message: "Onboarding completed successfully" };
   } catch (error) {
-    console.error("Error in getUserOnboardingData:", error);
+    console.error("Error during onboarding:", error);
     throw error;
   }
 }

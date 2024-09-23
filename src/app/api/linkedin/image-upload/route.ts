@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAccessToken, getLinkedInId, checkAccess } from "@/actions/user";
+import { getLinkedInId, checkAccess, getUser } from "@/actions/user";
 import { RouteHandlerResponse } from "@/types";
-import { updateDownloadUrl } from "@/actions/draft";
+import { updateDraftField } from "@/actions/draft";
+import { eq } from "drizzle-orm";
+import { db } from "@/server/db";
+import { accounts } from "@/server/db/schema";
 
 export async function POST(req: Request): Promise<
   NextResponse<
@@ -12,17 +15,32 @@ export async function POST(req: Request): Promise<
   >
 > {
   try {
+    console.log("Starting image upload process");
     await checkAccess();
-    const accessToken = await getAccessToken();
+    console.log("Access checked");
     const linkedInId = await getLinkedInId();
+    console.log("LinkedIn ID retrieved:", linkedInId);
+    const formData = await req.formData();
+    console.log("Form data parsed");
+    const user = await getUser();
+    const userId = user.id;
+    console.log("User ID:", userId);
 
+    const account = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+      .limit(1);
+    const accessToken = account[0].access_token;
+    console.log("Access token retrieved");
+
+    console.log("Initializing upload with LinkedIn API");
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/images?action=initializeUpload",
       {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
           "X-Restli-Protocol-Version": "2.0.0",
           "LinkedIn-Version": "202406",
         },
@@ -36,6 +54,7 @@ export async function POST(req: Request): Promise<
 
     if (!initResponse.ok) {
       const errorData = await initResponse.json();
+      console.error("LinkedIn API error:", errorData);
       throw new Error(`LinkedIn API error: ${JSON.stringify(errorData)}`);
     }
 
@@ -45,20 +64,23 @@ export async function POST(req: Request): Promise<
     const {
       value: { uploadUrl, image: imageUrn },
     } = initData;
+    console.log("Upload initialized. Image URN:", imageUrn);
 
-    const formData = await req.formData();
     const file = formData.get("file") as File;
     const postId = formData.get("postId") as string;
+    console.log("File and postId retrieved from form data");
 
     if (!file) {
+      console.error("No file provided");
       return NextResponse.json(
         { success: false, error: "No file provided" },
         { status: 400 }
       );
     }
 
+    console.log("Uploading file to LinkedIn");
     const uploadResponse = await fetch(uploadUrl, {
-      method: "PUT",
+      method: "POST",
       headers: {
         "Content-Type": "application/octet-stream",
         "LinkedIn-Version": "202406",
@@ -68,10 +90,12 @@ export async function POST(req: Request): Promise<
     });
 
     if (!uploadResponse.ok) {
+      console.error("Upload failed with status:", uploadResponse.status);
       throw new Error(`Upload failed with status: ${uploadResponse.status}`);
     }
+    console.log("File uploaded successfully");
 
-    // Poll for image status until it's AVAILABLE
+    console.log("Polling for image status");
     let imageData: { status: string; downloadUrl: string } | null = null;
     let retries = 0;
     const maxRetries = 10;
@@ -79,6 +103,7 @@ export async function POST(req: Request): Promise<
 
     while (retries < maxRetries) {
       const getImageUrl = `https://api.linkedin.com/rest/images/${imageUrn}`;
+      console.log(`Polling attempt ${retries + 1}/${maxRetries}`);
       const imageResponse = await fetch(getImageUrl, {
         method: "GET",
         headers: {
@@ -88,6 +113,7 @@ export async function POST(req: Request): Promise<
       });
 
       if (!imageResponse.ok) {
+        console.error("GET image failed with status:", imageResponse.status);
         throw new Error(
           `GET image failed with status: ${imageResponse.status}`
         );
@@ -97,8 +123,10 @@ export async function POST(req: Request): Promise<
         status: string;
         downloadUrl: string;
       };
+      console.log("Image status:", imageData.status);
 
       if (imageData.status === "AVAILABLE") {
+        console.log("Image is available");
         break;
       }
 
@@ -107,13 +135,18 @@ export async function POST(req: Request): Promise<
     }
 
     if (!imageData || imageData.status !== "AVAILABLE") {
+      console.error("Image processing timed out or failed");
       throw new Error("Image processing timed out or failed");
     }
 
     if (postId) {
-      await updateDownloadUrl(postId, imageData.downloadUrl);
+      console.log("Setting downloadURL for the post now!");
+      await updateDraftField(postId, "downloadUrl", imageData.downloadUrl);
+      await updateDraftField(postId, "documentUrn", imageUrn);
+      console.log("Draft fields updated");
     }
 
+    console.log("Image upload process completed successfully");
     return NextResponse.json(
       {
         success: true,
@@ -124,7 +157,8 @@ export async function POST(req: Request): Promise<
       },
       { status: 200 }
     );
-  } catch (err: unknown) {
+  } catch (err: any) {
+    console.error("Error in image upload process:", err);
     const error = err instanceof Error ? err.message : "Internal server error";
     return NextResponse.json(
       {

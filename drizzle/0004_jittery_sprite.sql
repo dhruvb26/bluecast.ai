@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_creator" ADD COLUMN "urn" varchar(128);

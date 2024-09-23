@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_user" ADD COLUMN "linkedin_id" varchar(128);

@@ -2,18 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users } from "@/server/db/schema";
 import { and, eq, lt } from "drizzle-orm";
+import { RouteHandlerResponse } from "@/types";
 import { env } from "@/env";
-export const dynamic = "force-dynamic";
+import { clerkClient } from "@clerk/nextjs/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(
+  req: NextRequest
+): Promise<RouteHandlerResponse<{ updated: number }>> {
   try {
     if (req.headers.get("Authorization") !== `Bearer ${env.CRON_SECRET}`) {
-      return NextResponse.json({ message: "Not authorized" }, { status: 401 });
+      return { success: false, error: "Not authorized" };
     }
 
     const now = new Date();
 
-    // Update all users whose trial has ended
+    // Get all users whose trial has ended
+    const usersToUpdate = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(
+        and(
+          eq(users.hasAccess, true),
+          lt(users.trialEndsAt, now),
+          eq(users.specialAccess, false)
+        )
+      );
+
+    // Update users in the database
     const result = await db
       .update(users)
       .set({ hasAccess: false })
@@ -25,18 +40,23 @@ export async function GET(req: NextRequest) {
         )
       );
 
-    return NextResponse.json(
-      {
-        message: "Trial access updated",
+    // Update Clerk metadata for each user
+    for (const user of usersToUpdate) {
+      await clerkClient.users.updateUserMetadata(user.id, {
+        publicMetadata: {
+          hasAccess: false,
+        },
+      });
+    }
+
+    return {
+      success: true,
+      data: {
         updated: result.count,
       },
-      { status: 200 }
-    );
+    };
   } catch (error) {
     console.error("Error updating trial access:", error);
-    return NextResponse.json(
-      { message: "Error updating trial access" },
-      { status: 500 }
-    );
+    return { success: false, error: "Error updating trial access" };
   }
 }

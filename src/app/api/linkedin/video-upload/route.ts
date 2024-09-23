@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { getAccessToken, getLinkedInId, checkAccess } from "@/actions/user";
-import { updateDownloadUrl } from "@/actions/draft";
+import { getLinkedInId, checkAccess, getUser } from "@/actions/user";
+import { updateDraftField } from "@/actions/draft";
 import { RouteHandlerResponse } from "@/types";
-
+import { env } from "@/env";
+import { eq } from "drizzle-orm";
+import { db } from "@/server/db";
+import { accounts } from "@/server/db/schema";
 interface UploadInstruction {
   uploadUrl: string;
   firstByte: number;
@@ -28,8 +31,16 @@ export async function POST(
 > {
   try {
     await checkAccess();
-    const accessToken = await getAccessToken();
     const linkedInId = await getLinkedInId();
+    const user = await getUser();
+    const userId = user.id;
+
+    const account = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+      .limit(1);
+    const accessToken = account[0].access_token;
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -152,7 +163,8 @@ export async function POST(
     const { downloadUrl } = videoDetails;
 
     if (postId) {
-      await updateDownloadUrl(postId, downloadUrl);
+      await updateDraftField(postId, "downloadUrl", downloadUrl);
+      await updateDraftField(postId, "documentUrn", videoUrn);
     }
 
     return NextResponse.json({

@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_account" ALTER COLUMN "expires_at" SET DATA TYPE bigint;

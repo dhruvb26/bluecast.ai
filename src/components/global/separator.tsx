@@ -7,7 +7,7 @@ interface SeparatorProps {
   className?: string;
 }
 
-const Separator: React.FC<SeparatorProps> = ({
+export const Separator: React.FC<SeparatorProps> = ({
   text,
   side = "left",
   className,
@@ -17,7 +17,7 @@ const Separator: React.FC<SeparatorProps> = ({
       {text && side === "left" && (
         <span className="mr-1 text-xs text-gray-500">{text}</span>
       )}
-      <div className="h-[1px] flex-grow bg-brand-gray-200" />
+      <div className="h-[1px] flex-grow bg-gray-200" />
       {text && side === "right" && (
         <span className="ml-1 text-xs text-gray-500">{text}</span>
       )}

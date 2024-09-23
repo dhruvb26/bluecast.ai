@@ -33,9 +33,7 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 import { Check } from "@phosphor-icons/react";
-// import { completeOnboarding, skipOnboarding } from "@/actions/user";
-import { v4 as uuidv4 } from "uuid";
-import { setUserOnboarding, setUserOnboardingData } from "@/actions/user";
+import { completeOnboarding } from "@/actions/user";
 
 const formSchema = z.object({
   role: z.string({
@@ -85,6 +83,7 @@ export default function OnboardingForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [topicInput, setTopicInput] = useState("");
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,11 +96,27 @@ export default function OnboardingForm() {
 
   useEffect(() => {
     if (topicInput) {
-      setFilteredSuggestions(
-        topicSuggestions.filter((topic) =>
-          topic.toLowerCase().includes(topicInput.toLowerCase())
-        )
+      const lowercaseInput = topicInput.toLowerCase().trim();
+      const filtered = topicSuggestions.filter((topic) =>
+        topic.toLowerCase().includes(lowercaseInput)
       );
+
+      // Check if the input exactly matches any existing suggestion (case-insensitive)
+      const exactMatch = topicSuggestions.find(
+        (topic) => topic.toLowerCase() === lowercaseInput
+      );
+
+      // Only add the current input if it's not an exact match and not already in filtered
+      if (
+        !exactMatch &&
+        !filtered.some((topic) => topic.toLowerCase() === lowercaseInput) &&
+        lowercaseInput !== ""
+      ) {
+        filtered.unshift(topicInput.trim());
+      }
+
+      setFilteredSuggestions(filtered);
+      setSelectedSuggestionIndex(-1);
     } else {
       setFilteredSuggestions([]);
     }
@@ -129,16 +144,13 @@ export default function OnboardingForm() {
       addTopic(topicInput);
     }
   };
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     try {
-      const result = await setUserOnboardingData(values);
-      const id = uuidv4();
-
-      if (result.success) {
+      const result = await completeOnboarding(values);
+      if (result.message === "Onboarding completed successfully") {
         toast.success("Welcome to Spireo! Your onboarding is complete.");
-        router.push(`/dashboard/draft/${id}`);
+        router.push(`/create/posts`);
         router.refresh();
       } else {
         throw new Error("Onboarding failed");
@@ -153,10 +165,10 @@ export default function OnboardingForm() {
   async function handleSkip() {
     setIsSubmitting(true);
     try {
-      const result = await setUserOnboarding(true);
-      if (result.success) {
+      const result = await completeOnboarding({ onboardingComplete: true });
+      if (result.message === "Onboarding completed successfully") {
         toast.success("Onboarding skipped. You can always complete it later.");
-        router.push("/dashboard");
+        router.push("/create/posts");
         router.refresh();
       } else {
         throw new Error("Failed to skip onboarding");
@@ -167,16 +179,19 @@ export default function OnboardingForm() {
       setIsSubmitting(false);
     }
   }
-
   return (
-    <div className="flex min-h-screen items-center justify-center ">
+    <div className="flex min-h-screen items-center  justify-center ">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
         <div className="mb-4 flex flex-row items-center justify-center space-x-2">
-          <Image src="/brand/icon.png" width={35} height={35} alt="" />
-          <span className="text-4xl font-bold tracking-tighter">Spireo</span>
+          <Image
+            src="/brand/Bluecast Logo.png"
+            width={150}
+            height={150}
+            alt="Bluecast Logo"
+          />
         </div>
         <p className="mb-6 text-center text-sm">
-          Thank you for choosing Spireo. Fill out this form and help us
+          Thank you for choosing Bluecast. Fill out this form and help us
           understand you better.
         </p>
 
@@ -223,7 +238,7 @@ export default function OnboardingForm() {
                         variant={
                           field.value === option.value ? "default" : "outline"
                         }
-                        className="flex items-center gap-2 rounded-lg"
+                        className="flex items-center gap-2 rounded-md"
                         onClick={() => form.setValue("heardFrom", option.value)}
                       >
                         {option.icon && <option.icon />}
@@ -252,9 +267,9 @@ export default function OnboardingForm() {
                       {filteredSuggestions.length > 0 && (
                         <div className="relative">
                           <ul className="absolute z-50 max-h-60 w-full overflow-auto rounded-md border border-input bg-popover p-1 text-popover-foreground shadow-md">
-                            {filteredSuggestions.map((suggestion) => (
+                            {filteredSuggestions.map((suggestion, index) => (
                               <li
-                                key={suggestion}
+                                key={index}
                                 className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                                 onClick={() => addTopic(suggestion)}
                               >
@@ -264,6 +279,16 @@ export default function OnboardingForm() {
                                   )}
                                 </span>
                                 {suggestion}
+                                {index === 0 &&
+                                  suggestion.toLowerCase() ===
+                                    topicInput.toLowerCase().trim() &&
+                                  !topicSuggestions.some(
+                                    (topic) =>
+                                      topic.toLowerCase() ===
+                                      suggestion.toLowerCase()
+                                  ) && (
+                                    <span className="ml-2 text-xs text-muted-foreground"></span>
+                                  )}
                               </li>
                             ))}
                           </ul>
@@ -293,20 +318,16 @@ export default function OnboardingForm() {
               )}
             />
             <div className="flex flex-col items-center justify-center space-y-3">
-              <Button
-                type="submit"
-                className="w-full rounded-lg bg-blue-500 text-white hover:bg-blue-700"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? "Submitting..." : "Finish"}
+              <Button className="w-full" type="submit" loading={isSubmitting}>
+                {isSubmitting ? "Processing" : "Finish"}
               </Button>
-              <button
-                className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
+              <Button
+                variant={"link"}
                 onClick={handleSkip}
                 disabled={isSubmitting}
               >
                 Skip for now
-              </button>
+              </Button>
             </div>
           </form>
         </Form>

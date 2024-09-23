@@ -11,6 +11,11 @@ await import("./src/env.js");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    instrumentationHook: true,
+    serverComponentsExternalPackages: ["bullmq"],
+    esmExternals: "loose",
+  },
   images: {
     remotePatterns: [
       {
