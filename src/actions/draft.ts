@@ -23,7 +23,7 @@ export type Draft = {
   downloadUrl?: string;
 };
 
-type DraftKeys = keyof typeof drafts;
+type DraftColumn = keyof typeof drafts._.columns;
 
 export async function getDraft(
   draftId: string
@@ -158,6 +158,7 @@ export async function getDraftField<K extends keyof Draft>(
     const userId = user.id;
 
     const result = await db
+      //@ts-ignore
       .select({ [field]: drafts[field] })
       .from(drafts)
       .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)))
