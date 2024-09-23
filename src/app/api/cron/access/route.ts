@@ -2,16 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { users } from "@/server/db/schema";
 import { and, eq, lt } from "drizzle-orm";
-import { RouteHandlerResponse } from "@/types";
 import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 
-export async function GET(
-  req: NextRequest
-): Promise<RouteHandlerResponse<{ updated: number }>> {
+export async function GET(req: NextRequest): Promise<Response> {
   try {
     if (req.headers.get("Authorization") !== `Bearer ${env.CRON_SECRET}`) {
-      return { success: false, error: "Not authorized" };
+      return NextResponse.json({ error: "Not authorized" }, { status: 401 });
     }
 
     const now = new Date();
@@ -49,14 +46,12 @@ export async function GET(
       });
     }
 
-    return {
-      success: true,
-      data: {
-        updated: result.count,
-      },
-    };
+    return NextResponse.json({ updated: result.count }, { status: 200 });
   } catch (error) {
     console.error("Error updating trial access:", error);
-    return { success: false, error: "Error updating trial access" };
+    return NextResponse.json(
+      { error: "Error updating trial access" },
+      { status: 500 }
+    );
   }
 }

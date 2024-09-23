@@ -6,7 +6,7 @@ import { Descendant } from "slate";
 import ContentViewer from "./content-viewer";
 import { getDraftField, removeDraftField } from "@/actions/draft";
 import { MdSmartphone, MdTablet, MdLaptop } from "react-icons/md";
-import { GlobeHemisphereWest } from "@phosphor-icons/react";
+import { GlobeHemisphereWest, X } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
@@ -153,8 +153,13 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
       >
         {isHovering && (
           <div className="absolute top-0 left-0 right-0 z-10 bg-black bg-opacity-50 p-2 flex justify-end">
-            <Button size="sm" onClick={handleDelete}>
-              Delete
+            <Button
+              variant={"outline"}
+              className="rounded-full"
+              size="icon"
+              onClick={handleDelete}
+            >
+              <X weight="bold" />
             </Button>
           </div>
         )}

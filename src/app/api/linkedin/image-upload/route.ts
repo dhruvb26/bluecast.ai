@@ -18,8 +18,8 @@ export async function POST(req: Request): Promise<
     console.log("Starting image upload process");
     await checkAccess();
     console.log("Access checked");
-    const linkedInId = await getLinkedInId();
-    console.log("LinkedIn ID retrieved:", linkedInId);
+    // const linkedInId = await getLinkedInId();
+    // console.log("LinkedIn ID retrieved:", linkedInId);
     const formData = await req.formData();
     console.log("Form data parsed");
     const user = await getUser();
@@ -31,8 +31,12 @@ export async function POST(req: Request): Promise<
       .from(accounts)
       .where(eq(accounts.userId, userId))
       .limit(1);
+    const linkedInId = await db
+      .select({ providerAccountId: accounts.providerAccountId })
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+      .limit(1);
     const accessToken = account[0].access_token;
-    console.log("Access token retrieved");
 
     console.log("Initializing upload with LinkedIn API");
     const initResponse = await fetch(
@@ -46,7 +50,7 @@ export async function POST(req: Request): Promise<
         },
         body: JSON.stringify({
           initializeUploadRequest: {
-            owner: `urn:li:person:${linkedInId}`,
+            owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
           },
         }),
       }

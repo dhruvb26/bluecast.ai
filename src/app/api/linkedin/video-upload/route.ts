@@ -31,7 +31,7 @@ export async function POST(
 > {
   try {
     await checkAccess();
-    const linkedInId = await getLinkedInId();
+    // const linkedInId = await getLinkedInId();
     const user = await getUser();
     const userId = user.id;
 
@@ -45,7 +45,11 @@ export async function POST(
     const formData = await req.formData();
     const file = formData.get("file") as File;
     const postId = formData.get("postId") as string;
-
+    const linkedInId = await db
+      .select({ providerAccountId: accounts.providerAccountId })
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+      .limit(1);
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/videos?action=initializeUpload",
       {
@@ -58,7 +62,7 @@ export async function POST(
         },
         body: JSON.stringify({
           initializeUploadRequest: {
-            owner: `urn:li:person:${linkedInId}`,
+            owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
             fileSizeBytes: file.size,
             uploadCaptions: false,
             uploadThumbnail: false,
