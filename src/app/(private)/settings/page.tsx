@@ -22,6 +22,7 @@ import {
 import LinkedInSignInButton from "@/components/auth/linkedin-signin-button";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
+export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
   const user = await getUser();

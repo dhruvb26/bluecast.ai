@@ -158,6 +158,7 @@ export async function getDraftField<K extends keyof Draft>(
     const userId = user.id;
 
     const result = await db
+      //@ts-ignore
       .select({ [field]: drafts[field] })
       .from(drafts)
       .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)))

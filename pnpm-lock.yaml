@@ -170,6 +170,9 @@ importers:
       react-spinners:
         specifier: ^0.14.1
         version: 0.14.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      slate:
+        specifier: ^0.103.0
+        version: 0.103.0
       slate-history:
         specifier: ^0.109.0
         version: 0.109.0(slate@0.103.0)

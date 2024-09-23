@@ -4,6 +4,7 @@ import { users } from "@/server/db/schema";
 import { and, eq, lt } from "drizzle-orm";
 import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest): Promise<Response> {
   try {
