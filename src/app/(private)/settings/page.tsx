@@ -161,7 +161,7 @@ const SettingsPage = async () => {
             </p>
           </div>
           <div className="flex w-2/3 items-center justify-start">
-            {provider === "linkedin" ? (
+            {/* {provider === "linkedin" ? (
               <Button
                 disabled
                 className="flex items-center justify-center rounded-lg border border-neutral-100 bg-neutral-50 px-4 py-2 text-sm text-foreground shadow hover:bg-neutral-100"
@@ -175,9 +175,9 @@ const SettingsPage = async () => {
                 />
                 Connected
               </Button>
-            ) : (
-              <LinkedInSignInButton buttonText="Connect LinkedIn" />
-            )}
+            ) : ( */}
+
+            <LinkedInSignInButton buttonText="Connect LinkedIn" />
           </div>
         </section>
         {/* <section className="flex space-x-4">

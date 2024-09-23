@@ -3,7 +3,7 @@ import { env } from "@/env";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
 import { accounts, users } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const user = await currentUser();
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     const tokenData: any = await tokenResponse.json();
 
-    console.log("Response from LinknedIn: ", tokenData);
+    console.log("Response from LinkedIn: ", tokenData);
     const access_token = tokenData.access_token;
     const expires_in = tokenData.expires_in;
     const expires_at = Date.now() + tokenData.expires_in * 1000;
@@ -112,22 +112,57 @@ export async function GET(request: NextRequest) {
           image: profilePictureUrl,
         })
         .where(eq(users.id, user.id));
-    }
 
-    if (user) {
-      await db.insert(accounts).values({
-        userId: user.id,
-        provider: "linkedin",
-        providerAccountId: linkedInId,
-        access_token,
-        expires_in,
-        refresh_token,
-        refresh_token_expires_in,
-        scope,
-        expires_at,
-        token_type,
-        id_token,
-      });
+      // Check if the account already exists
+      const existingAccount = await db
+        .select()
+        .from(accounts)
+        .where(
+          and(
+            eq(accounts.userId, user.id),
+            eq(accounts.provider, "linkedin"),
+            eq(accounts.providerAccountId, linkedInId)
+          )
+        )
+        .limit(1);
+
+      if (existingAccount.length === 0) {
+        // If the account doesn't exist, insert it
+        await db.insert(accounts).values({
+          userId: user.id,
+          provider: "linkedin",
+          providerAccountId: linkedInId,
+          access_token,
+          expires_in,
+          refresh_token,
+          refresh_token_expires_in,
+          scope,
+          expires_at,
+          token_type,
+          id_token,
+        });
+      } else {
+        // If the account exists, update it
+        await db
+          .update(accounts)
+          .set({
+            access_token,
+            expires_in,
+            refresh_token,
+            refresh_token_expires_in,
+            scope,
+            expires_at,
+            token_type,
+            id_token,
+          })
+          .where(
+            and(
+              eq(accounts.userId, user.id),
+              eq(accounts.provider, "linkedin"),
+              eq(accounts.providerAccountId, linkedInId)
+            )
+          );
+      }
     }
 
     // Here you would typically save the access token and associated user data

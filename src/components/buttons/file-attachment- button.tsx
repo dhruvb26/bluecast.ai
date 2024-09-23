@@ -148,7 +148,7 @@ const FileAttachmentButton = ({
               </div>
             )}
           <Button
-            className="rounded-lg bg-blue-600 hover:bg-blue-700"
+            loading={isUploading}
             onClick={handleAttach}
             disabled={
               !selectedFile ||
@@ -158,14 +158,7 @@ const FileAttachmentButton = ({
                 !documentName)
             }
           >
-            {isUploading ? (
-              <>
-                Uploading
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              </>
-            ) : (
-              "Attach"
-            )}
+            {isUploading ? "Processing" : "Attach"}
           </Button>
         </div>
       </DialogContent>
