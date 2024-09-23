@@ -7,7 +7,7 @@ if (process.env.NODE_ENV === "development") {
   await setupDevPlatform();
 }
 
-await import("./src/env.js");
+import("./src/env.js");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
