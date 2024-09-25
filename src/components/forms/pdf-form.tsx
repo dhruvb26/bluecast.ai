@@ -16,7 +16,7 @@ import {
 } from "./form-fields";
 
 export const RepurposeFormSchema = z.object({
-  url: z.string().url(),
+  url: z.string().url().min(1, "URL is required"),
   instructions: z.string().optional(),
   formatTemplate: z.string().optional(),
   engagementQuestion: z.string().optional(),
@@ -28,7 +28,6 @@ export function PDFForm() {
   const form = useForm<z.infer<typeof RepurposeFormSchema>>({
     resolver: zodResolver(RepurposeFormSchema),
     defaultValues: {
-      url: "",
       instructions: "",
       formatTemplate: "",
       engagementQuestion: "",

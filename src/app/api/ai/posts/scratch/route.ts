@@ -30,7 +30,6 @@ export async function POST(req: Request) {
     const { postContent, tone, instructions, formatTemplate, contentStyle } =
       body;
 
-    console.log("content style id: ", contentStyle);
     let examples;
     if (contentStyle) {
       const response = await getContentStyle(contentStyle);
@@ -38,8 +37,6 @@ export async function POST(req: Request) {
         examples = response.data.examples;
       }
     }
-
-    console.log(examples);
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -69,9 +66,9 @@ export async function POST(req: Request) {
             {${instructions}}
             </custom_instructions>
 
-            <examples>
-        {${examples}}
-            </examples>
+            <writing_style>
+            {${examples}}
+            </writing_style>
 
             Follow these steps to create your LinkedIn story:
 

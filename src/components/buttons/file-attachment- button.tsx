@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Paperclip } from "lucide-react";
 import { updateDraftField } from "@/actions/draft";
+import { toast } from "sonner";
 
 const FileAttachmentButton = ({
   postId,
@@ -27,6 +28,12 @@ const FileAttachmentButton = ({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check if the file is an MP4 and exceeds 50 MB
+      if (file.type === "video/mp4" && file.size > 50 * 1024 * 1024) {
+        toast.error("MP4 files must be 50 MB or smaller.");
+        return;
+      }
+
       setSelectedFile(file);
       if (file.type === "application/pdf" || file.type === "video/mp4") {
         setDocumentName(file.name.replace(/\.[^/.]+$/, ""));
@@ -91,7 +98,12 @@ const FileAttachmentButton = ({
           setDocumentName("");
           setIsOpen(false);
         } else {
-          throw new Error(result.message || "Upload failed");
+          console.error(
+            result.message || "Upload failed. Try a smaller size file."
+          );
+          toast.error(
+            result.message || "Upload failed. Try a smaller size file."
+          );
         }
       } catch (error: any) {
         console.error("Error in file upload process:", error.message);
@@ -123,6 +135,11 @@ const FileAttachmentButton = ({
               onChange={handleFileChange}
               accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,.pptx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document,video/mp4,video/x-ms-asf,audio/mpeg,video/mpeg"
             />
+
+            <span className="text-sm text-muted-foreground">
+              <span className="font-medium">NOTE:</span> Video Uploads are
+              limited to 50 MB as of now.
+            </span>
             {selectedFile && (
               <p className="text-sm text-gray-500">
                 <span className="font-medium">Selected file: </span>

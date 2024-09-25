@@ -141,9 +141,10 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
         : getWeekDates(currentDate, currentView === "1week" ? 1 : 2);
     const today = new Date().toDateString();
     const now = new Date();
+    const currentMonth = currentDate.getMonth();
 
     const timeChunks = Array.from(
-      { length: 8 },
+      { length: 9 },
       (_, i) => `${(i * 3).toString().padStart(2, "0")}:00`
     );
 
@@ -155,7 +156,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
             {timeChunks.map((time, i) => (
               <div
                 key={i}
-                className="h-[calc((100vh-100px)/8)] flex items-end justify-end pr-2 pb-1"
+                className="h-[calc((100vh-100px)/9)] flex items-end justify-end pr-2 pb-5"
               >
                 <span className="text-xs text-gray-400">{time}</span>
               </div>
@@ -172,13 +173,19 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                 <div
                   key={index}
                   className={`flex flex-col ${
-                    date.toDateString() === today ? "bg-gray-25" : "bg-white"
+                    date.toDateString() === today
+                      ? "bg-gray-25"
+                      : date.getMonth() !== currentMonth
+                      ? "bg-gray-50"
+                      : "bg-white"
                   }`}
                 >
                   <div
                     className={`sticky top-0 z-10 flex-shrink-0 h-14 items-center justify-center ${
                       date.toDateString() === today
                         ? "border-blue-600 border-b p-4 bg-white"
+                        : date.getMonth() !== currentMonth
+                        ? "bg-gray-50 p-4 border-b border-input"
                         : "bg-white p-4 border-b border-input"
                     }`}
                   >
@@ -187,6 +194,8 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                         className={`text-sm font-normal ${
                           date.toDateString() === today
                             ? "text-blue-600"
+                            : date.getMonth() !== currentMonth
+                            ? "text-gray-400"
                             : "text-muted-foreground"
                         }`}
                       >
@@ -194,7 +203,11 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                       </div>
                       <div
                         className={`text-sm ${
-                          date.toDateString() === today ? "text-blue-600" : ""
+                          date.toDateString() === today
+                            ? "text-blue-600"
+                            : date.getMonth() !== currentMonth
+                            ? "text-gray-400"
+                            : ""
                         }`}
                       >
                         {formatDayOfMonth(date)}
@@ -205,7 +218,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                     {timeChunks.map((_, i) => (
                       <div
                         key={i}
-                        className="h-[calc((100vh-100px)/8)] border-b border-gray-200"
+                        className="h-[calc((100vh-100px)/9)] border-b border-gray-200"
                       />
                     ))}
                     {getDraftsForDate(date).map((draft) => {

@@ -4,6 +4,7 @@ import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
 import { RepurposeRequestBody } from "@/types";
+import { getContentStyle } from "@/actions/style";
 
 export async function POST(req: Request) {
   try {
@@ -33,6 +34,14 @@ export async function POST(req: Request) {
 
     // Combine transcript text
     const plainText = combineTranscriptText(transcript);
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+      }
+    }
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -72,15 +81,10 @@ export async function POST(req: Request) {
                     {${formatTemplate}}
                     </format_template>
 
-                    If a call-to-action (CTA) is provided, include it in your post:
-                    <cta>
-                    {${CTA}}
-                    </cta>
+                    <writing_style>
+                    ${examples}
+                    </writing_style>
 
-                    If engagement questions are provided, incorporate them into your post:
-                    <engagement_questions>
-                    {${engagementQuestion}}
-                    </engagement_questions>
 
                     If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
 

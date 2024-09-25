@@ -14,6 +14,7 @@ import LikeIcon from "@/components/icons/like-icon";
 import CommentIcon from "@/components/icons/comment-icon";
 import RepostIcon from "@/components/icons/repost-icon";
 import SendIcon from "@/components/icons/send-icon";
+import { toast } from "sonner";
 
 const PdfViewerComponent = dynamic(() => import("./pdf-viewer"), {
   ssr: false,
@@ -106,22 +107,20 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
     }
   }, [postId]);
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = async () => {
     try {
-      const result = await removeDraftField(postId, "downloadUrl");
+      await removeDraftField(postId, "downloadUrl");
       await removeDraftField(postId, "documentUrn");
       await removeDraftField(postId, "documentTitle");
-      if (result.success) {
-        setDownloadUrl(null);
-        setContentType(null);
-        window.location.reload();
-      } else {
-        console.error("Failed to remove download URL:", result.error);
-      }
+      setDownloadUrl(null);
+      setContentType(null);
+      window.location.reload();
+      toast.success("Document removed successfully.");
     } catch (error) {
       console.error("Error removing download URL:", error);
+      toast.error("Error removing the document.");
     }
-  }, [postId]);
+  };
 
   useEffect(() => {
     fetchUser();
@@ -155,7 +154,7 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
           <div className="absolute top-0 left-0 right-0 z-10 bg-black bg-opacity-50 p-2 flex justify-end">
             <Button
               variant={"outline"}
-              className="rounded-full"
+              className="rounded-full p-1"
               size="icon"
               onClick={handleDelete}
             >

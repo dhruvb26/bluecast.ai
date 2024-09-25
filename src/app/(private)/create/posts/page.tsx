@@ -4,8 +4,15 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { usePostStore } from "@/store/post";
+import { useEffect } from "react";
 
 const PostsPage = () => {
+  const resetPostFields = usePostStore((state) => state.resetPostData);
+
+  useEffect(() => {
+    resetPostFields();
+  }, [resetPostFields]);
   return (
     <main className="py-8">
       <div className="mb-8 text-left">

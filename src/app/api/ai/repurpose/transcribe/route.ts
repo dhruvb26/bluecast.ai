@@ -4,6 +4,7 @@ import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { AssemblyAI } from "assemblyai";
 import { env } from "@/env";
 import { RepurposeRequestBody } from "@/types";
+import { getContentStyle } from "@/actions/style";
 
 export async function POST(req: Request) {
   try {
@@ -38,6 +39,14 @@ export async function POST(req: Request) {
 
     if (!transcript.text) {
       throw new Error("Failed to transcribe audio");
+    }
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+      }
     }
 
     // Create the stream for generating LinkedIn post
@@ -78,15 +87,9 @@ export async function POST(req: Request) {
                     ${formatTemplate}
                     </format_template>
 
-                    If a call-to-action (CTA) is provided, include it in your post:
-                    <cta>
-                    ${CTA}
-                    </cta>
-
-                    If engagement questions are provided, incorporate them into your post:
-                    <engagement_questions>
-                    ${engagementQuestion}
-                    </engagement_questions>
+                    <writing_style>
+                    ${examples}
+                    </writing_style>
 
                     If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
 

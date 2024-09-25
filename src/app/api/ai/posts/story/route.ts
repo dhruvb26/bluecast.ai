@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
+import { getContentStyle } from "@/actions/style";
 
 interface RequestBody {
   storyType: string;
@@ -37,7 +38,16 @@ export async function POST(req: Request) {
       lesson,
       formatTemplate,
       instructions,
+      contentStyle,
     } = body;
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+      }
+    }
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -59,6 +69,7 @@ export async function POST(req: Request) {
           2. Check if a specific format template or custom instructions have been provided:
           <format_template>{${formatTemplate}}</format_template>
           <custom_instructions>{${instructions}}</custom_instructions>
+          <writing_style>{${examples}}</writing_style>
 
           If a format template or custom instructions are provided, you must strictly adhere to them throughout the writing process. These take precedence over the general guidelines that follow.
 

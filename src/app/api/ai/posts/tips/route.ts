@@ -2,6 +2,7 @@ import { env } from "@/env";
 import { NextResponse } from "next/server";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
+import { getContentStyle } from "@/actions/style";
 
 interface RequestBody {
   tips: string;
@@ -23,6 +24,14 @@ export async function POST(req: Request) {
     const body: RequestBody = await req.json();
 
     const { tips, instructions, formatTemplate, contentStyle } = body;
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+      }
+    }
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -48,6 +57,10 @@ export async function POST(req: Request) {
         <format_templates>
         {${formatTemplate}}
         </format_templates>
+
+        <writing_style>
+        {${examples}}
+        </writing_style>
 
         Guidelines for generating the LinkedIn post:
         1. If no custom instructions or format templates are provided, create a post that introduces the topic, lists the tips in a clear and concise manner, and concludes with a call to action or engaging question.
