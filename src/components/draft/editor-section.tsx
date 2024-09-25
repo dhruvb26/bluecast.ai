@@ -46,10 +46,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import FileAttachmentButton from "@/components/buttons/file-attachment- button";
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { HistoryEditor } from "slate-history";
 import { deserializeContent, serializeContent } from "@/utils/editor-utils";
 import { Input } from "@/components/ui/input";
+import CustomLoader from "../global/custom-loader";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
+import { usePostStore } from "@/store/post";
 
 export type ParagraphElement = {
   type: "paragraph";
@@ -277,9 +281,28 @@ function EditorSection({
   } as React.CSSProperties;
 
   const { user } = useUser();
+  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
 
   const handlePublish = async () => {
     setIsPublishing(true);
+
+    try {
+      const linkedInAccount = await getLinkedInId();
+      if (!linkedInAccount || linkedInAccount.length === 0) {
+        setIsPublishing(false);
+        setShowLinkedInConnect(true);
+        return;
+      }
+    } catch (error) {
+      console.error("Error getting LinkedIn ID:", error);
+      toast.error(
+        "Failed to retrieve LinkedIn account information. Please try again."
+      );
+
+      setIsPublishing(false);
+      setShowLinkedInConnect(true);
+      return <LinkedInConnect />;
+    }
 
     try {
       const publishData: any = {
@@ -450,6 +473,11 @@ function EditorSection({
 
   return (
     <>
+      {showLinkedInConnect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <LinkedInConnect />
+        </div>
+      )}
       <div className="relative">
         <div className="text-left mb-2 px-4 pt-4">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -647,7 +675,7 @@ function EditorSection({
           <ScheduleDialog id={id} disabled={isPublishing} />
           <Button onClick={handlePublish} disabled={isPublishing}>
             {isPublishing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <CustomLoader className="mr-2 h-4 w-4 text-white" />
             ) : (
               <Send className="mr-2 h-4 w-4" />
             )}

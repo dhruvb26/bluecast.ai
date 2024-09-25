@@ -42,7 +42,7 @@ export default function FileUploadButton() {
     <main className="flex w-full items-start space-x-4">
       <UploadButton
         className="ut-button:bg-primary ut-button:w-full ut-button:mx-0 ut-button:h-9 ut-button:hover:bg-primary/90 ut-button:rounded-md ut-button:px-4 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
-        endpoint="audioUploader"
+        endpoint="pdfUploader"
         onClientUploadComplete={(res) => {
           console.log("Files: ", res);
           if (res && res[0]?.url) {

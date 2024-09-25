@@ -166,7 +166,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
             <div
               className={`grid ${
                 currentView === "month" ? "grid-cols-7" : "grid-cols-7"
-              } gap-px bg-gray-100 h-[calc(8*(100vh-100px)/8)]`}
+              } gap-px bg-gray-100 `}
             >
               {dates.map((date, index) => (
                 <div
@@ -178,7 +178,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                   <div
                     className={`sticky top-0 z-10 flex-shrink-0 h-14 items-center justify-center ${
                       date.toDateString() === today
-                        ? "border-blue-600 border-b p-4"
+                        ? "border-blue-600 border-b p-4 bg-white"
                         : "bg-white p-4 border-b border-input"
                     }`}
                   >
@@ -232,7 +232,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                     })}
                     {date.toDateString() === today && (
                       <div
-                        className="absolute left-0 right-0 h-0.5 bg-blue-400 z-40"
+                        className="absolute left-0 right-0 h-0.5 bg-blue-400"
                         style={{
                           top: `${
                             ((now.getHours() * 60 + now.getMinutes()) /

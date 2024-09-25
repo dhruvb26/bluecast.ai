@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePostStore } from "@/store/post";
-import { Loader2 } from "lucide-react";
 import {
   InstructionsField,
   WritingStyleField,

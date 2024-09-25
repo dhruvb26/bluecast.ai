@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/tooltip";
 import { saveIdea } from "@/actions/idea";
 import { v4 as uuid } from "uuid";
-import { Loader2 } from "lucide-react";
 import { useIdeasStore } from "@/store/idea";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { BarLoader } from "react-spinners";
 
 export default function IdeasPage() {
   const { ideas, isLoading } = useIdeasStore();
@@ -53,7 +53,7 @@ export default function IdeasPage() {
       <div className="w-full">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+            <BarLoader color="#1d51d7" height={3} width={300} />
           </div>
         ) : ideas.length === 0 ? (
           <div className="flex h-64 flex-col items-center justify-center text-center">

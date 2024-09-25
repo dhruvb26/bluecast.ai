@@ -17,7 +17,7 @@ import {
   ShareFat,
   TrashSimple,
 } from "@phosphor-icons/react";
-import { Delete, Edit, Loader2, Trash } from "lucide-react";
+import { Delete, Edit, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BarLoader } from "react-spinners";

@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Paperclip, Loader2 } from "lucide-react";
+import { Paperclip } from "lucide-react";
 import { updateDraftField } from "@/actions/draft";
 
 const FileAttachmentButton = ({

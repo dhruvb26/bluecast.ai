@@ -165,12 +165,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Here you would typically save the access token and associated user data
-    // For now, we'll just return it
-    return NextResponse.json({
-      message: "Authentication successful",
-      access_token: tokenData.access_token,
-    });
+    return NextResponse.redirect(new URL("/create/posts", request.url), 307);
   } catch (error) {
     console.error("Error during LinkedIn authentication:", error);
     return NextResponse.json(

@@ -9,9 +9,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { checkValidity, getUser } from "@/actions/user";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { eq } from "drizzle-orm";
-import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -22,6 +20,7 @@ import {
 import LinkedInSignInButton from "@/components/auth/linkedin-signin-button";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
+import { env } from "@/env";
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -37,7 +36,9 @@ const SettingsPage = async () => {
 
   const specialAccess = user.specialAccess;
   const customerPortalLink =
-    "https://billing.stripe.com/p/login/test_bIYcPt7RJcPs3vicMM";
+    env.NEXT_PUBLIC_NODE_ENV === "development"
+      ? "https://billing.stripe.com/p/login/test_bIYcPt7RJcPs3vicMM"
+      : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ";
 
   const formatDate = (date: Date) =>
     date ? format(new Date(date), "MMMM d, yyyy") : "Not available";
@@ -181,16 +182,6 @@ const SettingsPage = async () => {
             <LinkedInSignInButton buttonText="Connect LinkedIn" />
           </div>
         </section>
-        {/* <section className="flex space-x-4">
-          <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
-              Delete Account
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Permanently remove account and all associated data.
-            </p>
-          </div>
-        </section> */}
       </div>
     </main>
   );

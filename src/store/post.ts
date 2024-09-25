@@ -8,6 +8,7 @@ interface PostStore {
   error: string | null;
   isStreamComplete: boolean;
   linkedInPostInstructions: string;
+  resetPostData: () => void; // Add this new function
   setLinkedInPostInstructions: (
     update: string | ((prev: string) => string)
   ) => void;
@@ -18,9 +19,17 @@ interface PostStore {
   setIsStreamComplete: (isComplete: boolean) => void;
   handleSubmit: (path: string, data: any) => Promise<void>;
   handleGenerateInstructions: (data: any) => Promise<void>;
+  showLinkedInConnect: boolean;
+  setShowLinkedInConnect: (show: boolean) => void;
+  showFeatureGate: boolean;
+  setShowFeatureGate: (show: boolean) => void;
 }
 
 export const usePostStore = create<PostStore>((set) => ({
+  showFeatureGate: false,
+  setShowFeatureGate: (show) => set({ showFeatureGate: show }),
+  showLinkedInConnect: false,
+  setShowLinkedInConnect: (show) => set({ showLinkedInConnect: show }),
   linkedInPost: "",
   linkedInPostInstructions: "",
   isLoading: false,
@@ -34,6 +43,14 @@ export const usePostStore = create<PostStore>((set) => ({
           ? update(state.linkedInPostInstructions)
           : update,
     })),
+  resetPostData: () =>
+    set({
+      linkedInPost: "",
+      linkedInPostInstructions: "",
+      isStreamComplete: false,
+      error: null,
+    }),
+
   setLinkedInPost: (update) =>
     set((state) => ({
       linkedInPost:
@@ -134,14 +151,4 @@ interface UploadState {
 export const useUploadStore = create<UploadState>((set) => ({
   url: "",
   setUrl: (url) => set({ url }),
-}));
-
-interface StyleStore {
-  selectedStyleId: string | null;
-  setSelectedStyleId: (id: string | null) => void;
-}
-
-export const useStyleStore = create<StyleStore>((set) => ({
-  selectedStyleId: null,
-  setSelectedStyleId: (id) => set({ selectedStyleId: id }),
 }));

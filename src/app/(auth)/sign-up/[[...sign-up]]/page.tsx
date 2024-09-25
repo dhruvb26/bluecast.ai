@@ -3,6 +3,8 @@ import Image from "next/image";
 import AvatarCircles from "@/components/magicui/avatar-circles";
 import { SignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { ArrowUpRight } from "@phosphor-icons/react";
 
 export default function SignUpPage() {
   const avatarUrls = [
@@ -11,9 +13,6 @@ export default function SignUpPage() {
     "https://media.licdn.com/dms/image/D5603AQHsrYyK_hD5uQ/profile-displayphoto-shrink_100_100/0/1699974393415?e=2147483647&v=beta&t=NtL20it-fetquWmZkYZ3-Ryeljz2uLz2N4Ht05MrCuQ",
     "https://media.licdn.com/dms/image/v2/D5603AQHYENPGn3m5DQ/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1682725967530?e=1732147200&v=beta&t=_obCXYmwSZUAsEDkRVdIetMnuYF_kauBAbkvQ_thLxY",
   ];
-
-  const linkedInAuthUrl =
-    "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=78htulmwcx0u3e&redirect_uri=http://localhost:3000/api/auth/callback/linkedin&state=foobar&scope=openid%20email%20profile%20w_member_social%20r_basicprofile";
 
   return (
     <div className="flex min-h-screen">
@@ -37,15 +36,16 @@ export default function SignUpPage() {
         </div>
         <div className="flex flex-1 flex-col bg-white px-14 py-8">
           <div className="flex items-center justify-center h-full flex-col space-y-2">
-            <Image
+            {/* <Image
               src={"/brand/Bluecast Logo.png"}
               width={200}
               height={200}
               alt=""
-            />{" "}
+            />{" "} */}
             <SignUp
               appearance={{
                 elements: {
+                  logoImage: "h-10 w-full",
                   rootBox: "p-0",
                   cardBox: "shadow-none p-0",
                   headerTitle: "hidden",
@@ -55,6 +55,15 @@ export default function SignUpPage() {
                 },
               }}
             />
+            <span className="text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Button
+                variant={"link"}
+                className="px-0 text-foreground hover:text-foreground hover:underline group"
+              >
+                <Link href={"/sign-in"}>Sign in</Link>
+              </Button>
+            </span>
             <span className="text-sm">
               By connecting, you agree to our{" "}
               <Button variant={"link"} className="px-0">

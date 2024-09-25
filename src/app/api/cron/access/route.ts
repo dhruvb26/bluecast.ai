@@ -29,7 +29,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     // Update users in the database
     const result = await db
       .update(users)
-      .set({ hasAccess: false })
+      .set({ hasAccess: false, trialEndsAt: null })
       .where(
         and(
           eq(users.hasAccess, true),

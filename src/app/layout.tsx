@@ -10,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Spireo - LinkedIn Growth Made Easy",
+  title: "Bluecast - LinkedIn Growth Made Easy",
   description: "Growing on LinkedIn made easy.",
-  icons: [{ rel: "icon", url: "/brand/icon.png" }],
+  icons: [{ rel: "icon", url: "/brand/favicon.png" }],
 };
 
 export default async function RootLayout({

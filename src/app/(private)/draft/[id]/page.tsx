@@ -8,7 +8,7 @@ import LinkedInPostPreview from "@/components/draft/post-preview";
 import { toast } from "sonner";
 import EditorSection from "@/components/draft/editor-section";
 import { useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { BarLoader } from "react-spinners";
 import { withHistory } from "slate-history";
 import { deserializeContent } from "@/utils/editor-utils";
 
@@ -116,7 +116,7 @@ export default function EditDraft() {
     <main className="flex h-screen ">
       {isLoading ? (
         <div className="flex h-screen w-full items-center justify-center">
-          <Loader2 className="ml-1 inline-block h-12 w-12 animate-spin text-blue-600" />
+          <BarLoader color="#1d51d7" height={3} width={300} />
         </div>
       ) : (
         <div className="flex w-full flex-col h-full lg:flex-row">
