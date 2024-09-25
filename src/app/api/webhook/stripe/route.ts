@@ -11,11 +11,11 @@ const plans = [
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_3cs16B3DI68Ycve001"
+        ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
         : "https://buy.stripe.com/eVa7uTcgf4YP0kU8ww",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1PaxYyRvU50syM0ABpRUVw3R"
+        ? "price_1Q32F1RrqqSKPUNWkMQXCrVC"
         : "price_1Pb0w5RrqqSKPUNWGX1T2G3O",
     price: 29,
     duration: "/month",
@@ -23,11 +23,11 @@ const plans = [
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_00g16BcaefJy0Mw6or"
+        ? "https://buy.stripe.com/test_fZeeVG2tR1B625y7st"
         : "https://buy.stripe.com/6oEdTh6VV2QH0kU9AB",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1Q2TucRvU50syM0AHTSKaC6a"
+        ? "price_1Q32GdRrqqSKPUNWN1sG48XI"
         : "price_1Q1VQ4RrqqSKPUNWMMbGj3yh",
     price: 200,
     duration: "/year",

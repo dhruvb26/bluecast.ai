@@ -42,7 +42,7 @@ const SubscriptionCard = () => {
               target="_blank"
               href={
                 env.NEXT_PUBLIC_NODE_ENV === "development"
-                  ? "https://buy.stripe.com/test_3cs16B3DI68Ycve001"
+                  ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
                   : "https://buy.stripe.com/eVa7uTcgf4YP0kU8ww"
               }
             >
