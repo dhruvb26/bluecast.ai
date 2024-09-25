@@ -23,7 +23,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash } from "lucide-react";
 import { LinkSimpleHorizontal, Plus } from "@phosphor-icons/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
@@ -101,27 +100,13 @@ export default function SavedStylesPage() {
     }
   };
 
-  const handleDeleteStyle = async (styleId: string) => {
-    try {
-      const result = await deleteContentStyle(styleId);
-      if (result.success) {
-        toast.success("Style deleted successfully.");
-        fetchStyles();
-      } else {
-        toast.error(result.error || "Failed to delete style.");
-      }
-    } catch (error) {
-      console.error("Error deleting style:", error);
-      toast.error("An error occurred while deleting the style.");
-    }
-  };
-
   const renderCreatorStyleList = (styles: ContentStyle[]) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {styles.map((style) => (
         <div
           key={style.id}
           className="border transition-all hover:shadow-sm space-y-1 hover:-translate-y-1 rounded-md border-input p-4 cursor-pointer"
+          onClick={() => router.push(`/saved/styles/${style.id}`)}
         >
           <p className="text-xs text-muted-foreground">
             Updated • {style.updatedAt.toLocaleString()}
@@ -258,7 +243,7 @@ export default function SavedStylesPage() {
                   New Creator Style
                 </DialogTitle>
                 <DialogDescription className="text-sm text-muted-foreground">
-                  Fill in the details below to schedule the post.
+                  Fill in the URL below to emulate the creator's writing style.
                 </DialogDescription>
               </div>
             </DialogHeader>
@@ -293,7 +278,7 @@ export default function SavedStylesPage() {
                   New Custom Style
                 </DialogTitle>
                 <DialogDescription className="text-sm text-muted-foreground">
-                  Fill in the details below to schedule the post.
+                  Fill in the details below to create a new custom style.
                 </DialogDescription>
               </div>
             </DialogHeader>

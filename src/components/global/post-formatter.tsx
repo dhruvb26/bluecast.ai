@@ -123,13 +123,13 @@ export function PostFormatSelector({
             </DialogDescription>
           </DialogHeader>
           <Tabs defaultValue={publicCategories[0]} className="w-full">
-            <TabsList className="mb-4">
+            <TabsList className="mb-4 w-full">
               {publicCategories.map((category) => (
                 <TabsTrigger key={category} value={category}>
                   {category}
                 </TabsTrigger>
               ))}
-              <TabsTrigger value="Custom">Custom</TabsTrigger>
+              {/* <TabsTrigger value="Custom">Custom</TabsTrigger> */}
             </TabsList>
             {publicCategories.map((category) => (
               <TabsContent key={category} value={category}>
@@ -151,7 +151,7 @@ export function PostFormatSelector({
                               setEditedFormat(template);
                             }}
                           >
-                            <div className="mb-2 text-sm font-semibold">
+                            <div className="mb-2 text-sm text-blue-600 font-semibold">
                               #{index + 1}
                             </div>
                             <pre className="whitespace-pre-wrap font-sans">
@@ -172,7 +172,7 @@ export function PostFormatSelector({
                 </div>
               </TabsContent>
             ))}
-            <TabsContent value="Custom">
+            {/* <TabsContent value="Custom">
               <div className="flex h-[500px] w-full">
                 <ScrollArea className="w-1/2 pr-4">
                   {privateFormats.flatMap((format) =>
@@ -208,7 +208,7 @@ export function PostFormatSelector({
                   />
                 </div>
               </div>
-            </TabsContent>
+            </TabsContent> */}
           </Tabs>
           <div className="flex justify-end space-x-2 py-0">
             {publicCategories.includes("Custom") && (

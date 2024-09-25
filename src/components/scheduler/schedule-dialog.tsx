@@ -25,6 +25,9 @@ import { CalendarBlank, Moon, Sun } from "@phosphor-icons/react";
 import { CalendarPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { usePostStore } from "@/store/post";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
 
 interface ScheduleDialogProps {
   id: string;
@@ -39,6 +42,7 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
   const [scheduleMinutes, setScheduleMinutes] = useState("");
   const [isPM, setIsPM] = useState(false);
   const router = useRouter();
+  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
   const [timezone, setTimezone] = useState("");
 
   useEffect(() => {
@@ -61,6 +65,26 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
     }
 
     setIsLoading(true);
+
+    try {
+      const linkedInAccount = await getLinkedInId();
+      if (!linkedInAccount || linkedInAccount.length === 0) {
+        setIsLoading(false);
+        setShowLinkedInConnect(true);
+        setIsOpen(false);
+        return <LinkedInConnect />;
+      }
+    } catch (error) {
+      console.error("Error getting LinkedIn ID:", error);
+      toast.error(
+        "Failed to retrieve LinkedIn account information. Please try again."
+      );
+
+      setIsLoading(false);
+      setShowLinkedInConnect(true);
+      setIsOpen(false);
+      return <LinkedInConnect />;
+    }
 
     try {
       interface ScheduleData {

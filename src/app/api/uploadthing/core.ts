@@ -28,6 +28,20 @@ export const ourFileRouter = {
       // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
       return { uploadedBy: metadata.userId, uploadedUrl: file.url };
     }),
+  pdfUploader: f({ pdf: { maxFileSize: "64MB" } })
+    .middleware(async ({ req }) => {
+      const user = await getUser();
+
+      if (!user) throw new UploadThingError("Unauthorized");
+
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("PDF upload complete for userId:", metadata.userId);
+      console.log("PDF file url", file.url);
+
+      return { uploadedBy: metadata.userId, uploadedUrl: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

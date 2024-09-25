@@ -8,7 +8,7 @@ import LinkedInPostPreview from "@/components/draft/post-preview";
 import { toast } from "sonner";
 import EditorSection from "@/components/draft/editor-section";
 import { useParams } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { BarLoader } from "react-spinners";
 import { withHistory } from "slate-history";
 import { deserializeContent } from "@/utils/editor-utils";
 
@@ -113,14 +113,14 @@ export default function EditDraft() {
   }, [saveContent]);
 
   return (
-    <main className="flex h-screen ">
+    <main className="flex min-h-full">
       {isLoading ? (
         <div className="flex h-screen w-full items-center justify-center">
-          <Loader2 className="ml-1 inline-block h-12 w-12 animate-spin text-blue-600" />
+          <BarLoader color="#1d51d7" height={3} width={300} />
         </div>
       ) : (
-        <div className="flex w-full flex-col h-full lg:flex-row">
-          <div className="w-full lg:w-1/2 h-full border-r border-input">
+        <div className="flex w-full flex-col min-h-full lg:flex-row">
+          <div className="w-full lg:w-1/2  border-input">
             <EditorSection
               id={id}
               initialValue={value}
@@ -133,7 +133,7 @@ export default function EditDraft() {
             />
           </div>
 
-          <div className="w-full lg:w-1/2 bg-blue-50 h-screen overflow-y-visible">
+          <div className="w-full lg:w-1/2 px-4 py-2 bg-blue-50 ">
             <LinkedInPostPreview postId={id} content={value} device={device} />
           </div>
         </div>

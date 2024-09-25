@@ -29,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { BarLoader } from "react-spinners";
 
 export default function StylesContent() {
   const router = useRouter();
@@ -142,7 +143,11 @@ export default function StylesContent() {
   };
 
   if (isLoading) {
-    return <CustomLoader size={32} />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <BarLoader color="#1d51d7" height={3} width={300} />
+      </div>
+    );
   }
 
   return (

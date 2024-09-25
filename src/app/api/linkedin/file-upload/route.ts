@@ -17,7 +17,8 @@ export async function POST(req: Request): Promise<
 > {
   try {
     await checkAccess();
-    const linkedInId = await getLinkedInId();
+    // const linkedInId = await getLinkedInId();
+
     const user = await getUser();
     const userId = user.id;
 
@@ -27,7 +28,11 @@ export async function POST(req: Request): Promise<
       .where(eq(accounts.userId, userId))
       .limit(1);
     const accessToken = account[0].access_token;
-
+    const linkedInId = await db
+      .select({ providerAccountId: accounts.providerAccountId })
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+      .limit(1);
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/documents?action=initializeUpload",
       {
@@ -40,7 +45,7 @@ export async function POST(req: Request): Promise<
         },
         body: JSON.stringify({
           initializeUploadRequest: {
-            owner: `urn:li:person:${linkedInId}`,
+            owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
           },
         }),
       }

@@ -43,16 +43,6 @@ export async function getUser() {
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),
-      columns: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        headline: true,
-        trialEndsAt: true,
-        specialAccess: true,
-        onboardingData: true,
-      },
     });
 
     if (!user) {
@@ -194,6 +184,7 @@ export async function completeOnboarding(onboardingData: any) {
     // Update Clerk user metadata
     await clerkClient().users.updateUserMetadata(userId, {
       publicMetadata: {
+        hasAccess: true,
         onboardingComplete: true,
       },
     });

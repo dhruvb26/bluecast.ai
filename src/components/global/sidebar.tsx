@@ -10,6 +10,7 @@ import {
   Brain,
   CalendarDots,
   CaretDown,
+  Clock,
   Files,
   FolderSimple,
   Gear,
@@ -390,6 +391,20 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               isOpen ? "pr-[16rem]" : "pr-[6rem]"
             }`}
           >
+            {validityDate && (
+              <div
+                className="mr-4 text-sm text-primary
+              "
+              >
+                <Clock size={16} weight="duotone" className="inline mr-1" />
+                Your trial ends in{" "}
+                {Math.ceil(
+                  (new Date(validityDate).getTime() - new Date().getTime()) /
+                    (1000 * 60 * 60 * 24)
+                )}{" "}
+                days!
+              </div>
+            )}
             <UserButton
               appearance={{
                 elements: {

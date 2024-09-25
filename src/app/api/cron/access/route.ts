@@ -4,8 +4,9 @@ import { users } from "@/server/db/schema";
 import { and, eq, lt } from "drizzle-orm";
 import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
+export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest): Promise<Response> {
+export async function GET(req: NextRequest): Promise<Response> {
   try {
     if (req.headers.get("Authorization") !== `Bearer ${env.CRON_SECRET}`) {
       return NextResponse.json({ error: "Not authorized" }, { status: 401 });
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     // Update users in the database
     const result = await db
       .update(users)
-      .set({ hasAccess: false })
+      .set({ hasAccess: false, trialEndsAt: null })
       .where(
         and(
           eq(users.hasAccess, true),
@@ -46,12 +47,8 @@ export async function POST(req: NextRequest): Promise<Response> {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        updated: result.count,
-      },
-    });
+    return NextResponse.json({ updated: result.count }, { status: 200 });
+
   } catch (error) {
     console.error("Error updating trial access:", error);
     return NextResponse.json(

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { anthropic } from "@/server/model";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
-import { AssemblyAI } from "assemblyai";
 import { env } from "@/env";
 import { RepurposeRequestBody } from "@/types";
+import pdf from "pdf-parse/lib/pdf-parse";
 import { getContentStyle } from "@/actions/style";
 
 export async function POST(req: Request) {
@@ -26,20 +26,12 @@ export async function POST(req: Request) {
       contentStyle,
     } = body;
 
-    // Transcribe the audio
-    const client = new AssemblyAI({
-      apiKey: env.ASSEMBLY_API_KEY,
-    });
+    const response = await fetch(url);
+    const pdfBuffer = await response.arrayBuffer();
 
-    const config = {
-      audio_url: url,
-    };
+    const data = await pdf(Buffer.from(pdfBuffer));
 
-    const transcript = await client.transcripts.transcribe(config);
-
-    if (!transcript.text) {
-      throw new Error("Failed to transcribe audio");
-    }
+    const extractedText = data.text;
 
     let examples;
     if (contentStyle) {
@@ -49,7 +41,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // Create the stream for generating LinkedIn post
     const stream = await anthropic.messages.create({
       model: env.MODEL,
       max_tokens: 1024,
@@ -57,43 +48,46 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are tasked with creating an informative LinkedIn post based on a transcribed audio content. Your goal is to understand the context of the transcription and generate a post that captures its key points and value.
+          content: `You are tasked with writing a LinkedIn post based on text extracted from a PDF. Your goal is to create an engaging and professional post that accurately represents the content while adhering to any provided instructions, format templates, and writing styles.
 
-                    First, carefully read and analyze the following transcription content:
+                    First, carefully read the following text extracted from the PDF:
 
-                    <transcription_content>
-                    ${transcript.text}
-                    </transcription_content>
+                    <pdf_text>
+                    {${extractedText}}
+                    </pdf_text>
 
-                    As you analyze the content, pay attention to:
-                    1. The main topic or theme of the transcription
-                    2. Key points or arguments presented
-                    3. Any notable quotes or statistics
-                    4. The overall message or takeaway
+                    Now, consider any additional instructions for creating the post:
 
-                    Based on your analysis, create a LinkedIn post that:
-                    1. Summarizes the main idea of the transcribed content
-                    2. Highlights 2-3 key points or insights
-                    3. Is concise and engaging, suitable for a professional audience on LinkedIn
-                    4. Contains about 200-250 words
+                    <additional_instructions>
+                    {${instructions}}
+                    </additional_instructions>
 
-                    If custom instructions are provided, incorporate them into your post creation process:
-                    <custom_instructions>
-                    ${instructions}
-                    </custom_instructions>
+                    If a format template has been provided, use it as a structural guide for your post:
 
-                    If a format template is provided, use it to structure your post:
                     <format_template>
-                    ${formatTemplate}
+                    {${formatTemplate}}
                     </format_template>
 
-                    <writing_style>
-                    ${examples}
-                    </writing_style>
+                    If writing style examples have been provided, analyze them and emulate their tone and style in your post:
 
-                    If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
+                    <writing_style_examples>
+                    {${examples}}
+                    </writing_style_examples>
 
-                    Use relevant emoticons unless specifically instructed not to in the custom instructions. Do not include hashtags unless explicitly mentioned in the custom instructions.
+                    Guidelines for creating the LinkedIn post:
+
+                    1. Summarize the key points from the PDF text concisely.
+                    2. Ensure the post is appropriate for a professional LinkedIn audience.
+                    3. Use clear, engaging language that encourages reader interaction.
+                    4. Include relevant hashtags if appropriate for the content.
+                    5. Keep the post length appropriate for LinkedIn (typically 1300 characters or less).
+                    6. If specific instructions were provided, make sure to follow them precisely.
+                    7. If a format template was given, adhere to its structure while filling in the content.
+                    8. If writing style examples were provided, emulate their tone, vocabulary, and sentence structure.
+
+                    Write your LinkedIn post inside <linkedin_post> tags. Before writing the post, you may use <scratchpad> tags to organize your thoughts and plan your approach if needed.
+
+                    Remember to craft a post that is informative, engaging, and tailored to the LinkedIn platform while accurately representing the content from the PDF.
 
                     Important: Generate and output only the content of the LinkedIn post directly. Do not include any XML tags, metadata, or additional commentary. The post should be ready to be shared on LinkedIn as-is.`,
         },

@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 import PostCard from "@/components/inspiration/post-card";
 import { getCreatorLists } from "@/actions/list";
 import { getPostsByCreatorId } from "@/actions/post";
-import { Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { shuffle } from "@/utils/shuffle";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Plus } from "@phosphor-icons/react";
+import { Plus } from "@phosphor-icons/react";
 import { CreatorList } from "@/actions/list";
 import { useRouter } from "next/navigation";
+import { BarLoader } from "react-spinners";
 
 export default function Home() {
   const router = useRouter();
@@ -82,7 +82,7 @@ export default function Home() {
       </div>
       {loading ? (
         <div className="flex min-h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <BarLoader color="#1d51d7" height={3} width={300} />
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab}>

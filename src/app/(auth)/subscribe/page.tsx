@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { env } from "@/env";
 
 const Subscription = () => {
   return (
@@ -40,7 +41,11 @@ const Subscription = () => {
             <Link
               className="group"
               target="_blank"
-              href="https://buy.stripe.com/eVa7uTcgf4YP0kU8ww"
+              href={
+                env.NEXT_PUBLIC_NODE_ENV === "development"
+                  ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
+                  : "https://buy.stripe.com/eVa7uTcgf4YP0kU8ww"
+              }
             >
               Subscribe
               <ArrowUpRight

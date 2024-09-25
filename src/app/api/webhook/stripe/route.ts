@@ -5,16 +5,32 @@ import Stripe from "stripe";
 import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { env } from "@/env";
+import { clerkClient } from "@clerk/nextjs/server";
 
 const plans = [
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "https://buy.stripe.com/test_3cs16B3DI68Ycve001"
-        : "",
-    priceId: "price_1PaxYyRvU50syM0ABpRUVw3R",
+        ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
+        : "https://buy.stripe.com/eVa7uTcgf4YP0kU8ww",
+    priceId:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1Q32F1RrqqSKPUNWkMQXCrVC"
+        : "price_1Pb0w5RrqqSKPUNWGX1T2G3O",
     price: 29,
     duration: "/month",
+  },
+  {
+    link:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "https://buy.stripe.com/test_fZeeVG2tR1B625y7st"
+        : "https://buy.stripe.com/6oEdTh6VV2QH0kU9AB",
+    priceId:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1Q32GdRrqqSKPUNWN1sG48XI"
+        : "price_1Q1VQ4RrqqSKPUNWMMbGj3yh",
+    price: 200,
+    duration: "/year",
   },
 ];
 
@@ -132,6 +148,13 @@ export async function POST(req: Request) {
                 stripeSubscriptionId: subscription.id,
               })
               .where(eq(users.id, user.id));
+
+            await clerkClient().users.updateUserMetadata(user.id, {
+              publicMetadata: {
+                hasAccess: true,
+              },
+            });
+
             console.log("Database updated successfully");
           } catch (error) {
             console.error("Error updating database:", error);
@@ -179,6 +202,12 @@ export async function POST(req: Request) {
           })
           .where(eq(users.id, user.id));
 
+        await clerkClient().users.updateUserMetadata(user.id, {
+          publicMetadata: {
+            hasAccess: false,
+          },
+        });
+
         break;
       }
       case "invoice.payment_succeeded": {
@@ -200,7 +229,13 @@ export async function POST(req: Request) {
                 trialEndsAt: null,
                 hasAccess: true,
               })
+
               .where(eq(users.id, user.id));
+            await clerkClient().users.updateUserMetadata(user.id, {
+              publicMetadata: {
+                hasAccess: true,
+              },
+            });
           }
         }
         break;
@@ -237,6 +272,12 @@ export async function POST(req: Request) {
           })
           .where(eq(users.id, user.id));
 
+        await clerkClient().users.updateUserMetadata(user.id, {
+          publicMetadata: {
+            hasAccess: subscription.status === "active",
+          },
+        });
+
         console.log(`Updated user ${user.id} access`);
 
         break;
@@ -259,6 +300,12 @@ export async function POST(req: Request) {
               hasAccess: false,
             })
             .where(eq(users.id, user.id));
+
+          await clerkClient().users.updateUserMetadata(user.id, {
+            publicMetadata: {
+              hasAccess: false,
+            },
+          });
         }
         break;
       }

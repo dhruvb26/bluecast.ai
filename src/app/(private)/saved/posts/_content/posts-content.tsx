@@ -174,7 +174,7 @@ function EmptyState({ type }: { type: TabType }) {
       title: "No scheduled posts",
       description:
         "Plan ahead. Schedule your posts for consistent content delivery.",
-      action: "Schedule Post",
+      action: "Schedule",
     },
     published: {
       icon: <RocketIcon className="w-12 h-12 mb-4 text-primary" />,
@@ -196,9 +196,13 @@ function EmptyState({ type }: { type: TabType }) {
         </CardTitle>
         <CardDescription className="mb-6">{description}</CardDescription>
         <Button
+          className={`${type === "published" ? "hidden" : ""}`}
           onClick={() => {
             if (type === "saved") {
               window.location.href = "/create/posts";
+            }
+            if (type === "scheduled") {
+              window.location.href = "/schedule";
             }
           }}
         >

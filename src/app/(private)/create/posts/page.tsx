@@ -4,8 +4,15 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { usePostStore } from "@/store/post";
+import { useEffect } from "react";
 
 const PostsPage = () => {
+  const resetPostFields = usePostStore((state) => state.resetPostData);
+
+  useEffect(() => {
+    resetPostFields();
+  }, [resetPostFields]);
   return (
     <main className="py-8">
       <div className="mb-8 text-left">
@@ -95,23 +102,27 @@ const PostsPage = () => {
               </CardContent>
             </Card>
           </Link>
-
-          <Card className="group h-fit overflow-hidden border-purple-100 bg-purple-50 transition-all  hover:-translate-y-1 hover:shadow-sm relative">
-            <CardContent className="flex flex-col p-4 text-foreground space-y-2">
-              <CardTitle className="text-base font-semibold tracking-tight flex justify-center items-center space-x-">
-                PDF{" "}
-                <ArrowRight size={12} className="inline text-foreground mx-2" />{" "}
-                LinkedIn
-              </CardTitle>
-              <p className="mt-2 flex-grow text-sm text-muted-foreground text-center">
-                Our platform enables you to transform PDF documents into
-                engaging LinkedIn posts effortlessly.
-              </p>
-              <div className="w-full flex justify-center">
-                <Image src="/icons/pdf.png" width={45} height={45} alt="" />
-              </div>
-            </CardContent>
-          </Card>
+          <Link href="/create/posts/pdf">
+            <Card className="group h-fit overflow-hidden border-purple-100 bg-purple-50 transition-all  hover:-translate-y-1 hover:shadow-sm relative">
+              <CardContent className="flex flex-col p-4 text-foreground space-y-2">
+                <CardTitle className="text-base font-semibold tracking-tight flex justify-center items-center space-x-">
+                  PDF{" "}
+                  <ArrowRight
+                    size={12}
+                    className="inline text-foreground mx-2"
+                  />{" "}
+                  LinkedIn
+                </CardTitle>
+                <p className="mt-2 flex-grow text-sm text-muted-foreground text-center">
+                  Our platform enables you to transform PDF documents into
+                  engaging LinkedIn posts effortlessly.
+                </p>
+                <div className="w-full flex justify-center">
+                  <Image src="/icons/pdf.png" width={45} height={45} alt="" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
 

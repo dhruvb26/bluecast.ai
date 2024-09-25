@@ -2,6 +2,7 @@ import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { NextResponse } from "next/server";
 import { anthropic } from "@/server/model";
+import { getContentStyle } from "@/actions/style";
 
 interface RequestBody {
   learning: string;
@@ -33,6 +34,14 @@ export async function POST(req: Request) {
       contentStyle,
     } = body;
 
+    let examples;
+    if (contentStyle) {
+      const getContentResult = await getContentStyle(contentStyle);
+      if (getContentResult.success) {
+        examples = getContentResult.data;
+      }
+    }
+
     const stream = await anthropic.messages.create({
       model: env.MODEL,
       max_tokens: 1024,
@@ -60,6 +69,10 @@ export async function POST(req: Request) {
                 <format_template>
                 {${formatTemplate}}
                 </format_template>
+
+                <writing_style>
+                {${examples}}
+                </writing_style>
 
                 <custom_instructions>
                 {${instructions}}

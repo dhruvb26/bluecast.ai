@@ -18,6 +18,11 @@ import { getCreatorLists } from "@/actions/list";
 import { CreatorList } from "@/actions/list";
 import { Empty, Plus } from "@phosphor-icons/react";
 import { UserPlus } from "lucide-react";
+import { BarLoader } from "react-spinners";
+import { getUser } from "@/actions/user";
+import { usePostStore } from "@/store/post";
+import LinkedInConnect from "@/components/global/connect-linkedin";
+import SubscriptionCard from "@/components/global/subscription-card";
 
 export default function CreateCreatorList() {
   const [urls, setUrls] = useState([""]);
@@ -29,6 +34,8 @@ export default function CreateCreatorList() {
   useEffect(() => {
     fetchCreatorLists();
   }, []);
+  const [isFetching, setIsFetching] = useState(true);
+  const { showFeatureGate, setShowFeatureGate } = usePostStore();
 
   const linkedInUrlRegex = /^https:\/\/(?:www\.)?linkedin\.com\/in\/[\w-]+\/?$/;
   const urlSchema = z
@@ -44,6 +51,15 @@ export default function CreateCreatorList() {
     e.preventDefault();
     setIsLoading(true);
 
+    const user = await getUser();
+
+    if (!user.stripeSubscriptionId && !user.priceId) {
+      setShowFeatureGate(true);
+      setIsLoading(false);
+      setIsDialogOpen(false); // Close the dialog
+      return; // Cancel the request
+    }
+
     try {
       const formData = {
         listName,
@@ -53,7 +69,8 @@ export default function CreateCreatorList() {
 
       const validatedData = formSchema.parse(formData);
 
-      for (const url of validatedData.urls) {
+      for (let i = 0; i < validatedData.urls.length; i++) {
+        const url = validatedData.urls[i];
         const response = await fetch("/api/content/list", {
           method: "POST",
           headers: {
@@ -71,9 +88,13 @@ export default function CreateCreatorList() {
         if (!data.success) {
           throw new Error(data.error || `Failed to add URL: ${url}`);
         }
+
+        toast.success(`Creator ${i + 1} added to list successfully.`);
       }
 
-      toast.success("Creator list created successfully.");
+      toast.success(
+        `Creator list "${validatedData.listName}" created successfully with ${validatedData.urls.length} creators.`
+      );
       // Reset form
       setUrls([""]);
       setListName("");
@@ -92,7 +113,9 @@ export default function CreateCreatorList() {
       setIsLoading(false);
     }
   };
+
   const fetchCreatorLists = async () => {
+    setIsFetching(true);
     try {
       const privateResult = await getCreatorLists(false);
 
@@ -102,6 +125,8 @@ export default function CreateCreatorList() {
     } catch (error) {
       console.error("Error fetching creator lists:", error);
       toast.error("An error occurred while fetching creator lists");
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -111,6 +136,11 @@ export default function CreateCreatorList() {
 
   return (
     <main className="p-8">
+      {showFeatureGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <SubscriptionCard />
+        </div>
+      )}
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -208,7 +238,11 @@ export default function CreateCreatorList() {
         </Dialog>
       </div>
 
-      {creatorLists.length === 0 ? (
+      {isFetching ? (
+        <div className="flex justify-center items-center min-h-[400px]">
+          <BarLoader color="#1d51d7" height={3} width={300} />
+        </div>
+      ) : creatorLists.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
           <div className="mb-2">
             <Empty className="w-12 h-12 text-primary" />
