@@ -95,6 +95,9 @@ importers:
       '@uploadthing/react':
         specifier: ^6.7.2
         version: 6.7.2(next@14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(uploadthing@6.13.2(next@14.2.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))))
+      '@upstash/redis':
+        specifier: ^1.34.0
+        version: 1.34.0
       assemblyai:
         specifier: ^4.7.0
         version: 4.7.0
@@ -1740,6 +1743,9 @@ packages:
 
   '@uploadthing/shared@6.7.8':
     resolution: {integrity: sha512-dLNa9GpdeiCHc/Nd0+BfaJ3wXvWIztBAaWIsNNPoaKiU3qhHoQd+5jDVx4oYKYVANqnv9s2CJW7di8Th5xy7Cw==}
+
+  '@upstash/redis@1.34.0':
+    resolution: {integrity: sha512-TrXNoJLkysIl8SBc4u9bNnyoFYoILpCcFJcLyWCccb/QSUmaVKdvY0m5diZqc3btExsapcMbaw/s/wh9Sf1pJw==}
 
   '@vercel/build-utils@8.3.9':
     resolution: {integrity: sha512-QqJSv4zHnipCJz0MFOFfe2Na630njfj1FWjcD1uaVjjJP1AcKmMbfYl/e0JfOZy6MTE6f0Vk2+Bc4av6jrTaOQ==}
@@ -5895,6 +5901,10 @@ snapshots:
       '@uploadthing/mime-types': 0.2.10
       effect: 3.4.5
       std-env: 3.7.0
+
+  '@upstash/redis@1.34.0':
+    dependencies:
+      crypto-js: 4.2.0
 
   '@vercel/build-utils@8.3.9': {}
 

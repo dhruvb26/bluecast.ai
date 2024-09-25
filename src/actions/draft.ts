@@ -23,7 +23,7 @@ export type Draft = {
   downloadUrl?: string;
 };
 
-type DraftKeys = keyof typeof drafts;
+type DraftColumn = keyof typeof drafts._.columns;
 
 export async function getDraft(
   draftId: string
