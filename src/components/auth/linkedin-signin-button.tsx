@@ -14,7 +14,7 @@ export default function LinkedInSignInButton({
 }: LinkedInSignInButtonProps) {
   const clientId = "78htulmwcx0u3e";
   const redirectUri = encodeURIComponent(
-    "http://localhost:3000/api/auth/callback/linkedin"
+    `${env.NEXT_PUBLIC_BASE_URL}/api/auth/callback/linkedin`
   );
   const state = "foobar";
   const scope = "openid%20profile%20email%20w_member_social%20r_basicprofile";
