@@ -184,6 +184,7 @@ export async function completeOnboarding(onboardingData: any) {
     // Update Clerk user metadata
     await clerkClient().users.updateUserMetadata(userId, {
       publicMetadata: {
+        hasAccess: true,
         onboardingComplete: true,
       },
     });

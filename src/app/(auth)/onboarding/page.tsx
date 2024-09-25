@@ -169,7 +169,7 @@ export default function OnboardingForm() {
       if (result.message) {
         toast.success("Onboarding skipped. You can always complete it later.");
         window.location.reload();
-        router.push("/create/posts");
+        router.push("/onboarding");
       } else {
         throw new Error("Failed to skip onboarding");
       }
