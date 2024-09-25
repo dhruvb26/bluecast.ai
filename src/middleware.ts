@@ -14,12 +14,7 @@ const isProtectedRoute = createRouteMatcher([
 
 const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
 
-const isWebhookRoute = createRouteMatcher(["/api/webhook/(.*)"]);
-
 export default clerkMiddleware((auth, req: NextRequest) => {
-  if (isWebhookRoute(req)) {
-    return NextResponse.next();
-  }
   const { userId, sessionClaims, redirectToSignIn } = auth();
 
   // For users visiting /onboarding, don't try to redirect
