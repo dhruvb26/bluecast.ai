@@ -1,4 +1,3 @@
-"use server";
 import { Suspense } from "react";
 import Sidebar from "@/components/global/sidebar";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";

@@ -48,6 +48,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     }
 
     return NextResponse.json({ updated: result.count }, { status: 200 });
+
   } catch (error) {
     console.error("Error updating trial access:", error);
     return NextResponse.json(
