@@ -34,6 +34,7 @@ import {
 } from "react-icons/fa";
 import { Check } from "@phosphor-icons/react";
 import { completeOnboarding } from "@/actions/user";
+import { useClerk } from "@clerk/nextjs";
 
 const formSchema = z.object({
   role: z.string({
@@ -79,6 +80,8 @@ const topicSuggestions = [
 ];
 
 export default function OnboardingForm() {
+  const { session } = useClerk();
+
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [topicInput, setTopicInput] = useState("");
@@ -150,8 +153,9 @@ export default function OnboardingForm() {
       const result = await completeOnboarding(values);
       if (result.message === "Onboarding completed successfully") {
         toast.success("Welcome to Spireo! Your onboarding is complete.");
+        // Update the session claims
+        await session?.reload();
         router.push(`/create/posts`);
-        router.refresh();
       } else {
         throw new Error("Onboarding failed");
       }
@@ -161,15 +165,15 @@ export default function OnboardingForm() {
       setIsSubmitting(false);
     }
   }
-
   async function handleSkip() {
     setIsSubmitting(true);
     try {
       const result = await completeOnboarding({ onboardingComplete: true });
       if (result.message) {
         toast.success("Onboarding skipped. You can always complete it later.");
-        window.location.reload();
-        router.push("/onboarding");
+        // Update the session claims
+        await session?.reload();
+        router.push(`/create/posts`);
       } else {
         throw new Error("Failed to skip onboarding");
       }
@@ -179,6 +183,7 @@ export default function OnboardingForm() {
       setIsSubmitting(false);
     }
   }
+
   return (
     <div className="flex min-h-screen items-center  justify-center ">
       <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
