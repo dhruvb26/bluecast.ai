@@ -11,7 +11,17 @@ import {
 import { Button } from "../ui/button";
 import Image from "next/image";
 import { usePostStore } from "@/store/post";
+import { env } from "@/env";
+import Link from "next/link";
 const LinkedInConnect = () => {
+  const clientId = "78htulmwcx0u3e";
+  const redirectUri = encodeURIComponent(
+    `${env.NEXT_PUBLIC_BASE_URL}/api/auth/callback/linkedin`
+  );
+  const state = "foobar";
+  const scope = "openid%20profile%20email%20w_member_social%20r_basicprofile";
+  const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
+
   const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -37,14 +47,16 @@ const LinkedInConnect = () => {
       <CardContent className="text-center">
         <div className="space-x-2 flex flex-row items-center justify-center">
           <Button className="w-full" size="lg">
-            <Image
-              src="/icons/linkedin-white.svg"
-              alt="LinkedIn icon"
-              className="mr-1"
-              width={17}
-              height={17}
-            />
-            Connect LinkedIn
+            <Link href={authUrl} target="_blank">
+              <Image
+                src="/icons/linkedin-white.svg"
+                alt="LinkedIn icon"
+                className="mr-1"
+                width={17}
+                height={17}
+              />
+              Connect LinkedIn
+            </Link>
           </Button>
           <Button
             onClick={() => setShowLinkedInConnect(false)}
