@@ -15,37 +15,56 @@ const redisOptions = {
   },
 };
 
-let sharedConnection: IORedis | null = null;
+let sharedClient: IORedis | null = null;
+let sharedSubscriber: IORedis | null = null;
 
-function createConnection(): IORedis {
-  console.log("Creating new Redis connection...");
+function createConnection(type: "client" | "subscriber" | "bclient"): IORedis {
+  console.log(`Creating new Redis ${type} connection...`);
   const connection = new IORedis(redisOptions);
 
   connection.on("error", (error) => {
-    console.error("Redis connection error:", error);
+    console.error(`Redis ${type} connection error:`, error);
   });
 
   connection.on("connect", () => {
-    console.log("Connected to Redis");
+    console.log(`Connected to Redis (${type})`);
   });
 
   connection.on("ready", () => {
-    console.log("Redis connection is ready");
+    console.log(`Redis ${type} connection is ready`);
   });
 
   return connection;
 }
 
-export const getSharedConnection = cache(() => {
-  if (!sharedConnection) {
-    sharedConnection = createConnection();
-  } else {
-    console.log("Reusing existing Redis connection");
+export const getSharedConnection = cache(
+  (type: "client" | "subscriber" | "bclient") => {
+    switch (type) {
+      case "client":
+        if (!sharedClient) {
+          sharedClient = createConnection("client");
+        } else {
+          console.log("Reusing existing Redis client connection");
+        }
+        return sharedClient;
+      case "subscriber":
+        if (!sharedSubscriber) {
+          sharedSubscriber = createConnection("subscriber");
+        } else {
+          console.log("Reusing existing Redis subscriber connection");
+        }
+        return sharedSubscriber;
+      case "bclient":
+        // For 'bclient', we always create a new connection
+        return createConnection("bclient");
+      default:
+        throw new Error("Unexpected connection type: " + type);
+    }
   }
+);
 
-  return sharedConnection;
-});
-
-export async function getRedisConnection() {
-  return getSharedConnection();
+export async function getRedisConnection(
+  type: "client" | "subscriber" | "bclient" = "client"
+) {
+  return getSharedConnection(type);
 }

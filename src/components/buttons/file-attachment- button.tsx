@@ -139,11 +139,6 @@ const FileAttachmentButton = ({
 
   return (
     <>
-      {showLinkedInConnect && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <LinkedInConnect />
-        </div>
-      )}
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
           <Button variant="ghost" size="icon">

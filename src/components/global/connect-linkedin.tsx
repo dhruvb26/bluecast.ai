@@ -55,7 +55,7 @@ const LinkedInConnect = () => {
               <Image
                 src="/icons/linkedin-white.svg"
                 alt="LinkedIn icon"
-                className=""
+                className="mr-1"
                 width={17}
                 height={17}
               />
