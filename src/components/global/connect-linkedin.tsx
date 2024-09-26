@@ -29,7 +29,8 @@ const LinkedInConnect = () => {
         </CardTitle>
         <CardDescription>
           <p className="text-muted-foreground text-sm">
-            Connect your LinkedIn account to schedule and publish post.
+            Link your LinkedIn account to seamlessly schedule posts, publish
+            content, and attach files.
           </p>
         </CardDescription>
       </CardHeader>

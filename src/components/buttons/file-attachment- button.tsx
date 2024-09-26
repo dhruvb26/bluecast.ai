@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Paperclip } from "lucide-react";
 import { updateDraftField } from "@/actions/draft";
 import { toast } from "sonner";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
+import { usePostStore } from "@/store/post";
 
 const FileAttachmentButton = ({
   postId,
@@ -24,6 +27,7 @@ const FileAttachmentButton = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [documentName, setDocumentName] = useState("");
+  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -44,6 +48,25 @@ const FileAttachmentButton = ({
   const handleAttach = async () => {
     if (selectedFile) {
       setIsUploading(true);
+
+      try {
+        const linkedInAccount = await getLinkedInId();
+        if (!linkedInAccount || linkedInAccount.length === 0) {
+          setIsUploading(false);
+          setShowLinkedInConnect(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error getting LinkedIn ID:", error);
+        toast.error(
+          "Failed to retrieve LinkedIn account information. Please try again."
+        );
+
+        setIsUploading(false);
+        setShowLinkedInConnect(true);
+        return <LinkedInConnect />;
+      }
+
       try {
         const formData = new FormData();
         formData.append("file", selectedFile);
@@ -114,72 +137,79 @@ const FileAttachmentButton = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Paperclip className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent aria-description="Upload" aria-describedby={"Upload"}>
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold tracking-tight">
-            Attach File
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col space-y-3 py-4">
-          <div>
-            <Input
-              id="file-upload"
-              type="file"
-              className="mb-1"
-              onChange={handleFileChange}
-              accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,.pptx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document,video/mp4,video/x-ms-asf,audio/mpeg,video/mpeg"
-            />
-
-            <span className="text-sm text-muted-foreground">
-              <span className="font-medium">NOTE:</span> Video Uploads are
-              limited to 50 MB as of now.
-            </span>
-            {selectedFile && (
-              <p className="text-sm text-gray-500">
-                <span className="font-medium">Selected file: </span>
-                {selectedFile.name}
-              </p>
-            )}
-          </div>
-          {selectedFile &&
-            (selectedFile.type === "application/pdf" ||
-              selectedFile.type === "video/mp4") && (
-              <div>
-                <Input
-                  className="mb-1"
-                  type="text"
-                  placeholder="Enter document name"
-                  value={documentName}
-                  onChange={(e) => setDocumentName(e.target.value)}
-                />
-                <p className="text-sm text-gray-500">
-                  This name will appear as the title for your document on
-                  LinkedIn.
-                </p>
-              </div>
-            )}
-          <Button
-            loading={isUploading}
-            onClick={handleAttach}
-            disabled={
-              !selectedFile ||
-              isUploading ||
-              ((selectedFile.type === "application/pdf" ||
-                selectedFile.type === "video/mp4") &&
-                !documentName)
-            }
-          >
-            {isUploading ? "Processing" : "Attach"}
-          </Button>
+    <>
+      {showLinkedInConnect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <LinkedInConnect />
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Paperclip className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+        <DialogContent aria-description="Upload" aria-describedby={"Upload"}>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold tracking-tight">
+              Attach File
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col space-y-3 py-4">
+            <div>
+              <Input
+                id="file-upload"
+                type="file"
+                className="mb-1"
+                onChange={handleFileChange}
+                accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,.pptx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document,video/mp4,video/x-ms-asf,audio/mpeg,video/mpeg"
+              />
+
+              <span className="text-sm text-muted-foreground">
+                <span className="font-medium">NOTE:</span> Video Uploads are
+                limited to 50 MB as of now.
+              </span>
+              {selectedFile && (
+                <p className="text-sm text-gray-500">
+                  <span className="font-medium">Selected file: </span>
+                  {selectedFile.name}
+                </p>
+              )}
+            </div>
+            {selectedFile &&
+              (selectedFile.type === "application/pdf" ||
+                selectedFile.type === "video/mp4") && (
+                <div>
+                  <Input
+                    className="mb-1"
+                    type="text"
+                    placeholder="Enter document name"
+                    value={documentName}
+                    onChange={(e) => setDocumentName(e.target.value)}
+                  />
+                  <p className="text-sm text-gray-500">
+                    This name will appear as the title for your document on
+                    LinkedIn.
+                  </p>
+                </div>
+              )}
+            <Button
+              loading={isUploading}
+              onClick={handleAttach}
+              disabled={
+                !selectedFile ||
+                isUploading ||
+                ((selectedFile.type === "application/pdf" ||
+                  selectedFile.type === "video/mp4") &&
+                  !documentName)
+              }
+            >
+              {isUploading ? "Processing" : "Attach"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
