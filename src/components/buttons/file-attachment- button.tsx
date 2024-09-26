@@ -53,6 +53,7 @@ const FileAttachmentButton = ({
         const linkedInAccount = await getLinkedInId();
         if (!linkedInAccount || linkedInAccount.length === 0) {
           setIsUploading(false);
+          setIsOpen(false);
           setShowLinkedInConnect(true);
           return;
         }

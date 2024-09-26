@@ -47,11 +47,15 @@ const LinkedInConnect = () => {
       <CardContent className="text-center">
         <div className="space-x-2 flex flex-row items-center justify-center">
           <Button className="w-full" size="lg">
-            <Link href={authUrl} target="_blank">
+            <Link
+              href={authUrl}
+              className="flex flex-row space-x-2"
+              target="_blank"
+            >
               <Image
                 src="/icons/linkedin-white.svg"
                 alt="LinkedIn icon"
-                className="mr-1"
+                className=""
                 width={17}
                 height={17}
               />
