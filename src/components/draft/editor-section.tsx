@@ -559,7 +559,7 @@ function EditorSection({
               >
                 <ScrollArea className="h-[250px]">
                   <div className="flex flex-col rounded">
-                    <div className="flex flex-row space-x-1 p-1">
+                    {/* <div className="flex flex-row space-x-1 p-1">
                       <Input
                         type="text"
                         value={customPrompt}
@@ -576,7 +576,7 @@ function EditorSection({
                       >
                         <PaperPlaneRight className="h-5 w-5 text-blue-600" />
                       </Button>
-                    </div>
+                    </div> */}
                     <Button
                       variant="ghost"
                       className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
@@ -606,7 +606,7 @@ function EditorSection({
                       className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
                       onClick={() => handleOptionClick("makeShorter")}
                     >
-                      <PiTextOutdent className="mr-2 h-5 w-5 text-blue-600" />
+                      <PiTextOutdent className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
                       Make shorter
                     </Button>
                     <Button
@@ -614,7 +614,7 @@ function EditorSection({
                       className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
                       onClick={() => handleOptionClick("makeLonger")}
                     >
-                      <PiTextIndent className="mr-2 h-5 w-5 text-blue-600" />
+                      <PiTextIndent className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
                       Make longer
                     </Button>
                     <Button

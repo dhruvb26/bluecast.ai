@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
                     2. Strictly avoid using any emojis or hashtags in the post.
 
-                    Generate the instructions and present it within <generated> tags.`,
+                    Generate the instructions now.`,
         },
         {
           role: "assistant",

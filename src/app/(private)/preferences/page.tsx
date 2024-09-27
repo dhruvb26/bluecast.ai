@@ -47,6 +47,9 @@ const formSchema = z.object({
 });
 
 const roles = [
+  "B2B Founder",
+  "B2B Creator",
+  "B2B Marketer",
   "Entrepreneur",
   "Professional",
   "Job Seeker",
