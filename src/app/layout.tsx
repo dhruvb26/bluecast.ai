@@ -3,7 +3,12 @@ import "@uploadthing/react/styles.css";
 import { Toaster } from "sonner";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
-import { CSPostHogProvider } from "./provider.js";
+import { PHProvider } from "./providers";
+import dynamic from "next/dynamic";
+
+const PostHogPageView = dynamic(() => import("./PostHogPageView"), {
+  ssr: false,
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -52,14 +57,16 @@ export default async function RootLayout({
     //     preferences: !!user?.onboardingData,
     //   }}
     // > */}
-      <CSPostHogProvider>
-        <html lang="en" className={`${inter.className}`}>
+
+      <html lang="en" className={`${inter.className}`}>
+        <PHProvider>
           <body>
+            <PostHogPageView />
             {children}
             <Toaster position="bottom-right" />
           </body>
-        </html>
-      </CSPostHogProvider>
+        </PHProvider>
+      </html>
     </ClerkProvider>
   );
 }
