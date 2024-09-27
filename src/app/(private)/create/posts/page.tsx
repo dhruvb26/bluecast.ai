@@ -13,6 +13,7 @@ const PostsPage = () => {
   useEffect(() => {
     resetPostFields();
   }, [resetPostFields]);
+
   return (
     <main className="py-8">
       <div className="mb-8 text-left">

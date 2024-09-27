@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
+import { env } from "@/env";
 
 export async function POST(req: Request) {
   try {
@@ -13,26 +14,23 @@ export async function POST(req: Request) {
     }
 
     const stream = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",
+      model: env.MODEL,
       max_tokens: 1024,
       stream: true,
       messages: [
         {
           role: "user",
-          content: `
-            You are a human instructing an AI model to generate custom instructions for generating a LinkedIn post. Write a prompt that will guide the AI to create these instructions. The prompt should cover:
+          content: `You are tasked with creating instructions for generating a LinkedIn post. These instructions will be used by another AI to create the actual post. Don't cover structure or tone of the post in these instructions. Follow these guidelines:
 
-            1. Tone and style appropriate for LinkedIn
-            2. Content structure (e.g., bullet points, paragraphs)
-            3. Word count recommendation
-            4. Use of emojis
-            5. Hashtag usage
-            6. Call-to-action for engagement
+                    1. Character count: The instructions should say what the total post length will be. (For example: 1000 - 1500 characters for most)
 
-            Your prompt should be concise, around 50 words, and in paragraph style without bullet points. Enclose the entire prompt within <generated></generated> tags, but in your response, only include the content within these tags without the tags themselves.
+                    2. Strictly avoid using any emojis or hashtags in the post.
 
-            Remember, you are acting as a human giving instructions to an AI, not as the AI itself.
-          `,
+                    Generate the instructions and present it within <generated> tags.`,
+        },
+        {
+          role: "assistant",
+          content: "Understood. I'll create those instructions now:",
         },
       ],
     });

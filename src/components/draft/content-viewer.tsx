@@ -5,17 +5,18 @@ import { Descendant, Element as SlateElement, Text } from "slate";
 interface ContentViewerProps {
   postId: string;
   disabled?: boolean; // Add this line
-
   value: Descendant[];
+  expanded?: boolean; // Add this line
 }
 
 const ContentViewer: React.FC<ContentViewerProps> = ({
   value,
   postId,
   disabled,
+  expanded = false,
 }) => {
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(expanded);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const renderElement = (props: any) => {
@@ -80,13 +81,16 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
       setIsExpanded(!isExpanded);
     }
   };
+  useEffect(() => {
+    setIsExpanded(expanded);
+  }, [expanded]);
 
   return (
     <div className="mb-2">
       <div
         ref={contentRef}
-        className={`whitespace-pre-wrap break-words text-sm text-black  ${
-          isExpanded ? "min-h-[100px]" : "max-h-[100px] overflow-hidden"
+        className={`whitespace-pre-wrap break-words text-sm text-black min-h-[100px] ${
+          isExpanded ? "" : "max-h-[100px] overflow-hidden"
         }`}
       >
         {value.map((node, index) => (

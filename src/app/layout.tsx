@@ -3,6 +3,7 @@ import "@uploadthing/react/styles.css";
 import { Toaster } from "sonner";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
+import { CSPostHogProvider } from "./provider.js";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default async function RootLayout({
       },
     },
   };
+
   return (
     <ClerkProvider afterSignOutUrl={"https://www.bluecast.ai/"}>
       {/* // <Frigade.Provider
@@ -50,12 +52,14 @@ export default async function RootLayout({
     //     preferences: !!user?.onboardingData,
     //   }}
     // > */}
-      <html lang="en" className={`${inter.className}`}>
-        <body>
-          {children}
-          <Toaster position="bottom-right" />
-        </body>
-      </html>
+      <CSPostHogProvider>
+        <html lang="en" className={`${inter.className}`}>
+          <body>
+            {children}
+            <Toaster position="bottom-right" />
+          </body>
+        </html>
+      </CSPostHogProvider>
     </ClerkProvider>
   );
 }

@@ -11,18 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import CustomLoader from "@/components/global/custom-loader";
-import {
-  Trash,
-  Save,
-  PenSquare,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { Plus } from "@phosphor-icons/react";
+import { Trash, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { PostsDialog } from "@/components/global/posts-dialog";
-import { parseContent } from "@/utils/editor-utils";
 import {
   Tooltip,
   TooltipContent,

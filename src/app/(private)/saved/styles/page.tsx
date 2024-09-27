@@ -89,7 +89,7 @@ export default function SavedStylesPage() {
         toast.success("Creator voice saved successfully.");
         fetchStyles();
       } else {
-        toast.error(data.error || "Failed to copy creator style.");
+        toast.error(data.error);
       }
     } catch (error) {
       console.error("Error copying creator style:", error);

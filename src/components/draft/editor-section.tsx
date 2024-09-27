@@ -16,6 +16,7 @@ import {
 import { Slate, Editable, ReactEditor, useSlate } from "slate-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Range } from "slate";
 import {
   TbFishHook,
   TbPencilCog,
@@ -48,7 +49,7 @@ import {
 import FileAttachmentButton from "@/components/buttons/file-attachment- button";
 import { Send } from "lucide-react";
 import { HistoryEditor } from "slate-history";
-import { deserializeContent, serializeContent } from "@/utils/editor-utils";
+import { deserializeContent } from "@/utils/editor-utils";
 import { Input } from "@/components/ui/input";
 import CustomLoader from "../global/custom-loader";
 import { getLinkedInId } from "@/actions/user";
@@ -184,14 +185,6 @@ function EditorSection({
     const { leaf, attributes, children } = props;
     const text = leaf.text;
 
-    // Check if the text is a special character
-    // const isSpecialChar = /[(){}&*^%$#@!]/.test(text);
-
-    // if (isSpecialChar) {
-    //   // Return the special character without any formatting
-    //   return <span {...attributes}>{children}</span>;
-    // }
-
     return (
       <span
         {...attributes}
@@ -263,6 +256,7 @@ function EditorSection({
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedText, setSelectedText] = useState("");
 
   const customStyles = {
     "--epr-emoji-size": "24px",
@@ -284,6 +278,7 @@ function EditorSection({
   const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
 
   const handlePublish = async () => {
+    handleSave();
     setIsPublishing(true);
 
     try {
@@ -390,16 +385,14 @@ function EditorSection({
   );
   const handleRewrite = useCallback(
     async (option: string) => {
-      const { selection } = editor;
-      if (!selection && option !== "hook" && option !== "cta") {
+      let textToRewrite = selectedText;
+
+      if (!textToRewrite && option !== "hook" && option !== "cta") {
         toast.error("Please select some text to rewrite.");
         return;
       }
 
       setIsRewriting(true);
-
-      const selectedText = selection ? Editor.string(editor, selection) : "";
-      const fullContent = extractContent(value);
 
       try {
         const response = await fetch("/api/ai/rewrite", {
@@ -408,8 +401,8 @@ function EditorSection({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            selectedText,
-            fullContent,
+            selectedText: textToRewrite,
+            fullContent: extractContent(value),
             option,
             customPrompt,
           }),
@@ -425,13 +418,13 @@ function EditorSection({
           throw new Error("Rewritten text is empty");
         }
 
-        if (selection) {
-          // Replace the selected text with the rewritten text
-          Transforms.select(editor, selection);
+        const { selection } = editor;
+        if (selection && !Range.isCollapsed(selection)) {
           Transforms.delete(editor);
           Transforms.insertText(editor, rewrittenText);
         } else {
-          // Insert the new content at the current cursor position
+          // If there's no current selection, insert at the end
+          Transforms.select(editor, Editor.end(editor, []));
           Transforms.insertText(editor, rewrittenText);
         }
 
@@ -446,7 +439,7 @@ function EditorSection({
         setCustomPrompt("");
       }
     },
-    [editor, value, customPrompt]
+    [editor, value, customPrompt, selectedText]
   );
 
   const handleOptionClick = (option: string) => {
@@ -488,7 +481,19 @@ function EditorSection({
           </p>
         </div>
 
-        <Slate editor={editor} initialValue={value} onChange={handleChange}>
+        <Slate
+          editor={editor}
+          initialValue={value}
+          onChange={(newValue) => {
+            handleChange(newValue);
+            const { selection } = editor;
+            if (selection && !Range.isCollapsed(selection)) {
+              setSelectedText(Editor.string(editor, selection));
+            } else {
+              setSelectedText("");
+            }
+          }}
+        >
           <div className="m-2 flex space-x-2">
             <ToolbarButton format="bold" icon={<TextB className="h-4 w-4" />} />
             <ToolbarButton
@@ -530,8 +535,19 @@ function EditorSection({
                   variant="ghost"
                   className="rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
                   disabled={isRewriting}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const { selection } = editor;
+                    if (selection && !Range.isCollapsed(selection)) {
+                      setSelectedText(Editor.string(editor, selection));
+                    }
+                  }}
                 >
-                  <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
+                  {isRewriting ? (
+                    <CustomLoader className="mr-1 h-3 w-3" />
+                  ) : (
+                    <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
+                  )}
                   AI
                 </Button>
               </PopoverTrigger>
@@ -539,6 +555,7 @@ function EditorSection({
                 side="right"
                 className="w-56 rounded p-1"
                 style={{ position: "absolute" }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
               >
                 <ScrollArea className="h-[250px]">
                   <div className="flex flex-col rounded">

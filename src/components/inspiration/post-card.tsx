@@ -24,6 +24,7 @@ import SendIcon from "../icons/send-icon";
 import LikeIcon from "../icons/like-icon";
 import CommentIcon from "../icons/comment-icon";
 import RepostIcon from "../icons/repost-icon";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 const PdfViewerComponent = dynamic(
   () => import("@/components/draft/pdf-viewer"),
   {
@@ -161,14 +162,22 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <div className="flex items-center justify-between p-4 py-2">
           <div className="flex items-center">
             <div className="relative mr-2 h-12 w-12 flex-shrink-0">
-              <Image
-                height={48}
-                width={48}
-                src={post.creator.profileImageUrl || "/next.svg"}
-                alt="Profile"
-                className="h-full w-full rounded-full object-cover"
-                quality={100}
-              />
+              {post.creator.profileImageUrl ? (
+                <Image
+                  height={48}
+                  width={48}
+                  src={post.creator.profileImageUrl}
+                  alt="Profile"
+                  className="h-full w-full rounded-full object-cover"
+                  quality={100}
+                />
+              ) : (
+                <Avatar>
+                  <AvatarFallback>
+                    {post.creator.fullName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+              )}
             </div>
             <div className="min-w-0 flex-grow">
               <p className="truncate text-sm font-semibold text-foreground">
@@ -251,16 +260,22 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                     <div className="max-w-[500px] rounded-md shadow-md ">
                       <div className="mb-2 flex items-center p-4">
                         <div className="relative mr-2 h-12 w-12 flex-shrink-0">
-                          <Image
-                            height={48}
-                            width={48}
-                            src={
-                              post.creator.profileImageUrl || "/placeholder.svg"
-                            }
-                            alt="Profile"
-                            className="h-full w-full rounded-full object-cover"
-                            quality={100}
-                          />
+                          {post.creator.profileImageUrl ? (
+                            <Image
+                              height={48}
+                              width={48}
+                              src={post.creator.profileImageUrl}
+                              alt="Profile"
+                              className="h-full w-full rounded-full object-cover"
+                              quality={100}
+                            />
+                          ) : (
+                            <Avatar>
+                              <AvatarFallback>
+                                {post.creator.fullName?.charAt(0) || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                          )}
                         </div>
                         <div className="min-w-0 flex-grow">
                           <p className="text-sm font-semibold text-black">
@@ -281,6 +296,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                       </div>
                       <div className="px-4">
                         <ContentViewer
+                          expanded={true}
                           postId={post.id}
                           value={[
                             {

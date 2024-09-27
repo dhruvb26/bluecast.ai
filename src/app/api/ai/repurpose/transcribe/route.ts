@@ -5,6 +5,7 @@ import { AssemblyAI } from "assemblyai";
 import { env } from "@/env";
 import { RepurposeRequestBody } from "@/types";
 import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
 
 export async function POST(req: Request) {
   try {
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
       const response = await getContentStyle(contentStyle);
       if (response.success) {
         examples = response.data.examples;
+        examples = joinExamples(examples);
       }
     }
 

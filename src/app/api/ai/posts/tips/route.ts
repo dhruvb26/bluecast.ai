@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
 
 interface RequestBody {
   tips: string;
@@ -30,6 +31,7 @@ export async function POST(req: Request) {
       const response = await getContentStyle(contentStyle);
       if (response.success) {
         examples = response.data.examples;
+        examples = joinExamples(examples);
       }
     }
 

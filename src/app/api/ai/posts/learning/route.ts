@@ -3,6 +3,7 @@ import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { NextResponse } from "next/server";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
 
 interface RequestBody {
   learning: string;
@@ -36,9 +37,10 @@ export async function POST(req: Request) {
 
     let examples;
     if (contentStyle) {
-      const getContentResult = await getContentStyle(contentStyle);
-      if (getContentResult.success) {
-        examples = getContentResult.data;
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+        examples = joinExamples(examples);
       }
     }
 

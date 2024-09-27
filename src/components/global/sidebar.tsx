@@ -372,7 +372,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -right-3 top-2 text-foreground border border-input bg-white h-7 w-7 z-10"
+            className="absolute -right-3 top-2 text-foreground rounded-full border border-input bg-white h-7 w-7 z-10"
             onClick={toggleSidebar}
           >
             {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}

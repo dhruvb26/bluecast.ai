@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "@phosphor-icons/react";
 import { CreatorList } from "@/actions/list";
 import { useRouter } from "next/navigation";
+import { useInView } from "react-intersection-observer";
 import { BarLoader } from "react-spinners";
 
 export default function Home() {
@@ -17,7 +18,13 @@ export default function Home() {
   const [lists, setLists] = useState<CreatorList[]>([]);
   const [posts, setPosts] = useState<{ [key: string]: any[] }>({});
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("");
+  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<{ [key: string]: number }>({});
+  const postsPerPage = 16;
+  const [hasMore, setHasMore] = useState<{ [key: string]: boolean }>({});
+  const { ref, inView } = useInView({
+    threshold: 0,
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -30,22 +37,23 @@ export default function Home() {
             ...privateListsResult.data,
           ];
           setLists(allLists);
-          setActiveTab(allLists[0]?.id || "");
+          setActiveTab(allLists[0]?.id || null);
 
           const postsData: { [key: string]: any[] } = {};
+          const pageData: { [key: string]: number } = {};
+          const hasMoreData: { [key: string]: boolean } = {};
           for (const list of allLists) {
-            const creatorIds = list.items.map(
-              (item: { creatorId: string }) => item.creatorId
-            );
-            const listPosts = await Promise.all(
-              creatorIds.map(async (id: string) => {
-                const result = await getPostsByCreatorId(id);
-                return result.success ? result.posts : [];
-              })
-            );
-            postsData[list.id] = shuffle(listPosts.flat());
+            postsData[list.id] = [];
+            pageData[list.id] = 1;
+            hasMoreData[list.id] = true;
           }
           setPosts(postsData);
+          setCurrentPage(pageData);
+          setHasMore(hasMoreData);
+
+          if (allLists[0]) {
+            await fetchPosts(allLists[0].id);
+          }
         } else {
           console.error(
             "Failed to fetch lists:",
@@ -62,6 +70,47 @@ export default function Home() {
 
     fetchData();
   }, []);
+  useEffect(() => {
+    if (activeTab && lists.length > 0) {
+      if (posts[activeTab].length === 0) {
+        fetchPosts(activeTab);
+      } else if (inView && hasMore[activeTab]) {
+        fetchPosts(activeTab);
+      }
+    }
+  }, [activeTab, inView, hasMore]);
+
+  const fetchPosts = async (listId: string) => {
+    const list = lists.find((l) => l.id === listId);
+    if (!list) return;
+
+    const creatorIds = list.items.map(
+      (item: { creatorId: string }) => item.creatorId
+    );
+    const newPosts = await Promise.all(
+      creatorIds.map(async (id: string) => {
+        const result = await getPostsByCreatorId(
+          id,
+          postsPerPage,
+          currentPage[listId]
+        );
+        return result.success ? result.posts : [];
+      })
+    );
+    const flattenedPosts = shuffle(newPosts.flat());
+    setPosts((prev) => ({
+      ...prev,
+      [listId]: [...prev[listId], ...flattenedPosts],
+    }));
+    setHasMore((prev) => ({
+      ...prev,
+      [listId]: flattenedPosts.length === postsPerPage,
+    }));
+    setCurrentPage((prev) => ({
+      ...prev,
+      [listId]: prev[listId] + 1,
+    }));
+  };
 
   return (
     <main className="p-6 overflow-y-hidden">
@@ -85,7 +134,7 @@ export default function Home() {
           <BarLoader color="#1d51d7" height={3} width={300} />
         </div>
       ) : (
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab || ""} onValueChange={setActiveTab}>
           <TabsList className="mb-6 grid grid-cols-7 w-full">
             {lists.map((list) => (
               <TabsTrigger key={list.id} value={list.id}>
@@ -101,6 +150,11 @@ export default function Home() {
                     <PostCard key={post.id} post={post} />
                   ))}
                 </div>
+                {hasMore[list.id] && (
+                  <div ref={ref} className="mt-4 flex justify-center">
+                    <BarLoader color="#1d51d7" height={3} width={300} />
+                  </div>
+                )}
               </div>
             </TabsContent>
           ))}

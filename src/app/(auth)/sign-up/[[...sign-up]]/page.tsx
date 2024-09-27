@@ -67,11 +67,15 @@ export default function SignUpPage() {
             <span className="text-sm">
               By connecting, you agree to our{" "}
               <Button variant={"link"} className="px-0">
-                Terms of Service
+                <Link href={"https://www.bluecast.ai/terms-of-service"}>
+                  Terms of Service
+                </Link>
               </Button>{" "}
               and{" "}
               <Button className="px-0" variant={"link"}>
-                Privacy Policy.
+                <Link href={"https://www.bluecast.ai/privacy-policy"}>
+                  Privacy Policy.
+                </Link>
               </Button>
             </span>
           </div>
