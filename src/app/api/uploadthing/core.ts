@@ -1,6 +1,10 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { getUser } from "@/actions/user";
+import { checkAccess, getUser } from "@/actions/user";
+import { db } from "@/server/db";
+import { eq } from "drizzle-orm";
+import { accounts } from "@/server/db/schema";
+import { updateDraftField } from "@/actions/draft";
 
 const f = createUploadthing();
 
@@ -40,6 +44,16 @@ export const ourFileRouter = {
       console.log("PDF upload complete for userId:", metadata.userId);
       console.log("PDF file url", file.url);
 
+      return { uploadedBy: metadata.userId, uploadedUrl: file.url };
+    }),
+  videoUploader: f({ "video/mp4": { maxFileSize: "128MB" } })
+    .middleware(async ({ req }) => {
+      await checkAccess();
+      const user = await getUser();
+
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId, uploadedUrl: file.url };
     }),
 } satisfies FileRouter;

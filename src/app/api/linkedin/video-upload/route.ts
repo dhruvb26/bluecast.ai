@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
-import { getLinkedInId, checkAccess, getUser } from "@/actions/user";
-import { updateDraftField } from "@/actions/draft";
 import { RouteHandlerResponse } from "@/types";
-import { env } from "@/env";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
+export const maxDuration = 250;
 
 interface UploadInstruction {
   uploadUrl: string;
@@ -31,12 +29,12 @@ export async function POST(
   NextResponse<RouteHandlerResponse<{ videoUrn: string; downloadUrl: string }>>
 > {
   try {
-    console.log("Starting POST request for video upload");
-    await checkAccess();
-    // const linkedInId = await getLinkedInId();
-    const user = await getUser();
-    const userId = user.id;
-    console.log("User authenticated, userId:", userId);
+    const { url, userId } = (await req.json()) as {
+      postId: string;
+      url: string;
+      userId: string;
+    };
+    console.log("Received postId and url from request body");
 
     const account = await db
       .select()
@@ -44,25 +42,31 @@ export async function POST(
       .where(eq(accounts.userId, userId))
       .limit(1);
     const accessToken = account[0].access_token;
-    console.log("Retrieved access token for user");
-
-    const formData = await req.formData();
-    const file = formData.get("file") as File;
-    const postId = formData.get("postId") as string;
-    console.log("Received file and postId from form data");
 
     const linkedInId = await db
       .select({ providerAccountId: accounts.providerAccountId })
       .from(accounts)
       .where(eq(accounts.userId, userId))
       .limit(1);
-    console.log("Retrieved LinkedIn ID:", linkedInId[0].providerAccountId);
-    console.log("Initializing upload with LinkedIn API");
+
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Operation timed out")), 100000)
+      setTimeout(() => reject(new Error("Operation timed out")), 250000)
     );
 
     const uploadProcess = async () => {
+      // Fetch the file size first
+      const fileResponse = await fetch(url, { method: "HEAD" });
+      if (!fileResponse.ok) {
+        throw new Error(`Failed to fetch file from URL: ${url}`);
+      }
+      const fileSizeBytes = parseInt(
+        fileResponse.headers.get("Content-Length") || "0",
+        10
+      );
+      if (fileSizeBytes === 0) {
+        throw new Error("Invalid file size");
+      }
+
       const initResponse = await fetch(
         "https://api.linkedin.com/rest/videos?action=initializeUpload",
         {
@@ -76,7 +80,7 @@ export async function POST(
           body: JSON.stringify({
             initializeUploadRequest: {
               owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
-              fileSizeBytes: file.size,
+              fileSizeBytes: fileSizeBytes,
               uploadCaptions: false,
               uploadThumbnail: false,
             },
@@ -85,8 +89,9 @@ export async function POST(
       );
 
       if (!initResponse.ok) {
-        console.error("LinkedIn API error:", await initResponse.text());
-        throw new Error(`LinkedIn API error: ${await initResponse.text()}`);
+        const errorText = await initResponse.text();
+        console.error("LinkedIn API error:", errorText);
+        throw new Error(`LinkedIn API error: ${errorText}`);
       }
 
       const {
@@ -94,12 +99,17 @@ export async function POST(
       } = (await initResponse.json()) as InitializeUploadResponse;
       console.log("Upload initialized, videoUrn:", videoUrn);
 
-      const fileBuffer = await file.arrayBuffer();
+      // Fetch the file content
+      const fileContentResponse = await fetch(url);
+      if (!fileContentResponse.ok) {
+        throw new Error(`Failed to fetch file content from URL: ${url}`);
+      }
+      const fileBuffer = await fileContentResponse.arrayBuffer();
       const uploadedPartIds: string[] = [];
 
       console.log("Starting chunk uploads");
       let uploadedBytes = 0;
-      const totalBytes = file.size;
+      const totalBytes = fileBuffer.byteLength;
       for (const { uploadUrl, firstByte, lastByte } of uploadInstructions) {
         const chunk = fileBuffer.slice(firstByte, lastByte + 1);
         console.log(`Uploading chunk: ${firstByte}-${lastByte}`);
@@ -163,8 +173,8 @@ export async function POST(
       }
 
       let videoDetails: VideoDetails | null = null;
-      const maxRetries = 50;
-      const retryInterval = 2000;
+      const maxRetries = 150;
+      const retryInterval = 5000;
       console.log("Checking video processing status");
       for (let i = 0; i < maxRetries; i++) {
         console.log(`Retry ${i + 1}: Checking video status`);
@@ -217,10 +227,11 @@ export async function POST(
       data: { videoUrn, downloadUrl },
     });
   } catch (error) {
-    console.error("Error in POST handler:", error);
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : "Internal server error",
-    });
+    console.error("Error in POST handler: ", error);
+
+    return NextResponse.json(
+      { success: false, error: "An error occurred during video upload" },
+      { status: 500 }
+    );
   }
 }

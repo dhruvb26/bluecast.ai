@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
-import { env } from "@/env";
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +13,7 @@ export async function POST(req: Request) {
     }
 
     const stream = await anthropic.messages.create({
-      model: env.MODEL,
+      model: "claude-3-haiku-20240307",
       max_tokens: 1024,
       stream: true,
       messages: [
@@ -26,21 +25,39 @@ export async function POST(req: Request) {
 
                     2. Strictly avoid using any emojis or hashtags in the post.
 
+                    3. Make the instructions 100 words at most. 
+
+                    For example:
+
+                    Use the following format:
+
+                    <example>
+                    {Hook}
+
+                    {Story}
+
+                    {Bulleted list of takeaways}
+
+                    {1-3 sentences of a conclusion}
+
+                    {Call to action}
+
+                    Don't use any hashtags and don't use any emojis.
+                    </example>
+
                     Generate the instructions now.`,
         },
         {
           role: "assistant",
-          content: "Understood. I'll create those instructions now:",
+          content: "Here are the instructions for generating a LinkedIn post:",
         },
       ],
     });
 
     const encoder = new TextEncoder();
-    let isWithinTags = false;
     let wordCount = 0;
     const readable = new ReadableStream({
       async start(controller) {
-        let isFirstChunk = true;
         let buffer = "";
         for await (const chunk of stream) {
           if (
@@ -49,43 +66,17 @@ export async function POST(req: Request) {
           ) {
             let text = chunk.delta.text;
             buffer += text;
-
-            if (buffer.includes("<generated>")) {
-              isWithinTags = true;
-              buffer = buffer.split("<generated>")[1] as any;
-              continue;
-            }
-
-            if (buffer.includes("</generated>")) {
-              isWithinTags = true;
-              text = buffer.split("</generated>")[0] as any;
-              controller.enqueue(encoder.encode(text));
-              wordCount += text
-                .split(/\s+/)
-                .filter((word: string) => word.length > 0).length;
-              controller.close();
-              break;
-            }
-
-            if (isWithinTags) {
-              if (isFirstChunk) {
-                text = text.trimStart();
-                isFirstChunk = false;
-              }
-              controller.enqueue(encoder.encode(text));
-              wordCount += text
-                .split(/\s+/)
-                .filter((word: string) => word.length > 0).length;
-              buffer = "";
-            }
+            controller.enqueue(encoder.encode(text));
           }
         }
-        if (isWithinTags) {
-          controller.close();
-        }
+
+        // Count words in the buffer
+        wordCount = buffer.trim().split(/\s+/).length;
 
         // Call the setGeneratedWords action with the total word count
         await setGeneratedWords(wordCount);
+
+        controller.close();
       },
     });
 

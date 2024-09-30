@@ -245,7 +245,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                     })}
                     {date.toDateString() === today && (
                       <div
-                        className="absolute left-0 right-0 h-0.5 bg-blue-400"
+                        className="absolute left-0 right-0 h-0.5 bg-blue-600"
                         style={{
                           top: `${
                             ((now.getHours() * 60 + now.getMinutes()) /

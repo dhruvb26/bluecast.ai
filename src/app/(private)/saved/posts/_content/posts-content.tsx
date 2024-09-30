@@ -24,10 +24,10 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { PenIcon, CalendarIcon, RocketIcon } from "lucide-react";
+import { PenIcon, CalendarIcon, RocketIcon, BadgeInfoIcon } from "lucide-react";
 import { BarLoader } from "react-spinners";
 
-type TabType = "saved" | "scheduled" | "published";
+type TabType = "saved" | "scheduled" | "published" | "progress";
 
 const SavedDraftsContent = () => {
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -123,10 +123,11 @@ const SavedDraftsContent = () => {
       </p>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid grid-cols-4 mb-8">
           <TabsTrigger value="saved">Saved</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
           <TabsTrigger value="published">Published</TabsTrigger>
+          <TabsTrigger value="progress">In Progress</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab}>{renderContent()}</TabsContent>
@@ -183,9 +184,16 @@ function EmptyState({ type }: { type: TabType }) {
         "Share your voice with the world. Publish your first post today.",
       action: "Publish Post",
     },
+    progress: {
+      icon: <BadgeInfoIcon className="w-12 h-12 mb-4 text-primary" />,
+      title: "No posts in progress yet",
+      description:
+        "Posts with video attachments take time to upload, so they show up here while they're being processed.",
+      action: "Publish Post",
+    },
   };
 
-  const { icon, title, description, action } = content[type];
+  const { icon, title, description, action } = content[type as TabType];
 
   return (
     <Card className="text-center p-8 border-none">
@@ -196,7 +204,7 @@ function EmptyState({ type }: { type: TabType }) {
         </CardTitle>
         <CardDescription className="mb-6">{description}</CardDescription>
         <Button
-          className={`${type === "published" ? "hidden" : ""}`}
+          className={`${type === "published" || "progress" ? "hidden" : ""}`}
           onClick={() => {
             if (type === "saved") {
               window.location.href = "/create/posts";

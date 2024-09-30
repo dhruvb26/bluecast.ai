@@ -121,6 +121,8 @@ export const ParallaxScroll = ({
                 ? "bg-green-50 text-xs font-normal text-green-600 hover:bg-green-100"
                 : post.status === "scheduled"
                 ? "bg-yellow-50 text-xs font-normal text-yellow-600 hover:bg-yellow-100"
+                : post.status === "progress"
+                ? "bg-orange-50 text-xs font-normal text-orange-600 hover:bg-orange-100"
                 : "bg-blue-50 text-xs font-normal text-blue-600 hover:bg-blue-100"
             }
           >

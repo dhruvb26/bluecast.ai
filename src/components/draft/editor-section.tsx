@@ -33,12 +33,14 @@ import { toast } from "sonner";
 import EmojiPicker, { SkinTonePickerLocation } from "emoji-picker-react";
 import {
   Brain,
+  FileVideo,
   PaperPlaneRight,
   Smiley,
   Sparkle,
   TextB,
   TextItalic,
   TextUnderline,
+  Upload,
 } from "@phosphor-icons/react";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -55,6 +57,16 @@ import CustomLoader from "../global/custom-loader";
 import { getLinkedInId } from "@/actions/user";
 import LinkedInConnect from "../global/connect-linkedin";
 import { usePostStore } from "@/store/post";
+import { UploadButton } from "@/utils/uploadthing";
+import { updateDraftField } from "@/actions/draft";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 export type ParagraphElement = {
   type: "paragraph";
@@ -319,21 +331,28 @@ function EditorSection({
 
       const result: any = await response.json();
 
-      const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
+      if (result.status === "progress") {
+        toast.success(
+          "Your post is being processed. Please check the 'In Progress' section for updates.",
+          { duration: 5000 }
+        );
+      } else {
+        const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
 
-      toast.success(
-        <span>
-          Post published successfully.{" "}
-          <a
-            href={link}
-            className="font-semibold text-green-900"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Click here
-          </a>
-        </span>
-      );
+        toast.success(
+          <span>
+            Post published successfully.{" "}
+            <a
+              href={link}
+              className="font-semibold text-green-900"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Click here
+            </a>
+          </span>
+        );
+      }
     } catch (error: any) {
       if (error.name === "AbortError") {
         toast.info("Publishing cancelled");
@@ -448,6 +467,7 @@ function EditorSection({
 
   const handleDocumentUploaded = useCallback(
     async (fileType: string) => {
+      handleSave();
       if (fileType === "pdf" || fileType === "document") {
         toast.success(`Document uploaded successfully.`);
         window.location.reload();
@@ -494,7 +514,7 @@ function EditorSection({
             }
           }}
         >
-          <div className="m-2 flex space-x-2">
+          <div className="m-2 flex space-x-1">
             <ToolbarButton format="bold" icon={<TextB className="h-4 w-4" />} />
             <ToolbarButton
               format="italic"
@@ -506,11 +526,59 @@ function EditorSection({
             />
 
             <Separator orientation="vertical" className="h-8" />
+            <TooltipProvider>
+              <Tooltip>
+                <Dialog>
+                  <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <FileVideo weight="light" size={22} />
+                      </Button>
+                    </DialogTrigger>
+                  </TooltipTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Attach File</DialogTitle>
+                      <DialogDescription>
+                        Upload a video to attach to your post.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <UploadButton
+                      className="ut-allowed-content:hidden ut-button:w-full ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
+                      endpoint="videoUploader"
+                      onClientUploadComplete={(res) => {
+                        if (res && res[0]?.url) {
+                          updateDraftField(id, "downloadUrl", res[0].url);
+                        }
+                        toast.success("File uploaded sucessfully.");
+                        window.location.reload();
+                      }}
+                      onUploadError={(error: Error) => {
+                        toast.error(`${error.message}`);
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
 
-            <FileAttachmentButton
-              postId={id}
-              onFileUploaded={handleDocumentUploaded}
-            />
+                <TooltipContent>
+                  <p>Video</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <FileAttachmentButton
+                    postId={id}
+                    onFileUploaded={handleDocumentUploaded}
+                  />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Attach File</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

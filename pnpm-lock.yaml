@@ -104,6 +104,9 @@ importers:
       '@upstash/redis':
         specifier: ^1.34.0
         version: 1.34.0
+      '@vercel/functions':
+        specifier: ^1.4.1
+        version: 1.4.1
       assemblyai:
         specifier: ^4.7.0
         version: 4.7.0
@@ -1800,6 +1803,15 @@ packages:
   '@vercel/fun@1.1.0':
     resolution: {integrity: sha512-SpuPAo+MlAYMtcMcC0plx7Tv4Mp7SQhJJj1iIENlOnABL24kxHpL09XLQMGzZIzIW7upR8c3edwgfpRtp+dhVw==}
     engines: {node: '>= 10'}
+
+  '@vercel/functions@1.4.1':
+    resolution: {integrity: sha512-987mKpoDCI18x2rDjrDbiuGOtxDMK/UhfhDZoN3A2SAt40BMaj8HEKwVqL6fOian5j/3RZcOuJnMOpatQGgpjw==}
+    engines: {node: '>= 16'}
+    peerDependencies:
+      '@aws-sdk/credential-provider-web-identity': '*'
+    peerDependenciesMeta:
+      '@aws-sdk/credential-provider-web-identity':
+        optional: true
 
   '@vercel/gatsby-plugin-vercel-analytics@1.0.11':
     resolution: {integrity: sha512-iTEA0vY6RBPuEzkwUTVzSHDATo1aF6bdLLspI68mQ/BTbi5UQEGjpjyzdKOVcSYApDtFU6M6vypZ1t4vIEnHvw==}
@@ -6078,6 +6090,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  '@vercel/functions@1.4.1': {}
 
   '@vercel/gatsby-plugin-vercel-analytics@1.0.11':
     dependencies:

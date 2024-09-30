@@ -82,21 +82,19 @@ export async function POST(req: Request) {
 
             4. Pay close attention to any custom instructions provided. These should be followed precisely as they may contain important details about content, length, or specific elements to include or avoid.
 
-            5. Begin your story with a compelling hook that relates to the topic and captures the reader's attention.
+            5. Develop the main body of the story, ensuring it remains relevant to the topic and maintains the specified tone throughout.
 
-            6. Develop the main body of the story, ensuring it remains relevant to the topic and maintains the specified tone throughout.
+            6. Include a clear takeaway or call-to-action that encourages engagement from your LinkedIn audience.
 
-            7. Include a clear takeaway or call-to-action that encourages engagement from your LinkedIn audience.
+            7. Proofread your story for grammar, spelling, and clarity. Ensure it maintains a professional tone suitable for LinkedIn, regardless of the specific tone requested.
 
-            8. Proofread your story for grammar, spelling, and clarity. Ensure it maintains a professional tone suitable for LinkedIn, regardless of the specific tone requested.
+            8. If the custom instructions or post format require any specific hashtags, mentions, or LinkedIn-specific features (like polls or carousel posts), include these as directed.
 
-            9. If the custom instructions or post format require any specific hashtags, mentions, or LinkedIn-specific features (like polls or carousel posts), include these as directed.
+            9. If user asks for bolded or italic text use unicode text instead of markdown format.
 
-            10. If user asks for bolded or italic text use unicode text instead of markdown format.
+            10. Generate a suitable amount of words for a LinkedIn post (typically between 150-300 words) unless the custom instructions specify a different length. Aim for a comprehensive yet concise post that fully addresses the topic without being overly lengthy.
 
-            11. Generate a suitable amount of words for a LinkedIn post (typically between 150-300 words) unless the custom instructions specify a different length. Aim for a comprehensive yet concise post that fully addresses the topic without being overly lengthy.
-
-            12. Copy the tone, structure, use of emojis and layout of the examples if given any. Ignore the given tone and prefer the examples' tone rather. 
+            11. Copy the tone, structure, use of emojis and layout of the examples if given any. Ignore the given tone and prefer the examples' tone rather. 
 
             Write your final LinkedIn story directly without any surrounding tags. Ensure that your story adheres to all the guidelines provided, including topic, tone, post format (if given), and any custom instructions.
 

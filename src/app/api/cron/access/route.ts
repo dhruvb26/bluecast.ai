@@ -6,7 +6,7 @@ import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 export const dynamic = "force-dynamic";
 
-export async function POST(req: NextRequest): Promise<Response> {
+export async function GET(req: NextRequest): Promise<Response> {
   try {
     if (req.headers.get("Authorization") !== `Bearer ${env.CRON_SECRET}`) {
       return NextResponse.json({ error: "Not authorized" }, { status: 401 });
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     // Update Clerk metadata for each user
     for (const user of usersToUpdate) {
-      await clerkClient.users.updateUserMetadata(user.id, {
+      await clerkClient().users.updateUserMetadata(user.id, {
         publicMetadata: {
           hasAccess: false,
         },

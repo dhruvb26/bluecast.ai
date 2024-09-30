@@ -76,12 +76,11 @@ export async function POST(req: Request) {
           If a format template or custom instructions are provided, you must strictly adhere to them throughout the writing process. These take precedence over the general guidelines that follow.
 
           3. If no specific template or custom instructions are given, structure your story post as follows:
-            a. Hook: Start with an attention-grabbing opening line or question related to the story type.
-            b. Context: Briefly set the scene or provide necessary background information.
-            c. Main content: Develop the story using the provided story content, focusing on key events or challenges.
-            d. Outcome: Describe the result or resolution, incorporating the given outcome.
-            e. Emotional impact: Express the feeling associated with the experience.
-            f. Lesson or takeaway: Conclude with the main lesson learned or insight gained.
+            a. Context: Briefly set the scene or provide necessary background information.
+            b. Main content: Develop the story using the provided story content, focusing on key events or challenges.
+            c. Outcome: Describe the result or resolution, incorporating the given outcome.
+            d. Emotional impact: Express the feeling associated with the experience.
+            e. Lesson or takeaway: Conclude with the main lesson learned or insight gained.
 
           4. Writing style and tone:
             - Keep the language professional yet conversational.

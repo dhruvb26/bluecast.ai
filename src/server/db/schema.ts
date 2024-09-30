@@ -24,7 +24,12 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `bluecast.ai_${name}`);
 
-export const statusEnum = pgEnum("status", ["saved", "scheduled", "published"]);
+export const statusEnum = pgEnum("status", [
+  "saved",
+  "scheduled",
+  "published",
+  "progress",
+]);
 
 // Content
 export const drafts = createTable("draft", {
