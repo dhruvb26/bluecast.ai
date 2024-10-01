@@ -160,7 +160,7 @@ export const ParallaxScroll = ({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Cancel Schedule</p>
+                      <p>Cancel</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

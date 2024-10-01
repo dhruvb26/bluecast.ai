@@ -121,7 +121,7 @@ export default function Home() {
           </h1>
           <p className="text-sm text-muted-foreground">
             Here are some of the most recent posts from the top creators on
-            LinkedIn. Check back daily for new content!
+            LinkedIn. Create your own list of creators to keep up with.
           </p>
         </div>
         <Button onClick={() => router.push("/saved/lists")}>

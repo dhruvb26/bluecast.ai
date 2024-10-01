@@ -72,7 +72,7 @@ export function ContentStyleSelector({
                 </SelectItem>
               ))}
               <SelectItem
-                className="text-sm pl-2 bg-gray-100 focus:bg-foreground transition-all focus:text-white"
+                className="text-sm pl-2 bg-gray-100 focus:bg-blue-600 transition-all focus:text-white"
                 value="custom"
                 hideIndicator={true}
               >

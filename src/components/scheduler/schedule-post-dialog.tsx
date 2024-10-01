@@ -81,9 +81,9 @@ export function SchedulePostDialog() {
             }}
           >
             <div className="flex flex-row justify-between w-full">
-              <div className="mb-2 text-sm font-semibold">
+              <div className="mb-2 text-sm font-semibold flex flex-col space-y-1">
                 {draft.name || "Untitled"}
-                <span className="text-xs text-gray-500 mb-2">
+                <span className="text-xs font-normal text-muted-foreground mb-2">
                   {" "}
                   Last updated: {new Date(draft.updatedAt).toLocaleString()}
                 </span>
@@ -335,6 +335,7 @@ export function SchedulePostDialog() {
 
       if (response.ok) {
         toast.success("Draft scheduled successfully.");
+        setIsDialogOpen(false);
       } else {
         toast.error("Failed to schedule draft.");
       }
