@@ -21,9 +21,13 @@ import { UserPlus } from "lucide-react";
 import { BarLoader } from "react-spinners";
 import { getUser } from "@/actions/user";
 import { usePostStore } from "@/store/post";
-import LinkedInConnect from "@/components/global/connect-linkedin";
-import SubscriptionCard from "@/components/global/subscription-card";
-
+import dynamic from "next/dynamic";
+const SubscriptionCard = dynamic(
+  () => import("@/components/global/subscription-card"),
+  {
+    ssr: false,
+  }
+);
 export default function CreateCreatorList() {
   const [urls, setUrls] = useState([""]);
   const [listName, setListName] = useState("");
@@ -127,6 +131,7 @@ export default function CreateCreatorList() {
       toast.error("An error occurred while fetching creator lists");
     } finally {
       setIsFetching(false);
+      setIsDialogOpen(false);
     }
   };
 
@@ -151,13 +156,14 @@ export default function CreateCreatorList() {
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              {" "}
-              <Plus weight="bold" className="inline mr-1" size={15} />
-              Create New
-            </Button>
-          </DialogTrigger>
+          {creatorLists.length > 0 && (
+            <DialogTrigger asChild>
+              <Button>
+                <Plus weight="bold" className="inline mr-1" size={15} />
+                Create
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader className="flex flex-row space-x-2">
               <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
@@ -253,6 +259,10 @@ export default function CreateCreatorList() {
           <p className="text-muted-foreground text-sm mb-4">
             Create customized creator lists to keep up with.
           </p>
+          <Button onClick={() => setIsDialogOpen(true)} variant={"outline"}>
+            <Plus weight="bold" className="inline mr-1" size={15} />
+            Create
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

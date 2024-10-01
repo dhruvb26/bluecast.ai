@@ -7,6 +7,12 @@ import { Button } from "../ui/button";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { Separator } from "../ui/separator";
 import { SchedulePostDialog } from "./schedule-post-dialog";
+import { usePostStore } from "@/store/post";
+import dynamic from "next/dynamic";
+
+const LinkedInConnect = dynamic(() => import("../global/connect-linkedin"), {
+  ssr: false,
+});
 
 interface CalendarProps {
   drafts: Draft[];
@@ -265,58 +271,71 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
     );
   };
 
+  const { showLinkedInConnect } = usePostStore();
+
   return (
-    <div className="calendar-container min-h-screen pb-4">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex flex-col space-y-2 p-4">
-          <div className="flex flex-row space-x-2">
-            {formatMonthYearWeek(currentDate)}
-            <Button variant={"outline"} onClick={goToToday} className="text-sm">
-              Today
-            </Button>
-            <div className="flex flex-row items-center">
+    <>
+      {showLinkedInConnect && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <LinkedInConnect />
+        </div>
+      )}
+      <div className="calendar-container min-h-screen pb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex flex-col space-y-2 p-4">
+            <div className="flex flex-row space-x-2">
+              {formatMonthYearWeek(currentDate)}
               <Button
-                size={"icon"}
-                variant={"ghost"}
-                onClick={goToPrevious}
-                className="rounded-full"
+                variant={"outline"}
+                onClick={goToToday}
+                className="text-sm"
               >
-                <ChevronLeft size={20} />
+                Today
               </Button>
+              <div className="flex flex-row items-center">
+                <Button
+                  size={"icon"}
+                  variant={"ghost"}
+                  onClick={goToPrevious}
+                  className="rounded-full"
+                >
+                  <ChevronLeft size={20} />
+                </Button>
 
-              <Button
-                size={"icon"}
-                variant={"ghost"}
-                onClick={goToNext}
-                className="rounded-full"
-              >
-                <ChevronRight size={20} />
-              </Button>
+                <Button
+                  size={"icon"}
+                  variant={"ghost"}
+                  onClick={goToNext}
+                  className="rounded-full"
+                >
+                  <ChevronRight size={20} />
+                </Button>
+              </div>
             </div>
+            <>{formatDates(currentDate)}</>
           </div>
-          <>{formatDates(currentDate)}</>
-        </div>
 
-        <div className="flex items-center space-x-4">
-          <SchedulePostDialog />
-          <Separator orientation="vertical" className="h-10" />
-          <Tabs
-            className="mr-6"
-            value={currentView}
-            onValueChange={(value) =>
-              setCurrentView(value as "1week" | "2weeks" | "month")
-            }
-          >
-            <TabsList className="grid grid-cols-3  text-sm">
-              <TabsTrigger value="1week">1 Week</TabsTrigger>
-              <TabsTrigger value="2weeks">2 Weeks</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center space-x-4">
+            <SchedulePostDialog />
+            <Separator orientation="vertical" className="h-10" />
+            <Tabs
+              className="mr-6"
+              value={currentView}
+              onValueChange={(value) =>
+                setCurrentView(value as "1week" | "2weeks" | "month")
+              }
+            >
+              <TabsList className="grid grid-cols-3  text-sm">
+                <TabsTrigger value="1week">1 Week</TabsTrigger>
+                <TabsTrigger value="2weeks">2 Weeks</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
+        {renderCalendarView()}
       </div>
-      {renderCalendarView()}
-    </div>
+    </>
   );
 };
 

@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Paperclip } from "lucide-react";
+import { Paperclip } from "@phosphor-icons/react";
 import { updateDraftField } from "@/actions/draft";
 import { toast } from "sonner";
 import { getLinkedInId } from "@/actions/user";
@@ -23,7 +23,6 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { FileImage } from "@phosphor-icons/react";
 
 const FileAttachmentButton = ({
   postId,
@@ -153,7 +152,7 @@ const FileAttachmentButton = ({
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
               <Button variant="ghost" size="icon">
-                <FileImage weight="light" size={22} />
+                <Paperclip weight="light" size={22} />
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
@@ -163,7 +162,7 @@ const FileAttachmentButton = ({
                 Attach File
               </DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">
-                Upload an Image or a PDF to attach to your post.
+                Upload a file to attach to your post.
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col space-y-3 py-4">
@@ -175,13 +174,6 @@ const FileAttachmentButton = ({
                   onChange={handleFileChange}
                   accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,application/pdf"
                 />
-
-                {selectedFile && (
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Selected file: </span>
-                    {selectedFile.name}
-                  </p>
-                )}
               </div>
               {selectedFile &&
                 (selectedFile.type === "application/pdf" ||
@@ -211,14 +203,31 @@ const FileAttachmentButton = ({
                     !documentName)
                 }
               >
-                {isUploading ? "Processing" : "Attach"}
+                {isUploading ? "Processing" : "Upload"}
               </Button>
             </div>
+            <UploadButton
+              className=" ut-button:w-full ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
+              endpoint="videoUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res[0]?.url) {
+                  updateDraftField(postId, "downloadUrl", res[0].url);
+                }
+                toast.success("File uploaded sucessfully.");
+                window.location.reload();
+              }}
+              content={{
+                button: "Attach Video",
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`${error.message}`);
+              }}
+            />
           </DialogContent>
         </Dialog>
 
         <TooltipContent>
-          <p>Images/PDFs</p>
+          <p>Files</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

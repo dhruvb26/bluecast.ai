@@ -5,8 +5,10 @@ import { ArrowUpRight } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { env } from "@/env";
+import { useUser } from "@clerk/nextjs";
 
 const Subscription = () => {
+  const { user } = useUser();
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="w-full max-w-md rounded-lg bg-white p-8 text-center flex flex-col items-center justify-center shadow-lg">
@@ -43,15 +45,11 @@ const Subscription = () => {
               target="_blank"
               href={
                 env.NEXT_PUBLIC_NODE_ENV === "development"
-                  ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
-                  : "https://buy.stripe.com/eVa7uTcgf4YP0kU8ww"
+                  ? `https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
+                  : `https://buy.stripe.com/eVa7uTcgf4YP0kU8ww?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
               }
             >
               Subscribe
-              <ArrowUpRight
-                size={16}
-                className="inline transition-transform group-hover:translate-y-[-2px] group-hover:translate-x-[2px]"
-              />
             </Link>
           </Button>
         </div>

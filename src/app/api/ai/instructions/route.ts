@@ -25,13 +25,11 @@ export async function POST(req: Request) {
 
                     2. Strictly avoid using any emojis or hashtags in the post.
 
-                    3. Make the instructions 100 words at most. 
-
-                    For example:
-
-                    Use the following format:
-
+                    Here is an example of the instructions you'll be creating:
+                    
                     <example>
+                    Use the following format:
+           
                     {Hook}
 
                     {Story}

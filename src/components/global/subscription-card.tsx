@@ -12,8 +12,10 @@ import { Button } from "../ui/button";
 import Image from "next/image";
 import { usePostStore } from "@/store/post";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 const SubscriptionCard = () => {
-  const { showFeatureGate, setShowFeatureGate } = usePostStore();
+  const { user } = useUser();
+  const { setShowFeatureGate } = usePostStore();
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
@@ -42,8 +44,8 @@ const SubscriptionCard = () => {
               target="_blank"
               href={
                 env.NEXT_PUBLIC_NODE_ENV === "development"
-                  ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
-                  : "https://buy.stripe.com/eVa7uTcgf4YP0kU8ww"
+                  ? `https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
+                  : `https://buy.stripe.com/eVa7uTcgf4YP0kU8ww?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
               }
             >
               Take me there

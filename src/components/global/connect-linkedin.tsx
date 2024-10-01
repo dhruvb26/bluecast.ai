@@ -22,7 +22,7 @@ const LinkedInConnect = () => {
   const scope = "openid%20profile%20email%20w_member_social%20r_basicprofile";
   const authUrl = `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=${scope}`;
 
-  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
+  const { setShowLinkedInConnect } = usePostStore();
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">

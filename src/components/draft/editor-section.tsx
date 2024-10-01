@@ -526,58 +526,11 @@ function EditorSection({
             />
 
             <Separator orientation="vertical" className="h-8" />
-            <TooltipProvider>
-              <Tooltip>
-                <Dialog>
-                  <TooltipTrigger asChild>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <FileVideo weight="light" size={22} />
-                      </Button>
-                    </DialogTrigger>
-                  </TooltipTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Attach File</DialogTitle>
-                      <DialogDescription>
-                        Upload a video to attach to your post.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <UploadButton
-                      className="ut-allowed-content:hidden ut-button:w-full ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
-                      endpoint="videoUploader"
-                      onClientUploadComplete={(res) => {
-                        if (res && res[0]?.url) {
-                          updateDraftField(id, "downloadUrl", res[0].url);
-                        }
-                        toast.success("File uploaded sucessfully.");
-                        window.location.reload();
-                      }}
-                      onUploadError={(error: Error) => {
-                        toast.error(`${error.message}`);
-                      }}
-                    />
-                  </DialogContent>
-                </Dialog>
 
-                <TooltipContent>
-                  <p>Video</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <FileAttachmentButton
-                    postId={id}
-                    onFileUploaded={handleDocumentUploaded}
-                  />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Attach File</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <FileAttachmentButton
+              postId={id}
+              onFileUploaded={handleDocumentUploaded}
+            />
 
             <TooltipProvider>
               <Tooltip>

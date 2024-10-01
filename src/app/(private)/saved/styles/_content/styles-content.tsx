@@ -20,6 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BarLoader } from "react-spinners";
+import { Empty, PlusCircle } from "@phosphor-icons/react";
 
 export default function StylesContent() {
   const router = useRouter();
@@ -139,10 +140,55 @@ export default function StylesContent() {
       </div>
     );
   }
-
+  if (examples.length === 0) {
+    return (
+      <main className="p-8">
+        <div className="mb-8 text-left">
+          <div className="flex flex-row space-x-2 items-center justify-between">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              {styleName}
+            </h1>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-9"
+                    onClick={handleDeleteStyle}
+                    variant={"outline"}
+                    size={"sm"}
+                  >
+                    <Trash size={15} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+          <p className="mx-auto text-sm text-muted-foreground">
+            Manage your writing style here. Please add up to 10 examples to
+            achieve the desired results.
+          </p>
+        </div>
+        <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
+          <div className="mb-2">
+            <Empty className="w-12 h-12 text-primary" />
+          </div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            No examples yet
+          </h2>
+          <p className="text-muted-foreground text-sm mb-4">
+            Add your first example to get started.
+          </p>
+          <PostsDialog onSelect={handleAddExample} />
+        </div>
+      </main>
+    );
+  }
   return (
     <main className="p-8">
-      <div className="mb-8 text-left">
+      <div className=" text-left">
         <div className="flex flex-row space-x-2 items-center justify-between">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             {styleName}
@@ -153,6 +199,7 @@ export default function StylesContent() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    className="h-9"
                     onClick={handleDeleteStyle}
                     variant={"outline"}
                     size={"sm"}
@@ -168,12 +215,12 @@ export default function StylesContent() {
           </div>
         </div>
         <p className="mx-auto text-sm text-muted-foreground">
-          Manage your writing style here. Add at least 10 examples to get the
-          desired results.
+          Manage your writing style here. Please add up to 10 examples to
+          achieve the desired results.
         </p>
       </div>
 
-      <div className="relative overflow-visible">
+      <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -181,11 +228,27 @@ export default function StylesContent() {
           {Array.from({ length: Math.ceil(examples.length / 3) }, (_, i) => (
             <div
               key={i}
-              className="w-full flex-shrink-0 grid grid-cols-3 gap-4 px-4"
+              className="w-full flex-shrink-0 grid grid-cols-3 gap-4 pb-2 pt-8"
             >
               {examples.slice(i * 3, i * 3 + 3).map((example, index) => (
                 <div key={index} className="mb-4">
                   <div className="flex space-x-2 justify-end py-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            onClick={() => handleDeleteExample(index)}
+                            variant={"outline"}
+                            size={"sm"}
+                          >
+                            <Trash size={15} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     {changedExamples.has(index) && (
                       <TooltipProvider>
                         <Tooltip>
@@ -203,22 +266,6 @@ export default function StylesContent() {
                         </Tooltip>
                       </TooltipProvider>
                     )}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={() => handleDeleteExample(index)}
-                            variant={"outline"}
-                            size={"sm"}
-                          >
-                            <Trash size={15} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   </div>
                   <Textarea
                     value={example}

@@ -150,7 +150,7 @@ export function ScratchStoryForm({
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="tone"
           render={({ field }) => (
@@ -176,7 +176,7 @@ export function ScratchStoryForm({
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <InstructionsField
           form={form}

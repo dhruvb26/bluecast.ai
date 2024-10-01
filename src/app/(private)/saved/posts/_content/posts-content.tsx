@@ -14,7 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import CustomLoader from "@/components/global/custom-loader";
+import { v4 as uuid } from "uuid";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -24,8 +24,16 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { PenIcon, CalendarIcon, RocketIcon, BadgeInfoIcon } from "lucide-react";
+import {
+  PenIcon,
+  CalendarIcon,
+  RocketIcon,
+  BadgeInfoIcon,
+  PenSquare,
+  BookDashed,
+} from "lucide-react";
 import { BarLoader } from "react-spinners";
+import { CalendarDots } from "@phosphor-icons/react";
 
 type TabType = "saved" | "scheduled" | "published" | "progress";
 
@@ -133,8 +141,6 @@ const SavedDraftsContent = () => {
         <TabsContent value={activeTab}>{renderContent()}</TabsContent>
       </Tabs>
 
-      {/* {!isLoading && drafts.length > 0 && <CTACard />} */}
-
       <AlertDialog
         open={!!draftToDelete}
         onOpenChange={() => setDraftToDelete(null)}
@@ -164,11 +170,23 @@ const SavedDraftsContent = () => {
 function EmptyState({ type }: { type: TabType }) {
   const content = {
     saved: {
-      icon: <PenIcon className="w-12 h-12 mb-4 text-primary" />,
+      icon: <PenSquare className="w-12 h-12 mb-4 text-primary" />,
       title: "No saved drafts yet",
       description:
-        "Start your writing journey. Save your ideas and come back to them later.",
-      action: "Create Draft",
+        "Start your writing journey. Save your drafts and come back to them later. Create one yourself or use one of our templates.",
+      actions: [
+        {
+          label: "Write",
+          href: `/draft/${uuid()}`,
+          icon: <PenSquare size={18} className="mr-2" />,
+        },
+        {
+          label: "Use Template",
+          href: "/create/posts",
+          icon: <BookDashed size={18} className="mr-2" />,
+        },
+      ],
+      action: "",
     },
     scheduled: {
       icon: <CalendarIcon className="w-12 h-12 mb-4 text-primary" />,
@@ -176,6 +194,7 @@ function EmptyState({ type }: { type: TabType }) {
       description:
         "Plan ahead. Schedule your posts for consistent content delivery.",
       action: "Schedule",
+      actions: [],
     },
     published: {
       icon: <RocketIcon className="w-12 h-12 mb-4 text-primary" />,
@@ -183,6 +202,7 @@ function EmptyState({ type }: { type: TabType }) {
       description:
         "Share your voice with the world. Publish your first post today.",
       action: "Publish Post",
+      actions: [],
     },
     progress: {
       icon: <BadgeInfoIcon className="w-12 h-12 mb-4 text-primary" />,
@@ -190,10 +210,12 @@ function EmptyState({ type }: { type: TabType }) {
       description:
         "Posts with video attachments take time to upload, so they show up here while they're being processed.",
       action: "Publish Post",
+      actions: [],
     },
   };
 
-  const { icon, title, description, action } = content[type as TabType];
+  const { icon, title, description, actions, action } =
+    content[type as TabType];
 
   return (
     <Card className="text-center p-8 border-none">
@@ -203,22 +225,43 @@ function EmptyState({ type }: { type: TabType }) {
           {title}
         </CardTitle>
         <CardDescription className="mb-6">{description}</CardDescription>
-        <Button
-          className={`${type === "published" || "progress" ? "hidden" : ""}`}
-          onClick={() => {
-            if (type === "saved") {
-              window.location.href = "/create/posts";
-            }
-            if (type === "scheduled") {
-              window.location.href = "/schedule";
-            }
-          }}
-        >
-          {action}
-        </Button>
+        {type === "saved" ? (
+          <div className="flex space-x-4">
+            {actions.map((action: any, index: number) => (
+              <Button
+                key={index}
+                onClick={() => {
+                  window.location.href = action.href;
+                }}
+                className={
+                  index === 0
+                    ? "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center"
+                    : ""
+                }
+                variant={index === 1 ? "outline" : "default"}
+              >
+                {action.icon}
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        ) : type !== "progress" && type !== "published" ? (
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              if (type === "scheduled") {
+                window.location.href = "/schedule";
+              }
+            }}
+          >
+            {type === "scheduled" && (
+              <CalendarDots size={18} className="mr-2" />
+            )}
+            {content[type].action}
+          </Button>
+        ) : null}
       </CardContent>
     </Card>
   );
 }
-
 export default SavedDraftsContent;

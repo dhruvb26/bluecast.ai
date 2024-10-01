@@ -14,6 +14,7 @@ import {
   Files,
   FolderSimple,
   Gear,
+  House,
   Lightbulb,
   List,
   SignOut,
@@ -105,7 +106,8 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 isOpen ? "justify-start" : "justify-center",
                 isLinkActive(href, exact)
                   ? "text-foreground bg-gray-100 font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-gray-50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-gray-50",
+                text == "Dashboard" ? "mt-4" : ""
               )}
               id={text === "Post Generator" ? "tour-1" : undefined}
             >
@@ -176,29 +178,40 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             />
           </Button>
         </div>
-        <TooltipProvider>
-          <Tooltip delayDuration={100}>
-            <TooltipTrigger asChild>
-              <Button
-                className={cn(
-                  "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center",
-                  isOpen ? "px-5" : "px-2"
-                )}
-                onClick={handleCreateDraft}
-              >
-                <PenSquare size={18} className={isOpen ? "mx-1.5" : ""} />
-                {isOpen && "Write Post"}
-              </Button>
-            </TooltipTrigger>
-            {!isOpen && (
-              <TooltipContent side="right">Write Post</TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-        {/* <div className={cn("bg-input my-2", isOpen ? "h-[1px]" : "h-[1px]")} /> */}
-        <div className="flex items-center justify-between mx-2">
+        <div className="flex flex-col space-y-2">
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <Button
+                  className={cn(
+                    "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center",
+                    isOpen ? "px-5" : "px-2"
+                  )}
+                  onClick={handleCreateDraft}
+                >
+                  <PenSquare size={18} className={isOpen ? "mx-1.5" : ""} />
+                  {isOpen && "Write Post"}
+                </Button>
+              </TooltipTrigger>
+              {!isOpen && (
+                <TooltipContent side="right">Write Post</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+          {renderNavLink(
+            "/dashboard",
+            <House size={20} className="text-gray-500" />,
+            <House
+              size={20}
+              className="text-brand-blue-primary"
+              weight="regular"
+            />,
+            "Dashboard"
+          )}
+        </div>
+        <div className="flex items-center justify-between  mx-2">
           {isOpen && (
-            <span className="mr-1 text-xs text-gray-400 mt-4 font-medium">
+            <span className="mr-1 text-xs text-gray-400  mt-2  font-medium">
               CREATE
             </span>
           )}

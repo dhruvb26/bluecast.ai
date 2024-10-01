@@ -84,12 +84,12 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
           <div
             key={post.id}
             className={`mb-4 rounded-lg p-4 transition-all duration-200 cursor-pointer ${
-              selectedPost === post.content
-                ? "bg-blue-100"
-                : "bg-gray-50 hover:bg-gray-100"
+              selectedPost === post.id
+                ? "bg-blue-50 border border-blue-200"
+                : "bg-white border border-input"
             }`}
             onClick={() => {
-              setSelectedPost(parseContent(post.content || ""));
+              setSelectedPost(post.id);
               setEditedPost(parseContent(post.content || ""));
             }}
           >
@@ -116,23 +116,28 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
       </div>
     </div>
   );
-
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      // Reset the selected post and edited post when the dialog is closed
+      setSelectedPost(null);
+      setEditedPost(null);
+    }
+  };
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                className=" bg-gradient-to-r h-8 to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white transition-all"
-                onClick={() => setIsDialogOpen(true)}
-              >
-                <Plus size={15} weight="bold" />
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus size={15} weight="bold" className="mr-1" />
+                Add Post
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            {/* <TooltipContent>
               <p>Add Post</p>
-            </TooltipContent>
+            </TooltipContent> */}
           </Tooltip>
         </TooltipProvider>
       </DialogTrigger>

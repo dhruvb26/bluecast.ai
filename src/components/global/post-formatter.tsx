@@ -143,8 +143,8 @@ export function PostFormatSelector({
                             key={`${format.category}-${index}`}
                             className={`mb-4 rounded-lg p-4 transition-all duration-200 ${
                               selectedFormat === template
-                                ? "bg-blue-100"
-                                : "bg-gray-50 hover:bg-gray-100"
+                                ? "bg-blue-50 border border-blue-200"
+                                : "bg-white border border-input"
                             }`}
                             onClick={() => {
                               setSelectedFormat(template);
