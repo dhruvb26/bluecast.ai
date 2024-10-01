@@ -10,18 +10,25 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getDrafts } from "@/actions/draft";
+import { getDrafts, saveDraft } from "@/actions/draft";
 import { parseContent } from "@/utils/editor-utils";
 import { toast } from "sonner";
 import { Draft } from "@/actions/draft";
-import { Folder, HardDrives, Moon, Plus, Sun } from "@phosphor-icons/react";
+import {
+  Empty,
+  Folder,
+  HardDrives,
+  Moon,
+  Plus,
+  Sun,
+} from "@phosphor-icons/react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/tabs";
+import { v4 as uuid } from "uuid";
 import {
   Select,
   SelectContent,
@@ -63,6 +70,12 @@ export function SchedulePostDialog() {
     setEditedDraft(e.target.value);
   };
   const router = useRouter();
+
+  const handleCreateDraft = async () => {
+    const id = uuid();
+    await saveDraft(id, "");
+    router.push(`/draft/${id}`);
+  };
 
   const renderDraftList = () => (
     <div className="flex h-[500px] w-full">
@@ -227,11 +240,15 @@ export function SchedulePostDialog() {
         </div>
 
         <div className="flex flex-row space-x-2 h-fit items-center justify-center">
-          <Button className="w-full" variant={"outline"}>
+          <Button
+            onClick={() => router.push("/saved/posts")}
+            className="w-full"
+            variant={"outline"}
+          >
             <Folder size={18} className="mx-1.5" />
             Saved Posts
           </Button>
-          <Button className="w-full">
+          <Button onClick={handleCreateDraft} className="w-full">
             <PenSquare size={18} className="mx-1.5" />
             Write Post
           </Button>
@@ -388,7 +405,23 @@ export function SchedulePostDialog() {
               View all your drafts and schedule them for future publication.
             </DialogDescription>
           </DialogHeader>
-          {renderDraftList()}
+          {drafts.length === 0 ? (
+            <div className="items-center justify-center h-fit flex flex-col">
+              <Empty className="w-12 h-12 text-primary" />
+              <span className="text-lg font-semibold tracking-tight">
+                No saved drafts yet.
+              </span>
+              <span className="text-sm text-center text-muted-foreground">
+                Start your writing journey.
+              </span>
+              <Button onClick={handleCreateDraft} className="mt-4">
+                <PenSquare size={18} className="mx-1.5" />
+                Write Post
+              </Button>
+            </div>
+          ) : (
+            renderDraftList()
+          )}
         </DialogContent>
       </Dialog>
     </>

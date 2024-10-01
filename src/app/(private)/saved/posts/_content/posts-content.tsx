@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { getDrafts, deleteDraft, Draft } from "@/actions/draft";
+import { getDrafts, deleteDraft, Draft, saveDraft } from "@/actions/draft";
 import { toast } from "sonner";
 import { ParallaxScroll } from "@/components/ui/parallax-scroll";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -173,15 +173,15 @@ function EmptyState({ type }: { type: TabType }) {
       icon: <PenSquare className="w-12 h-12 mb-4 text-primary" />,
       title: "No saved drafts yet",
       description:
-        "Start your writing journey. Save your drafts and come back to them later. Create one yourself or use one of our templates.",
+        "Start your writing journey. Save your drafts and come back to them later. Explore our templates to get started.",
       actions: [
+        // {
+        //   label: "Write",
+        //   href: `/draft/${uuid()}`,
+        //   icon: <PenSquare size={18} className="mr-2" />,
+        // },
         {
-          label: "Write",
-          href: `/draft/${uuid()}`,
-          icon: <PenSquare size={18} className="mr-2" />,
-        },
-        {
-          label: "Use Template",
+          label: "Explore Template",
           href: "/create/posts",
           icon: <BookDashed size={18} className="mr-2" />,
         },
@@ -234,11 +234,11 @@ function EmptyState({ type }: { type: TabType }) {
                   window.location.href = action.href;
                 }}
                 className={
-                  index === 0
+                  index === 1
                     ? "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center"
                     : ""
                 }
-                variant={index === 1 ? "outline" : "default"}
+                variant={index === 0 ? "outline" : "default"}
               >
                 {action.icon}
                 {action.label}
