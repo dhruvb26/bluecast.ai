@@ -61,7 +61,7 @@ export async function POST(req: Request) {
           content: `
           You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-          1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+          1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
           2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
           First, analyze the following examples from the content creator (if given any):
