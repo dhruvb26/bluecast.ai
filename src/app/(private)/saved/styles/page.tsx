@@ -329,7 +329,7 @@ export default function SavedStylesPage() {
             <DialogTrigger asChild>
               <Button variant="outline">
                 <Plus weight="bold" className="mr-1" />
-                Custom
+                New Custom Style
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -394,6 +394,7 @@ export default function SavedStylesPage() {
       return;
     }
 
+    setIsCustomDialogOpen(false);
     setIsCreating(true);
     try {
       const id = uuid();

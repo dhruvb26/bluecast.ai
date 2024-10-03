@@ -1,6 +1,6 @@
 "use client";
 import { GridCards } from "@/components/dashboard/grid-cards";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -35,7 +35,7 @@ const GettingStartedSteps = async () => {
               title="Quick Start Guide"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
-              className="absolute top-0 left-0 w-full h-full"
+              className="absolute top-0 left-0 w-full h-full rounded-md"
             ></iframe>
           </div>
           <div className="flex flex-col space-y-4 w-[40%]">
@@ -62,8 +62,7 @@ const GettingStartedSteps = async () => {
                     <div className="flex flex-col items-start justify-between flex-grow">
                       <p className="text-center text-sm text-muted-foreground">
                         Bluecast offers cutting-edge AI features to supercharge
-                        your LinkedIn presence. From content creation to
-                        engagement analysis, our tools help you grow your
+                        your LinkedIn presence. Our tools help you grow your
                         network effectively.
                       </p>
                     </div>
@@ -101,41 +100,54 @@ const GettingStartedSteps = async () => {
             </Card>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-center  mt-8">
-          <h1 className="text-lg font-semibold tracking-tight text-foreground">
+        <div className="flex flex-col items-start justify-center mt-8">
+          {/* <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Get Started with Writing your First Post
           </h1>
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-muted-foreground text-left mb-6 ">
             Craft your first Bluecast-powered post. Choose from our curated
             templates or unleash your creativity with a blank canvas, complete
             with real-time post preview.
-          </p>
-          <div className="flex flex-row space-x-2">
-            <div className="flex flex-col items-center">
-              <Button
-                onClick={handleCreateDraft}
-                className="bg-gradient-to-r to-brand-blue-secondary mt-4  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white transition-all duration-300"
-              >
-                <PenSquare size={18} className="mx-1.5" />
-                Write My First Post
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2">
-                Start with a blank canvas
-              </p>
-            </div>
-            <div className="flex flex-col items-center">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/create/posts")}
-                className="mt-4"
-              >
-                <BookDashed size={18} className="mr-2" />
-                Explore Templates
-              </Button>
-              <p className="text-xs text-muted-foreground mt-2">
-                Choose from curated options
-              </p>
-            </div>
+          </p> */}
+          <div className="flex flex-row space-x-4 w-full">
+            <Card className="flex-1">
+              <CardContent className="p-6 flex flex-col items-center">
+                <h3 className="text-lg font-semibold tracking-tight mb-2">
+                  Start from Scratch
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4 text-center">
+                  Begin with a blank canvas and let your creativity flow,
+                  complete with real-time post preview.
+                </p>
+
+                <Button
+                  onClick={handleCreateDraft}
+                  className="bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white transition-all duration-300"
+                >
+                  <PenSquare size={18} className="mr-2" />
+                  Write My First Post
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="flex-1">
+              <CardContent className="p-6 flex flex-col items-center">
+                <h3 className="text-lg font-semibold tracking-tight">
+                  Use a Template
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4 text-center">
+                  Craft your Bluecast-powered post. Choose from our curated
+                  templates.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/create/posts")}
+                >
+                  <BookDashed size={18} className="mr-2" />
+                  Explore Templates
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
         {/* <GridCards /> */}

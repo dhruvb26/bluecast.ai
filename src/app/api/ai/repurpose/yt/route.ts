@@ -54,7 +54,7 @@ export async function POST(req: Request) {
           role: "user",
           content: `You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
             2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
             First, analyze the following examples from the content creator (if given any):
@@ -73,8 +73,7 @@ export async function POST(req: Request) {
             </youtube_video_content>
 
             Examine the youtube video's content carefully to:
-            a) Identify the main theme and key topics of the video
-            b) Determine the core message
+            a) Identify the main theme of the video
 
             Post format (note that the creator's style takes precedence over this):
             <post_format>
@@ -87,18 +86,13 @@ export async function POST(req: Request) {
             </custom_instructions>
 
             When writing the post:
-            1. Prioritize the format identified from the creator's examples.
+            1. Make it sound like the creator's examples given above.
             2. Incorporate the given youtube content.
-            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            3. Follow the post format provided, but allow the creator's style to override in any case.
             4. Adhere to any custom instructions given.
             5. Ensure the post is between 1000-1200 characters long.
 
-            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
-`,
-        },
-        {
-          role: "assistant",
-          content: "Here is your post:",
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.`,
         },
       ],
     });

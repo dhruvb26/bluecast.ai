@@ -309,6 +309,47 @@ export async function POST(req: Request) {
         }
         break;
       }
+      case "charge.refunded": {
+        const charge = data as Stripe.Charge;
+
+        if (!charge.customer || typeof charge.customer !== "string") {
+          return NextResponse.json(
+            { error: "Invalid customer ID" },
+            { status: 400 }
+          );
+        }
+
+        const user = await db.query.users.findFirst({
+          where: eq(users.stripeCustomerId, charge.customer),
+        });
+
+        if (!user) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
+          );
+        }
+
+        await db
+          .update(users)
+          .set({
+            hasAccess: false,
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+            priceId: null,
+          })
+          .where(eq(users.id, user.id));
+
+        await clerkClient().users.updateUserMetadata(user.id, {
+          publicMetadata: {
+            hasAccess: false,
+          },
+        });
+
+        console.log(`Removed access for user ${user.id} due to refund`);
+        break;
+      }
+
       default:
         console.log(`Unhandled event type: ${eventType}`);
     }
