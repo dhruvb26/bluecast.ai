@@ -196,7 +196,7 @@ export default function SavedStylesPage() {
                 </div>
               </DialogHeader>
               <div className="flex flex-col space-y-2">
-                <Label>URL</Label>
+                <Label>LinkedIn URL</Label>
                 <Input
                   type="text"
                   placeholder="https://www.linkedin.com/in/johndoe/"

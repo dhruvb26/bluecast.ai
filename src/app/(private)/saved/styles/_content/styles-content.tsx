@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/tooltip";
 import { BarLoader } from "react-spinners";
 import { Empty, PlusCircle } from "@phosphor-icons/react";
+import { AlertDescription } from "@/components/ui/alert";
 
 export default function StylesContent() {
   const router = useRouter();
@@ -217,7 +218,15 @@ export default function StylesContent() {
           Please add up to 10 examples to achieve the desired results.
         </p>
       </div>
-
+      <div className="mt-2 w-[70%] rounded-md text-purple-600  p-4 text-left text-sm border border-purple-300 bg-purple-100/70">
+        <span>
+          <span className="font-semibold">NOTE: </span>
+          Curate high-quality post examples for optimal results. Remember, the
+          quality of your examples directly impacts the generated posts. Don't
+          hesitate to remove any examples that don't meet your standards or fit
+          your desired style.
+        </span>
+      </div>
       <div className="relative overflow-hidden">
         <div
           className="flex transition-transform duration-300 ease-in-out"
@@ -226,7 +235,7 @@ export default function StylesContent() {
           {Array.from({ length: Math.ceil(examples.length / 3) }, (_, i) => (
             <div
               key={i}
-              className="w-full flex-shrink-0 grid grid-cols-3 gap-4 pb-2 pt-8"
+              className="w-full flex-shrink-0 grid grid-cols-3 gap-4 pb-2 pt-8 z-50"
             >
               {examples.slice(i * 3, i * 3 + 3).map((example, index) => (
                 <div key={index} className="mb-4">
