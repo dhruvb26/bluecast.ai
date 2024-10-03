@@ -17,7 +17,7 @@ const GettingStartedSteps = async () => {
     router.push(`/draft/${id}`);
   };
   return (
-    <main className="space-y-8 p-8">
+    <main className="space-y-8 p-4 sm:p-8">
       <div>
         <div className="mb-8 text-left">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -28,8 +28,8 @@ const GettingStartedSteps = async () => {
             LinkedIn presence and achieve your goals.
           </p>
         </div>
-        <div className="mb-8 flex flex-row space-x-6">
-          <div className="relative w-[60%] pb-[33.15%]">
+        <div className="mb-8 flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-6">
+          <div className="relative w-full lg:w-[60%] pb-[56.25%] lg:pb-[33.15%]">
             <iframe
               src="https://www.youtube.com/embed/SVEZBg8FQtY"
               title="Quick Start Guide"
@@ -38,7 +38,7 @@ const GettingStartedSteps = async () => {
               className="absolute top-0 left-0 w-full h-full rounded-md"
             ></iframe>
           </div>
-          <div className="flex flex-col space-y-4 w-[40%]">
+          <div className="flex flex-col space-y-4 w-full lg:w-[40%]">
             <Card className="h-full w-full transition-all hover:-translate-y-1 hover:shadow-sm">
               <CardContent className="p-6 relative h-full">
                 <Link
@@ -101,15 +101,7 @@ const GettingStartedSteps = async () => {
           </div>
         </div>
         <div className="flex flex-col items-start justify-center mt-8">
-          {/* <h1 className="text-lg font-semibold tracking-tight text-foreground">
-            Get Started with Writing your First Post
-          </h1>
-          <p className="text-sm text-muted-foreground text-left mb-6 ">
-            Craft your first Bluecast-powered post. Choose from our curated
-            templates or unleash your creativity with a blank canvas, complete
-            with real-time post preview.
-          </p> */}
-          <div className="flex flex-row space-x-4 w-full">
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full">
             <Card className="flex-1">
               <CardContent className="p-6 flex flex-col items-center">
                 <h3 className="text-lg font-semibold tracking-tight mb-2">
@@ -150,7 +142,6 @@ const GettingStartedSteps = async () => {
             </Card>
           </div>
         </div>
-        {/* <GridCards /> */}
       </div>
     </main>
   );

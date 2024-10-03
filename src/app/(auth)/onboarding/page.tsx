@@ -155,7 +155,7 @@ export default function OnboardingForm() {
     try {
       const result = await completeOnboarding(values);
       if (result.message === "Onboarding completed successfully") {
-        toast.success("Welcome to Spireo! Your onboarding is complete.");
+        toast.success("Welcome to Bluecast! Your onboarding is complete.");
         // Update the session claims
         await session?.reload();
         router.push(`/create/posts`);

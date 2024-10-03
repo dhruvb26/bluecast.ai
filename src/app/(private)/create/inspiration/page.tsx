@@ -113,18 +113,21 @@ export default function Home() {
   };
 
   return (
-    <main className="p-6 overflow-y-hidden">
-      <div className="mb-6 flex justify-between items-center">
+    <main className="p-4 sm:p-6 overflow-y-hidden">
+      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
             Inspiration
           </h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-prose">
             Here are some of the most recent posts from the top creators on
             LinkedIn. Create your own list of creators to keep up with.
           </p>
         </div>
-        <Button onClick={() => router.push("/saved/lists")}>
+        <Button
+          onClick={() => router.push("/saved/lists")}
+          className="whitespace-nowrap"
+        >
           <Plus className="inline mr-1" weight="bold" />
           Create a Custom List
         </Button>
@@ -135,7 +138,7 @@ export default function Home() {
         </div>
       ) : (
         <Tabs value={activeTab || ""} onValueChange={setActiveTab}>
-          <TabsList className="mb-6 grid grid-cols-7 w-full">
+          <TabsList className="mb-6 grid grid-cols-4 sm:grid-cols-7 w-full">
             {lists.map((list) => (
               <TabsTrigger key={list.id} value={list.id}>
                 {list.name}

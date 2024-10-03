@@ -187,12 +187,17 @@ export default function StylesContent() {
     );
   }
   return (
-    <main className="p-8">
-      <div className=" text-left">
-        <div className="flex flex-row space-x-2 items-center justify-between">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            {styleName}
-          </h1>
+    <main className="p-4 sm:p-8">
+      <div className="text-left">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-start sm:items-center justify-between">
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              {styleName}
+            </h1>
+            <p className=" text-sm text-muted-foreground">
+              Please add up to 10 examples to achieve the desired results.
+            </p>
+          </div>
           <div className="flex space-x-2">
             <PostsDialog onSelect={handleAddExample} />
             <TooltipProvider>
@@ -214,11 +219,8 @@ export default function StylesContent() {
             </TooltipProvider>
           </div>
         </div>
-        <p className="mx-auto text-sm text-muted-foreground">
-          Please add up to 10 examples to achieve the desired results.
-        </p>
       </div>
-      <div className="mt-2 w-[70%] rounded-md text-purple-600  p-4 text-left text-sm border border-purple-300 bg-purple-100/70">
+      <div className="mt-4 rounded-md text-purple-600 p-4 text-left text-sm bg-purple-50">
         <span>
           <span className="font-semibold">NOTE: </span>
           Curate high-quality post examples for optimal results. Remember, the
@@ -227,7 +229,7 @@ export default function StylesContent() {
           your desired style.
         </span>
       </div>
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden mt-6">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -235,7 +237,7 @@ export default function StylesContent() {
           {Array.from({ length: Math.ceil(examples.length / 3) }, (_, i) => (
             <div
               key={i}
-              className="w-full flex-shrink-0 grid grid-cols-3 gap-4 pb-2 pt-8 z-50"
+              className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-2 pt-8 z-50"
             >
               {examples.slice(i * 3, i * 3 + 3).map((example, index) => (
                 <div key={index} className="mb-4">
@@ -277,7 +279,7 @@ export default function StylesContent() {
                   <Textarea
                     value={example}
                     onChange={(e) => handleExampleChange(index, e.target.value)}
-                    className="min-h-[500px] items-start transition-all"
+                    className="min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] items-start transition-all"
                     rows={4}
                   />
                 </div>
