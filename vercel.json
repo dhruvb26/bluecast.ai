@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/access",
       "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/token",
+      "schedule": "0 22 * * *"
     }
   ]
 }

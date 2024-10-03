@@ -30,8 +30,6 @@ export async function POST(req: Request) {
                     <example>
                     Use the following format:
            
-                    {Hook}
-
                     {Story}
 
                     {Bulleted list of takeaways}

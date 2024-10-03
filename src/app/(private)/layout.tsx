@@ -1,12 +1,9 @@
 import { Suspense } from "react";
 import Sidebar from "@/components/global/sidebar";
 import { NextSSRPlugin } from "@uploadthing/react/next-ssr-plugin";
-
 import { extractRouterConfig } from "uploadthing/server";
-// Import the router config
 import { ourFileRouter } from "@/app/api/uploadthing/core";
-
-// Extract the router config outside of the component
+import TourVideoAnnouncement from "@/components/frigade/tour-video-announcement";
 const routerConfig = extractRouterConfig(ourFileRouter);
 
 export default async function DashboardLayout({
@@ -20,6 +17,7 @@ export default async function DashboardLayout({
         <Sidebar>
           <main className="max-w-screen w-full">
             <NextSSRPlugin routerConfig={routerConfig} />
+            <TourVideoAnnouncement />
             {children}
           </main>
         </Sidebar>

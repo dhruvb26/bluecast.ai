@@ -43,7 +43,7 @@ import { Input } from "../ui/input";
 import { getLinkedInId } from "@/actions/user";
 import { usePostStore } from "@/store/post";
 import { useRouter } from "next/navigation";
-import { PenSquare } from "lucide-react";
+import { BookDashed, PenSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function SchedulePostDialog() {
@@ -381,17 +381,14 @@ export function SchedulePostDialog() {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => setIsDialogOpen(true)}
-                >
-                  <Plus className="h-4 w-4" />
+                <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
+                  <Plus size={15} className="mr-1" />
+                  Schedule Post
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              {/* <TooltipContent>
                 <p>Schedule</p>
-              </TooltipContent>
+              </TooltipContent> */}
             </Tooltip>
           </TooltipProvider>
         </DialogTrigger>
@@ -414,10 +411,20 @@ export function SchedulePostDialog() {
               <span className="text-sm text-center text-muted-foreground">
                 Start your writing journey.
               </span>
-              <Button onClick={handleCreateDraft} className="mt-4">
-                <PenSquare size={18} className="mx-1.5" />
-                Write Post
-              </Button>
+              <div className="flex flex-row space-x-2">
+                <Button onClick={handleCreateDraft} className="mt-4">
+                  <PenSquare size={18} className="mx-1.5" />
+                  Write Post
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push("/create/posts")}
+                  className="mt-4"
+                >
+                  <BookDashed size={18} className="mr-2" />
+                  Explore Templates
+                </Button>
+              </div>
             </div>
           ) : (
             renderDraftList()

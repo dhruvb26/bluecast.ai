@@ -181,7 +181,7 @@ function EmptyState({ type }: { type: TabType }) {
         //   icon: <PenSquare size={18} className="mr-2" />,
         // },
         {
-          label: "Explore Template",
+          label: "Explore Templates",
           href: "/create/posts",
           icon: <BookDashed size={18} className="mr-2" />,
         },
@@ -193,7 +193,7 @@ function EmptyState({ type }: { type: TabType }) {
       title: "No scheduled posts",
       description:
         "Plan ahead. Schedule your posts for consistent content delivery.",
-      action: "Schedule",
+      action: "Schedule Post",
       actions: [],
     },
     published: {

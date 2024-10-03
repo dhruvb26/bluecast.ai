@@ -116,6 +116,7 @@ const SettingsPage = async () => {
             <div className="pr-8">
               <div className="mt-2 rounded-md bg-blue-100 p-4 text-left text-xs text-blue-600">
                 <span>
+                  <strong>NOTE: </strong>
                   To update your card, cancel your subscription, or make other
                   changes, please visit the{" "}
                   <Link
@@ -124,11 +125,11 @@ const SettingsPage = async () => {
                     href={`${customerPortalLink}?prefilled_email=${user.email}`}
                   >
                     {" "}
-                    customer portal here{" "}
-                    <ArrowUpRight
+                    customer portal here.{" "}
+                    {/* <ArrowUpRight
                       size={12}
                       className="inline transition-transform group-hover:translate-y-[-2px] group-hover:translate-x-[2px]"
-                    />
+                    /> */}
                   </Link>
                 </span>
               </div>

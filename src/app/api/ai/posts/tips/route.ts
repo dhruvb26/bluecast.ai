@@ -43,37 +43,46 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-        You are tasked with generating a LinkedIn post that shares tips. Your goal is to create an engaging and informative post that follows any provided instructions and formatting guidelines.
+        You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-        First, here are the tips to be shared in the LinkedIn post:
-        <tips>
-        {${tips}}
-        </tips>
+            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
-        If custom instructions are provided, follow them strictly. Here are the custom instructions (if any):
-        <custom_instructions>
-        {${instructions}}
-        </custom_instructions>
+            First, analyze the following examples from the content creator (if given any):
 
-        If format templates are provided, use them exactly as specified. Here are the format templates (if any):
-        <format_templates>
-        {${formatTemplate}}
-        </format_templates>
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
 
-        <writing_style>
-        {${examples}}
-        </writing_style>
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Determine the overall tone and writing style of the creator
 
-        Guidelines for generating the LinkedIn post:
-        1. If no custom instructions or format templates are provided, create a post that introduces the topic, lists the tips in a clear and concise manner, and concludes with a call to action or engaging question.
-        2. Keep the post professional and appropriate for a LinkedIn audience.
-        3. Use appropriate hashtags related to the topic of the tips.
-        4. Aim for a length of 1300-1500 characters, which is optimal for LinkedIn posts.
-        5. If custom instructions are provided, prioritize following those instructions over these general guidelines.
-        6. If format templates are provided, use them exactly as specified, inserting the tips and any other required content into the template.
-        7. If user asks for bolded or italic text use unicode text instead of markdown format.
+            Now, generate a LinkedIn post based on the following inputs:
 
-        Important: Output only the content of the LinkedIn post directly, without any surrounding tags or additional commentary. The post will be streamed directly to the frontend, so ensure that your output is ready to be displayed as-is.
+            Tips to be talked about in the post:
+            <tips>
+            {${tips}}
+            </tips>
+
+            Post format (note that the creator's style takes precedence over this):
+            <post_format>
+            {${formatTemplate}}
+            </post_format>
+
+            Custom instructions (if any):
+            <custom_instructions>
+            {${instructions}}
+            </custom_instructions>
+
+            When writing the post:
+            1. Prioritize the format identified from the creator's examples.
+            2. Incorporate the given topic.
+            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
+
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
         `,
         },
       ],

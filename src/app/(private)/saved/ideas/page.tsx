@@ -10,6 +10,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import {
+  ArrowsCounterClockwise,
   ArrowUpRight,
   Empty,
   PaperPlaneTilt,
@@ -95,7 +96,12 @@ const SavedIdeasPage = () => {
               variant={"outline"}
               onClick={() => router.push("/create/ideas")}
             >
-              Generate
+              <ArrowsCounterClockwise
+                size={16}
+                className="mr-1"
+                weight="bold"
+              />
+              Generate Ideas
             </Button>
           </div>
         ) : (

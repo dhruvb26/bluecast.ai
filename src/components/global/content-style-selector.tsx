@@ -27,13 +27,25 @@ export function ContentStyleSelector({
 
   const fetchStyles = async () => {
     setIsLoading(true);
-    const result = await getContentStyles(false);
-    if (result.success) {
-      setStyles(result.data || []);
-    } else {
-      toast.error(result.error);
+    try {
+      const [privateResult, publicResult] = await Promise.all([
+        getContentStyles(false),
+        getContentStyles(true),
+      ]);
+      if (privateResult.success && publicResult.success) {
+        setStyles([
+          ...(privateResult.data || []),
+          ...(publicResult.data || []),
+        ]);
+      } else {
+        toast.error("Failed to fetch styles");
+      }
+    } catch (error) {
+      console.error("Error fetching styles:", error);
+      toast.error("An error occurred while fetching styles");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleStyleChange = (value: string) => {
@@ -72,7 +84,7 @@ export function ContentStyleSelector({
                 </SelectItem>
               ))}
               <SelectItem
-                className="text-sm pl-2 bg-gray-100 focus:bg-blue-600 transition-all focus:text-white"
+                className="text-sm pl-2  focus:bg-blue-600 transition-all focus:text-white"
                 value="custom"
                 hideIndicator={true}
               >

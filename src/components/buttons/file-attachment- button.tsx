@@ -46,6 +46,15 @@ const FileAttachmentButton = ({
         return;
       }
 
+      // Check if the file is an image or PDF and exceeds 64 MB
+      if (
+        (file.type.startsWith("image/") || file.type === "application/pdf") &&
+        file.size > 64 * 1024 * 1024
+      ) {
+        toast.error("Image and PDF files must be 64 MB or smaller.");
+        return;
+      }
+
       setSelectedFile(file);
       if (file.type === "application/pdf" || file.type === "video/mp4") {
         setDocumentName(file.name.replace(/\.[^/.]+$/, ""));
@@ -192,19 +201,23 @@ const FileAttachmentButton = ({
                     </p>
                   </div>
                 )}
-              <Button
-                loading={isUploading}
-                onClick={handleAttach}
-                disabled={
-                  !selectedFile ||
-                  isUploading ||
-                  ((selectedFile.type === "application/pdf" ||
-                    selectedFile.type === "video/mp4") &&
-                    !documentName)
-                }
-              >
-                {isUploading ? "Processing" : "Upload"}
-              </Button>
+              <div className="flex flex-col justify-center items-center">
+                <Button
+                  className="w-full"
+                  loading={isUploading}
+                  onClick={handleAttach}
+                  disabled={
+                    !selectedFile ||
+                    isUploading ||
+                    ((selectedFile.type === "application/pdf" ||
+                      selectedFile.type === "video/mp4") &&
+                      !documentName)
+                  }
+                >
+                  {isUploading ? "Processing" : "Upload"}
+                </Button>
+                <p className="text-xs text-gray-600 mt-1">Images/PDFs (64MB)</p>
+              </div>
             </div>
             <UploadButton
               className=" ut-button:w-full ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
@@ -215,9 +228,6 @@ const FileAttachmentButton = ({
                 }
                 toast.success("File uploaded sucessfully.");
                 window.location.reload();
-              }}
-              content={{
-                button: "Attach Video",
               }}
               onUploadError={(error: Error) => {
                 toast.error(`${error.message}`);

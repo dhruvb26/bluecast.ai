@@ -126,7 +126,7 @@ export default function Home() {
         </div>
         <Button onClick={() => router.push("/saved/lists")}>
           <Plus className="inline mr-1" weight="bold" />
-          Custom List
+          Create a Custom List
         </Button>
       </div>
       {loading ? (

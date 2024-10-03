@@ -167,8 +167,7 @@ export default function StylesContent() {
             </TooltipProvider>
           </div>
           <p className="mx-auto text-sm text-muted-foreground">
-            Manage your writing style here. Please add up to 10 examples to
-            achieve the desired results.
+            Please add up to 10 examples to achieve the desired results.
           </p>
         </div>
         <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
@@ -215,8 +214,7 @@ export default function StylesContent() {
           </div>
         </div>
         <p className="mx-auto text-sm text-muted-foreground">
-          Manage your writing style here. Please add up to 10 examples to
-          achieve the desired results.
+          Please add up to 10 examples to achieve the desired results.
         </p>
       </div>
 

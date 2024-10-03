@@ -55,45 +55,51 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are tasked with creating an informative LinkedIn post based on a blog article. Your goal is to understand the context of the article and generate a post that captures its key points and value.
+          content: `
+          You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-                    First, carefully read and analyze the following article content:
+            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
-                    <article_content>
-                    ${cleanContent}
-                    </article_content>
+            First, analyze the following examples from the content creator (if given any):
 
-                    As you analyze the content, pay attention to:
-                    1. The main topic or theme of the article
-                    2. Key points or arguments presented
-                    3. Any notable quotes or statistics
-                    4. The overall message or takeaway
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
 
-                    Based on your analysis, create a LinkedIn post that:
-                    1. Summarizes the main idea of the article
-                    2. Highlights 2-3 key points or insights
-                    3. Is concise and engaging, suitable for a professional audience on LinkedIn
-                    4. Contains about 200-250 words
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Determine the overall tone and writing style of the creator
 
-                    If custom instructions are provided, incorporate them into your post creation process:
-                    <custom_instructions>
-                    ${instructions}
-                    </custom_instructions>
+            Now, generate a LinkedIn post based on the following inputs:
+            <article_content>
+            {${cleanContent}}
+            </article_content>
 
-                    If a format template is provided, use it to structure your post:
-                    <format_template>
-                    ${formatTemplate}
-                    </format_template>
+            Examine the article content carefully to:
+            a) Identify the main theme and key topics of the article
+            b) Determine the core message
+            c) Extract any notable quotes, statistics, or insights that could be highlighted
 
-                    <writing_stlye>
-                    ${examples}
-                    </writing_style>
+            Post format (note that the creator's style takes precedence over this):
+            <post_format>
+            {${formatTemplate}}
+            </post_format>
 
-                    If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
+            Custom instructions (if any):
+            <custom_instructions>
+            {${instructions}}
+            </custom_instructions>
 
-                    Use relevant emoticons unless specifically instructed not to in the custom instructions. Do not include hashtags unless explicitly mentioned in the custom instructions.
+            When writing the post:
+            1. Prioritize the format identified from the creator's examples.
+            2. Incorporate the given article content.
+            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
 
-                    Important: Generate and output only the content of the LinkedIn post directly. Do not include any XML tags, metadata, or additional commentary. The post should be ready to be shared on LinkedIn as-is.`,
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
+                    `,
         },
       ],
     });

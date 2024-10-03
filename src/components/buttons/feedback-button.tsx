@@ -1,17 +1,19 @@
 import React from "react";
 import Link from "next/link";
 import { FaCommentAlt } from "react-icons/fa";
+import { Button } from "../ui/button";
 
 const FeedbackButton: React.FC = () => {
   return (
     <Link
-      href="https://bluecast.canny.io/feature-requests"
+      target="_blank"
+      href="https://bluecast.canny.io/feedback"
       passHref
       className="hover:shadow-sm"
     >
-      <button className="fixed bottom-5 right-5 bg-blue-600 hover:bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-md transition-colors duration-200 ease-in-out">
-        <FaCommentAlt size={20} />
-      </button>
+      <Button className="fixed bottom-5 right-5 rounded-full w-12 h-12 flex items-center justify-center shadow-md transition-colors duration-200 ease-in-out">
+        <FaCommentAlt size={25} />
+      </Button>
     </Link>
   );
 };

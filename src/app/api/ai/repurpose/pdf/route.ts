@@ -50,48 +50,49 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are tasked with writing a LinkedIn post based on text extracted from a PDF. Your goal is to create an engaging and professional post that accurately represents the content while adhering to any provided instructions, format templates, and writing styles.
+          content: ` You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-                    First, carefully read the following text extracted from the PDF:
+            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
-                    <pdf_text>
-                    {${extractedText}}
-                    </pdf_text>
+            First, analyze the following examples from the content creator (if given any):
 
-                    Now, consider any additional instructions for creating the post:
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
 
-                    <additional_instructions>
-                    {${instructions}}
-                    </additional_instructions>
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Determine the overall tone and writing style of the creator
 
-                    If a format template has been provided, use it as a structural guide for your post:
+            Now, generate a LinkedIn post based on the following inputs:
+            <pdf_content>
+            {${extractedText}}
+            </pdf_content>
 
-                    <format_template>
-                    {${formatTemplate}}
-                    </format_template>
+            Examine the pdf content carefully to:
+            a) Identify the main theme and key topics of the pdf
+            b) Determine the core message
 
-                    If writing style examples have been provided, analyze them and emulate their tone and style in your post:
+            Post format (note that the creator's style takes precedence over this):
+            <post_format>
+            {${formatTemplate}}
+            </post_format>
 
-                    <writing_style_examples>
-                    {${examples}}
-                    </writing_style_examples>
+            Custom instructions (if any):
+            <custom_instructions>
+            {${instructions}}
+            </custom_instructions>
 
-                    Guidelines for creating the LinkedIn post:
+            When writing the post:
+            1. Prioritize the format identified from the creator's examples.
+            2. Incorporate the given pdf content.
+            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
 
-                    1. Summarize the key points from the PDF text concisely.
-                    2. Ensure the post is appropriate for a professional LinkedIn audience.
-                    3. Use clear, engaging language that encourages reader interaction.
-                    4. Include relevant hashtags if appropriate for the content.
-                    5. Keep the post length appropriate for LinkedIn (typically 1300 characters or less).
-                    6. If specific instructions were provided, make sure to follow them precisely.
-                    7. If a format template was given, adhere to its structure while filling in the content.
-                    8. If writing style examples were provided, emulate their tone, vocabulary, and sentence structure.
-
-                    Write your LinkedIn post inside <linkedin_post> tags. Before writing the post, you may use <scratchpad> tags to organize your thoughts and plan your approach if needed.
-
-                    Remember to craft a post that is informative, engaging, and tailored to the LinkedIn platform while accurately representing the content from the PDF.
-
-                    Important: Generate and output only the content of the LinkedIn post directly. Do not include any XML tags, metadata, or additional commentary. The post should be ready to be shared on LinkedIn as-is.`,
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
+                    `,
         },
       ],
     });

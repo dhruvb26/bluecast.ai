@@ -1,9 +1,21 @@
+"use client";
 import { GridCards } from "@/components/dashboard/grid-cards";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { BookDashed, PenSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { v4 as uuid } from "uuid";
+import { saveDraft } from "@/actions/draft";
 
 const GettingStartedSteps = async () => {
+  const router = useRouter();
+  const handleCreateDraft = async () => {
+    const id = uuid();
+    await saveDraft(id, "");
+    router.push(`/draft/${id}`);
+  };
   return (
     <main className="space-y-8 p-8">
       <div>
@@ -17,7 +29,7 @@ const GettingStartedSteps = async () => {
           </p>
         </div>
         <div className="mb-8 flex flex-row space-x-6">
-          <div className="relative w-[60%] pb-[33.75%]">
+          <div className="relative w-[60%] pb-[33.15%]">
             <iframe
               src="https://www.youtube.com/embed/SVEZBg8FQtY"
               title="Quick Start Guide"
@@ -80,9 +92,8 @@ const GettingStartedSteps = async () => {
                       We Value Your Feedback
                     </h2>
                     <p className="text-sm text-muted-foreground text-center">
-                      Have ideas for new features? We're all ears! Share your
-                      thoughts and suggestions to help us improve and bring new
-                      functionalities that matter to you.
+                      Got Bugs? Issues? Feedback? We're all ears! Share your
+                      thoughts to help us improve.
                     </p>
                   </div>
                 </Link>
@@ -90,7 +101,44 @@ const GettingStartedSteps = async () => {
             </Card>
           </div>
         </div>
-        <GridCards />
+        <div className="flex flex-col items-center justify-center  mt-8">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
+            Get Started with Writing your First Post
+          </h1>
+          <p className="text-sm text-muted-foreground text-center">
+            Craft your first Bluecast-powered post. Choose from our curated
+            templates or unleash your creativity with a blank canvas, complete
+            with real-time post preview.
+          </p>
+          <div className="flex flex-row space-x-2">
+            <div className="flex flex-col items-center">
+              <Button
+                onClick={handleCreateDraft}
+                className="bg-gradient-to-r to-brand-blue-secondary mt-4  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white transition-all duration-300"
+              >
+                <PenSquare size={18} className="mx-1.5" />
+                Write My First Post
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Start with a blank canvas
+              </p>
+            </div>
+            <div className="flex flex-col items-center">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/create/posts")}
+                className="mt-4"
+              >
+                <BookDashed size={18} className="mr-2" />
+                Explore Templates
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Choose from curated options
+              </p>
+            </div>
+          </div>
+        </div>
+        {/* <GridCards /> */}
       </div>
     </main>
   );

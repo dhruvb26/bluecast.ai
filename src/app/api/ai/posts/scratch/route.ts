@@ -4,6 +4,7 @@ import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
+import { getUser } from "@/actions/user";
 
 interface RequestBody {
   postContent: string;
@@ -28,8 +29,7 @@ export async function POST(req: Request) {
 
     const body: RequestBody = await req.json();
 
-    const { postContent, tone, instructions, formatTemplate, contentStyle } =
-      body;
+    const { postContent, instructions, formatTemplate, contentStyle } = body;
 
     let examples;
     if (contentStyle) {
@@ -40,6 +40,10 @@ export async function POST(req: Request) {
       }
     }
 
+    const user = await getUser();
+
+    console.log("Examples:\n", examples);
+
     const stream = await anthropic.messages.create({
       model: env.MODEL,
       max_tokens: 1024,
@@ -48,57 +52,52 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-            You are tasked with writing a story for a LinkedIn post based on a given idea or topic. Your goal is to create engaging content that resonates with a professional audience while adhering to specific guidelines.
+            You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-            Here are the inputs you will work with:
+            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
+            First, analyze the following examples from the content creator (if given any):
+
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
+
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Determine the overall tone and writing style of the creator
+
+            Now, generate a LinkedIn post based on the following inputs:
+
+            Topic of the post:
             <topic>
             {${postContent}}
             </topic>
 
-            <tone>
-            {${tone}}
-            </tone>
+            User info (some user information to use if post requires personal information):
+            <user_info> 
+            {${user}}
+            </user_info>
 
+            Post format (note that the creator's style takes precedence over this):
             <post_format>
             {${formatTemplate}}
             </post_format>
 
+            Custom instructions (if any):
             <custom_instructions>
             {${instructions}}
             </custom_instructions>
 
-            <writing_style>
-            {${examples}}
-            </writing_style>
+            When writing the post:
+            1. Prioritize the format identified from the creator's examples.
+            2. Incorporate the given topic.
+            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
+            6. Never start with a one liner idea or a hook.
 
-            Follow these steps to create your LinkedIn story:
-
-            1. Carefully read and understand the given topic. This will be the main focus of your story.
-
-            2. Consider the specified tone. Adjust your writing style to match this tone throughout the story. For example, if the tone is "inspirational," use uplifting language and focus on positive outcomes.
-
-            3. If a post format or context post is provided, follow it strictly. This may include specific structures like bullet points, numbered lists, emojis, formatted text, or paragraph arrangements. If no format or context is specified, use a clear and professional structure suitable for LinkedIn.
-
-            4. Pay close attention to any custom instructions provided. These should be followed precisely as they may contain important details about content, length, or specific elements to include or avoid.
-
-            5. Develop the main body of the story, ensuring it remains relevant to the topic and maintains the specified tone throughout.
-
-            6. Include a clear takeaway or call-to-action that encourages engagement from your LinkedIn audience.
-
-            7. Proofread your story for grammar, spelling, and clarity. Ensure it maintains a professional tone suitable for LinkedIn, regardless of the specific tone requested.
-
-            8. If the custom instructions or post format require any specific hashtags, mentions, or LinkedIn-specific features (like polls or carousel posts), include these as directed.
-
-            9. If user asks for bolded or italic text use unicode text instead of markdown format.
-
-            10. Generate a suitable amount of words for a LinkedIn post (typically between 150-300 words) unless the custom instructions specify a different length. Aim for a comprehensive yet concise post that fully addresses the topic without being overly lengthy.
-
-            11. Copy the tone, structure, use of emojis and layout of the examples if given any. Ignore the given tone and prefer the examples' tone rather. 
-
-            Write your final LinkedIn story directly without any surrounding tags. Ensure that your story adheres to all the guidelines provided, including topic, tone, post format (if given), and any custom instructions.
-
-            Remember, the goal is to create a story that is engaging, professional, and tailored specifically for a LinkedIn audience while strictly following all provided instructions and generating an appropriate amount of content.
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
             `,
         },
       ],

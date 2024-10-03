@@ -22,6 +22,7 @@ import { BarLoader } from "react-spinners";
 import { getUser } from "@/actions/user";
 import { usePostStore } from "@/store/post";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 const SubscriptionCard = dynamic(
   () => import("@/components/global/subscription-card"),
   {
@@ -139,6 +140,8 @@ export default function CreateCreatorList() {
     setIsDialogOpen(false);
   };
 
+  const router = useRouter();
+
   return (
     <main className="p-8">
       {showFeatureGate && (
@@ -160,7 +163,7 @@ export default function CreateCreatorList() {
             <DialogTrigger asChild>
               <Button>
                 <Plus weight="bold" className="inline mr-1" size={15} />
-                Create
+                Create a Custom List
               </Button>
             </DialogTrigger>
           )}
@@ -261,7 +264,7 @@ export default function CreateCreatorList() {
           </p>
           <Button onClick={() => setIsDialogOpen(true)} variant={"outline"}>
             <Plus weight="bold" className="inline mr-1" size={15} />
-            Create
+            Create a Custom List
           </Button>
         </div>
       ) : (
@@ -269,7 +272,8 @@ export default function CreateCreatorList() {
           {creatorLists.map((list) => (
             <div
               key={list.id}
-              className="border transition-all  space-y-1  rounded-md border-input p-4 "
+              onClick={() => router.push(`/saved/lists/${list.id}`)}
+              className="border cursor-pointer transition-all  space-y-1 hover:-translate-y-1 hover:shadow-sm rounded-md border-input p-4 "
             >
               <p className="text-xs text-muted-foreground">
                 Updated • {list.updatedAt.toLocaleString()}

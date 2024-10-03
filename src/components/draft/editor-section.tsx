@@ -67,6 +67,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { useRouter } from "next/navigation";
 
 export type ParagraphElement = {
   type: "paragraph";
@@ -288,7 +289,7 @@ function EditorSection({
 
   const { user } = useUser();
   const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
-
+  const router = useRouter();
   const handlePublish = async () => {
     handleSave();
     setIsPublishing(true);
@@ -332,10 +333,8 @@ function EditorSection({
       const result: any = await response.json();
 
       if (result.status === "progress") {
-        toast.success(
-          "Your post is being processed. Please check the 'In Progress' section for updates.",
-          { duration: 5000 }
-        );
+        toast.success("Your post is being processed.", { duration: 5000 });
+        router.push("/saved/posts?tab=progress");
       } else {
         const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
 

@@ -127,9 +127,12 @@ export default function SavedStylesPage() {
           Add a creator style to get started. Copy writing styles from LinkedIn
           profiles.
         </p>
-        <Button onClick={() => setIsCreatorDialogOpen(true)}>
-          <Link size={15} className="mr-1" />
-          Add Creator
+        <Button
+          variant={"outline"}
+          onClick={() => setIsCreatorDialogOpen(true)}
+        >
+          <LinkSimpleHorizontal size={15} className="mr-1" />
+          Add Creator Style
         </Button>
         <Dialog
           open={isCreatorDialogOpen}
@@ -174,7 +177,7 @@ export default function SavedStylesPage() {
             <DialogTrigger asChild>
               <Button>
                 <LinkSimpleHorizontal size={15} className="mr-1" />
-                Creator
+                Add Creator Style
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -282,9 +285,9 @@ export default function SavedStylesPage() {
         <p className="text-muted-foreground text-sm mb-4">
           Create one to get started. Add posts to curate the writing style.
         </p>
-        <Button onClick={() => setIsCustomDialogOpen(true)}>
-          <Plus size={15} className="mr-1" />
-          Custom
+        <Button variant={"outline"} onClick={() => setIsCustomDialogOpen(true)}>
+          <Plus size={15} className="mr-1" weight="bold" />
+          Create a Custom Style
         </Button>
         <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
           <DialogContent>

@@ -3,7 +3,7 @@ import { RouteHandlerResponse } from "@/types";
 import { eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
-export const maxDuration = 250;
+export const maxDuration = 300; // Increased to 5 minutes for Vercel
 
 interface UploadInstruction {
   uploadUrl: string;
@@ -28,6 +28,7 @@ export async function POST(
 ): Promise<
   NextResponse<RouteHandlerResponse<{ videoUrn: string; downloadUrl: string }>>
 > {
+  const startTime = Date.now();
   try {
     const { url, userId } = (await req.json()) as {
       postId: string;
@@ -48,10 +49,6 @@ export async function POST(
       .from(accounts)
       .where(eq(accounts.userId, userId))
       .limit(1);
-
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("Operation timed out")), 250000)
-    );
 
     const uploadProcess = async () => {
       // Fetch the file size first
@@ -173,11 +170,10 @@ export async function POST(
       }
 
       let videoDetails: VideoDetails | null = null;
-      const maxRetries = 150;
-      const retryInterval = 5000;
+      const retryInterval = 10000; // 10 seconds
       console.log("Checking video processing status");
-      for (let i = 0; i < maxRetries; i++) {
-        console.log(`Retry ${i + 1}: Checking video status`);
+      while (true) {
+        console.log("Checking video status");
         const videoDetailsResponse = await fetch(
           `https://api.linkedin.com/rest/videos/${encodeURIComponent(
             videoUrn
@@ -206,21 +202,16 @@ export async function POST(
         videoDetails = (await videoDetailsResponse.json()) as VideoDetails;
         console.log("Video status:", videoDetails.status);
         if (videoDetails.status === "AVAILABLE") break;
-        if (i < maxRetries - 1)
-          await new Promise((resolve) => setTimeout(resolve, retryInterval));
-      }
-
-      if (!videoDetails || videoDetails.status !== "AVAILABLE") {
-        throw new Error("Video processing timed out or failed");
+        await new Promise((resolve) => setTimeout(resolve, retryInterval));
       }
 
       return { videoUrn, downloadUrl: videoDetails.downloadUrl };
     };
 
-    const { videoUrn, downloadUrl } = (await Promise.race([
-      uploadProcess(),
-      timeoutPromise,
-    ])) as { videoUrn: string; downloadUrl: string };
+    const { videoUrn, downloadUrl } = await uploadProcess();
+    const endTime = Date.now();
+    const executionTime = (endTime - startTime) / 1000; // Convert to seconds
+    console.log(`Total execution time: ${executionTime.toFixed(2)} seconds`);
 
     return NextResponse.json({
       success: true,

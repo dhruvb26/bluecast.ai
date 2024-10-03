@@ -126,7 +126,7 @@ export const ParallaxScroll = ({
                 : "bg-blue-50 text-xs font-normal text-blue-600 hover:bg-blue-100"
             }
           >
-            {post.status}
+            {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
           </Badge>
           {post.status !== "published" && (
             <div className="flex space-x-2">
@@ -166,22 +166,24 @@ export const ParallaxScroll = ({
                 </TooltipProvider>
               )}
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      size={"sm"}
-                      onClick={() => onDeleteDraft(post.id)}
-                    >
-                      <Trash size={15} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Delete</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {post.status !== "scheduled" && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        size={"sm"}
+                        onClick={() => onDeleteDraft(post.id)}
+                      >
+                        <Trash size={15} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delete</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           )}
         </div>

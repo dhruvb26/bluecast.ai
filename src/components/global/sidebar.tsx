@@ -162,7 +162,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             onClick={handleCreateDraft}
             className={cn(
               "flex items-center px-2 bg-white font-semibold text-brand-gray-900 hover:bg-white w-full h-full",
-              isOpen ? "justify-start" : "justify-center"
+              isOpen ? "justify-center" : "justify-center"
             )}
           >
             <Image
@@ -171,8 +171,8 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                   ? "/brand/Bluecast Logo.png"
                   : "/brand/Bluecast Symbol.png"
               }
-              width={isOpen ? 130 : 20} // Adjust size if needed
-              height={isOpen ? 130 : 20} // Adjust size if needed
+              width={isOpen ? 140 : 20} // Adjust size if needed
+              height={isOpen ? 140 : 20} // Adjust size if needed
               alt=""
               className={isOpen ? "" : "mx-auto"} // Center the image if it's a symbol
             />

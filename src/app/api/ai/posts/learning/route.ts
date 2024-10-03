@@ -52,55 +52,57 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-            You are tasked with writing a LinkedIn post sharing learnings. Your goal is to create an engaging and informative post that highlights the main learning, how it was acquired, and key takeaways.
+            You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-                Here are the inputs you'll be working with:
+            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
-                <learning>
-                {${learning}}
-                </learning>
+            First, analyze the following examples from the content creator (if given any):
 
-                <how_learned>
-                {${how}}
-                </how_learned>
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
 
-                <key_takeaways>
-                {${takeaways}}
-                </key_takeaways>
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Determine the overall tone and writing style of the creator
 
-                <format_template>
-                {${formatTemplate}}
-                </format_template>
+            Now, generate a LinkedIn post based on the following inputs:
 
-                <writing_style>
-                {${examples}}
-                </writing_style>
+            Topic of the post that shares a learning:
+            <learning>
+            What was the learning?
+            {${learning}}
+            </learning>
 
-                <custom_instructions>
-                {${instructions}}
-                </custom_instructions>
+            <how> 
+            How was the learning learnt?
+            {${how}}
+            </how>
 
-                By default, structure your LinkedIn post as follows:
-                1. Briefly explain what you learned.
-                2. Describe how you learned it.
-                3. List 2-3 key takeaways.
-                4. End with a call to action or thought-provoking question.
-                5. If user asks for bolded or italic text use unicode text instead of markdown format.
+            <key_takeaways>
+            What were the takeaways?
+            {${takeaways}}
+            </key_takeaways>
 
-                If a format_template is provided, use it to structure your post instead of the default format. Follow the template exactly as given, replacing any placeholders with the appropriate content from the inputs.
+            Post format (note that the creator's style takes precedence over this):
+            <post_format>
+            {${formatTemplate}}
+            </post_format>
 
-                If custom_instructions are provided, follow them strictly when crafting your post. These instructions take precedence over the default format and may include specific requirements for tone, length, or content.
+            Custom instructions (if any):
+            <custom_instructions>
+            {${instructions}}
+            </custom_instructions>
 
-                When writing the post:
-                - Keep the tone professional yet conversational.
-                - Use clear and concise language.
-                - Include relevant hashtags where appropriate.
-                - Limit the post to 1300 characters or less (LinkedIn's character limit).
+            When writing the post:
+            1. Prioritize the format identified from the creator's examples.
+            2. Incorporate the given topic.
+            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
 
-                Write your LinkedIn post without <linkedin_post> tags. Do not include any explanation or commentary outside of these tags.
-
-                [Your LinkedIn post goes here]
-
+            Do not include the actual tags in response. Do not include any explanations or comments outside of these tags.
             `,
         },
       ],
