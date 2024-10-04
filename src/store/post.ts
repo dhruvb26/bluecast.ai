@@ -76,7 +76,7 @@ export const usePostStore = create<PostStore>((set) => ({
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Failed to submit");
+      if (!response.ok) throw new Error("Failed to submit. Try again later.");
 
       const reader = response.body?.getReader();
       if (!reader) throw new Error("Failed to read response");

@@ -76,7 +76,7 @@ export async function POST(req: Request) {
 
             Now, generate a LinkedIn post based on the following inputs:
             <audio_transcription>
-            {${transcript}}
+            {${transcript.text}}
             </audio_transcription>
 
             Examine the audio's content carefully to:
