@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { getLinkedInId } from "@/actions/user";
 import LinkedInConnect from "../global/connect-linkedin";
 import { usePostStore } from "@/store/post";
+import { saveDraft } from "@/actions/draft";
 import { UploadButton } from "@/utils/uploadthing";
 import {
   Tooltip,

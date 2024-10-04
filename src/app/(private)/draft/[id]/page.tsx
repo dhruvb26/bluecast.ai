@@ -107,7 +107,7 @@ export default function EditDraft() {
       saveContent();
     };
 
-    const autoSaveInterval = setInterval(autoSave, 60000); // Auto-save every minute
+    const autoSaveInterval = setInterval(autoSave, 10000); // Auto-save every minute
 
     return () => clearInterval(autoSaveInterval);
   }, [saveContent]);
@@ -134,7 +134,12 @@ export default function EditDraft() {
           </div>
 
           <div className="w-full lg:w-1/2 px-4 py-2 bg-blue-50 ">
-            <LinkedInPostPreview postId={id} content={value} device={device} />
+            <LinkedInPostPreview
+              handleSave={handleSave}
+              postId={id}
+              content={value}
+              device={device}
+            />
           </div>
         </div>
       )}

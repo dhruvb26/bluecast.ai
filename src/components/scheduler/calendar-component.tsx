@@ -243,8 +243,6 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                           style={{
                             position: "absolute",
                             top: `${topPercentage}%`,
-                            left: "2px",
-                            right: "2px",
                           }}
                         />
                       );

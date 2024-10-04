@@ -27,6 +27,7 @@ const PdfViewerComponent = dynamic(() => import("./pdf-viewer"), {
 
 interface LinkedInPostPreviewProps {
   content: Descendant[];
+  handleSave: any;
   device: "mobile" | "tablet" | "desktop";
   postId: string;
 }
@@ -34,6 +35,7 @@ interface LinkedInPostPreviewProps {
 const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
   content,
   device: initialDevice,
+  handleSave,
   postId,
 }) => {
   const [user, setUser] = useState<any>(null);
@@ -109,6 +111,7 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
 
   const handleDelete = async () => {
     try {
+      await handleSave();
       await removeDraftField(postId, "downloadUrl");
       await removeDraftField(postId, "documentUrn");
       await removeDraftField(postId, "documentTitle");

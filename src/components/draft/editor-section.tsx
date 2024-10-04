@@ -58,7 +58,7 @@ import { getLinkedInId } from "@/actions/user";
 import LinkedInConnect from "../global/connect-linkedin";
 import { usePostStore } from "@/store/post";
 import { UploadButton } from "@/utils/uploadthing";
-import { updateDraftField } from "@/actions/draft";
+import { saveDraft, updateDraftField } from "@/actions/draft";
 import {
   Dialog,
   DialogContent,
@@ -464,24 +464,22 @@ function EditorSection({
     handleRewrite(option);
   };
 
-  const handleDocumentUploaded = useCallback(
-    async (fileType: string) => {
-      handleSave();
-      if (fileType === "pdf" || fileType === "document") {
-        toast.success(`Document uploaded successfully.`);
-        window.location.reload();
-      } else if (fileType === "video") {
-        toast.success(`Video uploaded successfully.`);
-        window.location.reload();
-      } else {
-        toast.success(`Image uploaded successfully.`);
-        window.location.reload();
-      }
-      setFileType(fileType);
-    },
+  const handleDocumentUploaded = async (fileType: string) => {
+    handleSave();
+    if (fileType === "pdf" || fileType === "document") {
+      toast.success(`Document uploaded successfully.`);
+      window.location.reload();
+    } else if (fileType === "video") {
+      toast.success(`Video uploaded successfully.`);
+      window.location.reload();
+    } else {
+      toast.success(`Image uploaded successfully.`);
+      window.location.reload();
+    }
+    setFileType(fileType);
+  };
 
-    [id, setFileType]
-  );
+  [id, setFileType];
 
   return (
     <>
