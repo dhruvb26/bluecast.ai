@@ -437,7 +437,28 @@ function EditorSection({
         }
 
         const { selection } = editor;
-        if (selection && !Range.isCollapsed(selection)) {
+        if (option === "hook") {
+          // Prepend the hook at the beginning of the document
+          Transforms.insertNodes(
+            editor,
+            [
+              { type: "paragraph", children: [{ text: rewrittenText }] },
+              { type: "paragraph", children: [{ text: "" }] },
+            ],
+            { at: [0] }
+          );
+        } else if (option === "cta") {
+          // Append the CTA at the end of the document
+          Transforms.insertNodes(
+            editor,
+            [
+              { type: "paragraph", children: [{ text: "" }] },
+              { type: "paragraph", children: [{ text: rewrittenText }] },
+            ],
+            { at: Editor.end(editor, []) }
+          );
+        } else if (selection && !Range.isCollapsed(selection)) {
+          // For other options, replace the selected text
           Transforms.delete(editor);
           Transforms.insertText(editor, rewrittenText);
         } else {
