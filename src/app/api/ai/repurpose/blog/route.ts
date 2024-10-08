@@ -8,9 +8,9 @@ import { joinExamples } from "@/utils/functions";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import chromium from "@sparticuz/chromium-min";
 import puppeteerExtra from "puppeteer-extra";
-// import puppeteer from "puppeteer-core";
-import puppeteer from "puppeteer-extra";
-puppeteer.use(StealthPlugin());
+import puppeteer from "puppeteer-core";
+// import puppeteer from "puppeteer-extra";
+// puppeteer.use(StealthPlugin());
 
 export const maxDuration = 60;
 
