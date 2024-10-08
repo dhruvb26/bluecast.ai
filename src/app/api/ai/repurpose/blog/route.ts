@@ -6,7 +6,11 @@ import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+
 export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     // Get the user session
@@ -18,14 +22,7 @@ export async function POST(req: Request) {
     }
 
     const body: RepurposeRequestBody = await req.json();
-    const {
-      url,
-      instructions,
-      formatTemplate,
-      engagementQuestion,
-      CTA,
-      contentStyle,
-    } = body;
+    const { url, instructions, formatTemplate, contentStyle } = body;
 
     let data;
     // try {
@@ -34,12 +31,17 @@ export async function POST(req: Request) {
     //   console.log("Extractus failed, trying Puppeteer Stealth");
     //   console.log(error);
     try {
-      const puppeteer = (await import("puppeteer-extra")).default;
       const StealthPlugin = (await import("puppeteer-extra-plugin-stealth"))
         .default;
-      puppeteer.use(StealthPlugin());
+      const puppeteerExtra = (await import("puppeteer-extra")).default;
+      puppeteerExtra.use(StealthPlugin());
 
-      const browser = await puppeteer.launch({ headless: true });
+      const browser = await puppeteerExtra.launch({
+        args: chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath: await chromium.executablePath(),
+        headless: chromium.headless,
+      });
       const page = await browser.newPage();
 
       // Increase timeout to 60 seconds and add error handling
