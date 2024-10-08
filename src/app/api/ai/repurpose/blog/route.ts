@@ -5,11 +5,8 @@ import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
-import puppeteer from "puppeteer-core";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-// import chromium from "@sparticuz/chromium";
-import chrome from "chrome-aws-lambda";
-
+import chromium from "@sparticuz/chromium-min";
 import puppeteerExtra from "puppeteer-extra";
 puppeteerExtra.use(StealthPlugin());
 
@@ -31,12 +28,12 @@ export async function POST(req: Request) {
     let data;
 
     try {
-      const options = process.env.AWS_REGION
+      const options = env.NODE_ENV
         ? {
-            args: [...chrome.args],
-            defaultViewport: chrome.defaultViewport,
-            executablePath: await chrome.executablePath,
-            headless: chrome.headless,
+            args: chromium.args,
+            defaultViewport: chromium.defaultViewport,
+            executablePath: await chromium.executablePath(),
+            headless: true,
           }
         : {
             args: [],
