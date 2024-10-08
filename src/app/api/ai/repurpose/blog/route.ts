@@ -8,6 +8,7 @@ import { joinExamples } from "@/utils/functions";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
 import chromium from "@sparticuz/chromium-min";
 import puppeteerExtra from "puppeteer-extra";
+import puppeteer from "puppeteer-core";
 puppeteerExtra.use(StealthPlugin());
 
 export const maxDuration = 60;
@@ -28,27 +29,10 @@ export async function POST(req: Request) {
     let data;
 
     try {
-      // const options = env.NODE_ENV
-      //   ? {
-      //       args: chromium.args,
-      //       defaultViewport: chromium.defaultViewport,
-      //       executablePath: await chromium.executablePath(),
-      //       headless: true,
-      //     }
-      //   : {
-      //       args: [],
-      //       executablePath:
-      //         process.platform === "win32"
-      //           ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-      //           : process.platform === "linux"
-      //           ? "/usr/bin/google-chrome"
-      //           : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-      //     };
-
       const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
 
       const options = {
-        args: isLocal ? puppeteerExtra.defaultArgs() : chromium.args,
+        args: isLocal ? puppeteer.defaultArgs() : chromium.args,
         defaultViewport: chromium.defaultViewport,
         executablePath:
           process.env.CHROME_EXECUTABLE_PATH ||
