@@ -8,9 +8,10 @@ import { joinExamples } from "@/utils/functions";
 import chrome from "chrome-aws-lambda";
 import puppeteer from "puppeteer-core";
 import StealthPlugin from "puppeteer-extra-plugin-stealth";
-
+import chromium from "@sparticuz/chromium";
 import puppeteerExtra from "puppeteer-extra";
 puppeteerExtra.use(StealthPlugin());
+const PCR = require("puppeteer-chromium-resolver");
 
 export const maxDuration = 60;
 
@@ -30,24 +31,17 @@ export async function POST(req: Request) {
     let data;
 
     try {
-      const options = process.env.AWS_REGION
-        ? {
-            args: chrome.args,
-            executablePath: await chrome.executablePath,
-            headless: chrome.headless,
-          }
-        : {
-            args: [],
-            executablePath:
-              process.platform === "win32"
-                ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-                : process.platform === "linux"
-                ? "/usr/bin/google-chrome"
-                : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-          };
-
-      const browser = await puppeteerExtra.launch(options);
-
+      const options = {};
+      const stats = await PCR(options);
+      const browser = await stats.puppeteer
+        .launch({
+          headless: true,
+          args: ["--no-sandbox"],
+          executablePath: stats.executablePath,
+        })
+        .catch(function (error: any) {
+          console.log(error);
+        });
       const page = await browser.newPage();
 
       // Increase timeout to 60 seconds and add error handling

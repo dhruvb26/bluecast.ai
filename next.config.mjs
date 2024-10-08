@@ -7,6 +7,7 @@ const nextConfig = {
       config.externals.push({
         canvas: "commonjs canvas",
         "chrome-aws-lambda": "commonjs chrome-aws-lambda",
+        "@sparticuz/chromium": "commonjs @sparticuz/chromium",
       });
     }
 
