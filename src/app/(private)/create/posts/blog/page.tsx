@@ -22,8 +22,11 @@ const BlogLinkedInPage = () => {
       <div className="mb-2 rounded-md bg-blue-50 p-4 text-left text-sm text-blue-600">
         <span>
           <strong>NOTE: </strong>
-          If you don't get the expected result, try converting the page to a PDF
-          and then head over to our{" "}
+          If you encounter a{" "}
+          <span className="text-red-500">
+            "Failed to submit. Try again later"
+          </span>{" "}
+          error, consider converting the page to PDF format, then proceed to our{" "}
           <Link
             href="/create/posts/pdf"
             className="text-blue-700 hover:underline underline"
