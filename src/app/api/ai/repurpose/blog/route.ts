@@ -28,23 +28,35 @@ export async function POST(req: Request) {
     let data;
 
     try {
-      const options = env.NODE_ENV
-        ? {
-            args: chromium.args,
-            defaultViewport: chromium.defaultViewport,
-            executablePath: await chromium.executablePath(),
-            headless: true,
-          }
-        : {
-            args: [],
-            executablePath:
-              process.platform === "win32"
-                ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-                : process.platform === "linux"
-                ? "/usr/bin/google-chrome"
-                : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-          };
+      // const options = env.NODE_ENV
+      //   ? {
+      //       args: chromium.args,
+      //       defaultViewport: chromium.defaultViewport,
+      //       executablePath: await chromium.executablePath(),
+      //       headless: true,
+      //     }
+      //   : {
+      //       args: [],
+      //       executablePath:
+      //         process.platform === "win32"
+      //           ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+      //           : process.platform === "linux"
+      //           ? "/usr/bin/google-chrome"
+      //           : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      //     };
 
+      const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
+
+      const options = {
+        args: isLocal ? puppeteerExtra.defaultArgs() : chromium.args,
+        defaultViewport: chromium.defaultViewport,
+        executablePath:
+          process.env.CHROME_EXECUTABLE_PATH ||
+          (await chromium.executablePath(
+            "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
+          )),
+        headless: true,
+      };
       const browser = await puppeteerExtra.launch(options);
 
       const page = await browser.newPage();
