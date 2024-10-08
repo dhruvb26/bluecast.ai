@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  ArrowLineLeft,
+  ArrowLineRight,
   Article,
   Brain,
   CalendarDots,
@@ -17,13 +19,16 @@ import {
   House,
   Lightbulb,
   List,
+  ListBullets,
+  Rows,
+  SidebarSimple,
   SignOut,
   TrendUp,
   UserSound,
   Wrench,
 } from "@phosphor-icons/react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
-import { ChevronLeft, ChevronRight, PenSquare } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, PenSquare } from "lucide-react";
 import { Tour } from "@frigade/react";
 import { v4 as uuid } from "uuid";
 import { cn } from "@/lib/utils";
@@ -46,7 +51,10 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const [generatedWords, setGeneratedWords] = useState(0);
   const [validityDate, setValidityDate] = useState<string | null>(null);
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
   useEffect(() => {
     // Load the saved state from localStorage on the client side
     const savedIsOpen = localStorage.getItem("sidebarOpen");
@@ -57,8 +65,10 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const toggleSidebar = useCallback(() => {
     const newIsOpen = !isOpen;
     setIsOpen(newIsOpen);
+    setIsMobileMenuOpen(newIsOpen); // Also toggle mobile menu
     localStorage.setItem("sidebarOpen", JSON.stringify(newIsOpen));
   }, [isOpen]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -323,8 +333,8 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             )}
             {renderNavLink(
               "/saved/lists",
-              <List size={20} className="text-gray-500" />,
-              <List size={20} className="text-blue-600" weight="regular" />,
+              <Rows size={20} className="text-gray-500" />,
+              <Rows size={20} className="text-blue-600" weight="regular" />,
               "Creator List"
             )}
             {renderNavLink(
@@ -371,63 +381,86 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex h-screen flex-col overflow-auto">
-      <Tour
-        className="[&_.fr-title]:text-md [&_.fr-button-primary:hover]:bg-blue-700 [&_.fr-button-primary]:rounded-lg [&_.fr-button-primary]:bg-blue-600 [&_.fr-title]:font-semibold [&_.fr-title]:tracking-tight [&_.fr-title]:text-gray-900"
-        flowId="flow_wqlim5Vq"
-      />
       <div className="flex h-screen">
         <aside
           className={cn(
-            "transition-all duration-300 flex-shrink-0 bg-white flex-col border-r border-gray-200 md:flex relative",
-            isOpen ? "w-60" : "w-20"
+            "transition-all duration-300 flex-shrink-0 bg-white flex-col border-r border-gray-200 md:flex",
+            isOpen ? "w-60" : "w-20",
+            "fixed inset-y-0 left-0 z-40",
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+            "md:relative md:translate-x-0"
           )}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -right-3 top-2 text-foreground rounded-full border border-input bg-white h-7 w-7 z-10"
+            className={cn(
+              "absolute text-foreground rounded-full border border-input bg-white h-7 w-7",
+              isOpen
+                ? "-right-3 top-2"
+                : "left-[4.5rem] top-2 md:left-auto md:-right-3",
+              isMobileMenuOpen ? "z-50" : "z-50 md:z-10",
+              !isOpen && !isMobileMenuOpen ? "left-3 md:left-auto" : "",
+              "hidden md:flex" // Hide on mobile
+            )}
             onClick={toggleSidebar}
           >
-            {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+            {isOpen || (!isOpen && isMobileMenuOpen) ? (
+              <ChevronLeft size={12} />
+            ) : (
+              <ChevronRight size={12} />
+            )}
           </Button>
           <div className="flex h-full flex-col">
             {renderNavigation()}
 
             <div className={`p-4 ${isOpen ? "" : "hidden"}`}>
-              <WordsCard words={generatedWords} />
+              <WordsCard />
             </div>
           </div>
         </aside>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header
-            className={`flex min-h-12 w-screen items-center justify-end border-b border-brand-gray-200 ${
-              isOpen ? "pr-[16rem]" : "pr-[6rem]"
-            }`}
-          >
-            {validityDate && (
-              <div
-                className="mr-4 text-sm text-primary
-              "
+          <header className="flex min-h-12 items-center justify-between border-b border-brand-gray-200 px-4">
+            <div className="flex items-center">
+              <Button
+                size="icon"
+                className={cn(
+                  "md:hidden", // Only show on mobile
+                  isMobileMenuOpen ? "ml-[4.5rem]" : "ml-0", // Add left padding when sidebar is open
+                  "transition-all duration-300" // Smooth transition for padding change
+                )}
+                onClick={toggleMobileMenu}
               >
-                <Clock size={16} weight="duotone" className="inline mr-1" />
-                Your trial ends in{" "}
-                {Math.ceil(
-                  (new Date(validityDate).getTime() - new Date().getTime()) /
-                    (1000 * 60 * 60 * 24)
-                )}{" "}
-                days!
-              </div>
-            )}
-            <UserButton
-              appearance={{
-                elements: {
-                  userButtonPopoverCard: "shadow-sm border border-input",
-                  userButtonPopoverFooter: "hidden",
-                },
-              }}
-            />
+                {isMobileMenuOpen ? <List size={18} /> : <List size={18} />}
+              </Button>
+            </div>
+            <div className="flex items-center ml-auto">
+              {" "}
+              {/* Keep these items on the right */}
+              {validityDate && (
+                <div className="mr-4 text-sm text-primary hidden sm:block">
+                  {" "}
+                  {/* Hide on very small screens */}
+                  <Clock size={16} weight="duotone" className="inline mr-1" />
+                  Your trial ends in{" "}
+                  {Math.ceil(
+                    (new Date(validityDate).getTime() - new Date().getTime()) /
+                      (1000 * 60 * 60 * 24)
+                  )}{" "}
+                  days!
+                </div>
+              )}
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonPopoverCard: "shadow-sm border border-input",
+                    userButtonPopoverFooter: "hidden",
+                  },
+                }}
+              />
+            </div>
           </header>
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 overflow-y-auto w-full">{children}</main>
         </div>
       </div>
     </div>

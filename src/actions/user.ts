@@ -70,6 +70,7 @@ export async function checkAccess() {
         specialAccess: users.specialAccess,
         hasAccess: users.hasAccess,
         generatedWords: users.generatedWords,
+        generatedPosts: users.generatedPosts,
       })
       .from(users)
       .where(eq(users.id, userId))
@@ -78,10 +79,16 @@ export async function checkAccess() {
     if (!user[0]) {
       throw new Error("User not found in the database.");
     }
-    console.log("Called checking access: returning access");
-    if (user[0].specialAccess) return true;
 
-    return user[0].hasAccess;
+    if (user[0].hasAccess) {
+      return user[0].generatedWords < 50000;
+    }
+
+    if (user[0].specialAccess) {
+      return user[0].generatedPosts < 10;
+    }
+
+    return false;
   } catch (error) {
     console.error("Error in checkAccess:", error);
     throw error;
@@ -131,6 +138,53 @@ export async function setGeneratedWords(words: number) {
       .where(eq(users.id, userId));
   } catch (error) {
     console.error("Error in setGeneratedWords:", error);
+    throw error;
+  }
+}
+
+export async function updateGeneratedPosts() {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+    await db
+      .update(users)
+      .set({
+        generatedPosts: sql`${users.generatedPosts} + 1`,
+      })
+      .where(eq(users.id, userId));
+  } catch (error) {
+    console.error("Error in setGeneratedWords:", error);
+    throw error;
+  }
+}
+
+export async function getGeneratedPosts() {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+    const result = await db
+      .select({ generatedPosts: users.generatedPosts })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!result[0]) {
+      throw new Error("User not found in the database.");
+    }
+
+    return result[0].generatedPosts;
+  } catch (error) {
+    console.error("Error in getGeneratedWords:", error);
     throw error;
   }
 }

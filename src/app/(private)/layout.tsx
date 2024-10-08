@@ -12,16 +12,12 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen">
-      <Suspense>
-        <Sidebar>
-          <main className="max-w-screen w-full">
-            <NextSSRPlugin routerConfig={routerConfig} />
-            <TourVideoAnnouncement />
-            {children}
-          </main>
-        </Sidebar>
-      </Suspense>
-    </div>
+    <Suspense>
+      <Sidebar>
+        <NextSSRPlugin routerConfig={routerConfig} />
+        <TourVideoAnnouncement />
+        {children}
+      </Sidebar>
+    </Suspense>
   );
 }

@@ -187,6 +187,7 @@ export const users = createTable("user", {
   trialEndsAt: timestamp("trial_ends_at"),
   onboardingComplete: boolean("onboarding_complete").default(false),
   generatedWords: integer("generated_words").default(0).notNull(),
+  generatedPosts: integer("generated_posts").default(0).notNull(),
   onboardingData: jsonb("onboarding_data"),
   specialAccess: boolean("special_access").default(false),
 });

@@ -97,14 +97,14 @@ export default function Home() {
         return result.success ? result.posts : [];
       })
     );
-    const flattenedPosts = shuffle(newPosts.flat());
+    const flattenedPosts = shuffle(newPosts.flat().reverse());
     setPosts((prev) => ({
       ...prev,
       [listId]: [...prev[listId], ...flattenedPosts],
     }));
-    setHasMore((prev) => ({
+    setPosts((prev) => ({
       ...prev,
-      [listId]: flattenedPosts.length === postsPerPage,
+      [listId]: [...prev[listId], ...flattenedPosts],
     }));
     setCurrentPage((prev) => ({
       ...prev,

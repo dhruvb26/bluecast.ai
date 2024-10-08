@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { HardDrive, DownloadSimple, PencilSimple } from "@phosphor-icons/react";
+import {
+  HardDrive,
+  DownloadSimple,
+  PencilSimple,
+  ArrowRight,
+} from "@phosphor-icons/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -147,8 +152,20 @@ export function GeneratedContent() {
 
   if (error) {
     return (
-      <div className="flex h-[90vh] items-center justify-center rounded-lg border border-input p-6">
-        <p className="text-sm text-red-500">{error}</p>
+      <div className="flex h-[90vh] flex-col items-center justify-center rounded-lg border border-input p-6">
+        <p className="text-sm text-red-500">{error.message}</p>
+        {/* {error.cause === "blog" && (
+          <p className="text-sm mt-2">
+            <span
+              onClick={() => router.push("/blog-tips")}
+              className="cursor-pointer text-primary hover:underline"
+            >
+              Click here for the PDF{" "}
+              <ArrowRight size={12} className="inline text-foreground" />{" "}
+              LinkedIn template.
+            </span>
+          </p>
+        )} */}
       </div>
     );
   }

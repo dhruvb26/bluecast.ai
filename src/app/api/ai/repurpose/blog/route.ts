@@ -6,7 +6,7 @@ import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
-
+export const maxDuration = 60;
 export async function POST(req: Request) {
   try {
     // Get the user session
@@ -27,7 +27,48 @@ export async function POST(req: Request) {
       contentStyle,
     } = body;
 
-    const data = await extract(url);
+    let data;
+    // try {
+    //   data = await extract(url);
+    // } catch (error: any) {
+    //   console.log("Extractus failed, trying Puppeteer Stealth");
+    //   console.log(error);
+    try {
+      const puppeteer = (await import("puppeteer-extra")).default;
+      const StealthPlugin = (await import("puppeteer-extra-plugin-stealth"))
+        .default;
+      puppeteer.use(StealthPlugin());
+
+      const browser = await puppeteer.launch({ headless: true });
+      const page = await browser.newPage();
+
+      // Increase timeout to 60 seconds and add error handling
+      await page
+        .goto(url, {
+          waitUntil: "networkidle0",
+          timeout: 60000, // 60 seconds
+        })
+        .catch(async (err) => {
+          console.log("Navigation timeout, attempting to get content anyway");
+          // Even if navigation times out, we can still try to get the content
+        });
+
+      // Wait for the body to be present
+      await page.waitForSelector("body", { timeout: 60000 }).catch(() => {
+        console.log(
+          "Timeout waiting for body, attempting to get content anyway"
+        );
+      });
+
+      const content = await page.content();
+      await browser.close();
+
+      data = { content };
+    } catch (puppeteerError: any) {
+      console.log("Puppeteer Stealth failed:", puppeteerError);
+      throw new Error("Failed to extract content from the URL");
+    }
+    // }
 
     if (!data || !data.content) {
       throw new Error("Failed to extract content from the URL");

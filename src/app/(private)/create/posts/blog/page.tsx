@@ -19,6 +19,14 @@ const BlogLinkedInPage = () => {
           for you.
         </p>
       </div>
+      {/* <div className="mb-2 rounded-md bg-blue-100 p-4 text-left text-sm text-blue-600">
+        <span>
+          <strong>NOTE: </strong>
+          If you can't get the URL to work here, try converting the page to a
+          PDF using (Ctrl + P) and then head over to our PDF repurposing
+          template, so your content creation journey is never stopped.
+        </span>
+      </div> */}
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <BlogForm />

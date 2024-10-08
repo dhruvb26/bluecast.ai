@@ -37,6 +37,9 @@ import {
 } from "@phosphor-icons/react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { getUser } from "@/actions/user";
+import { usePostStore } from "@/store/post";
+import SubscriptionCard from "@/components/global/subscription-card";
 
 export default function SavedStylesPage() {
   const [creatorStyles, setCreatorStyles] = useState<ContentStyle[]>([]);
@@ -45,6 +48,7 @@ export default function SavedStylesPage() {
   const [creators, setCreators] = useState<{ [key: string]: Creator }>({});
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { setShowFeatureGate, showFeatureGate } = usePostStore();
 
   useEffect(() => {
     fetchStyles();
@@ -80,9 +84,24 @@ export default function SavedStylesPage() {
     setCreators((prevCreators) => ({ ...prevCreators, ...newCreators }));
   };
 
-  const handleCopyCreatorStyle = async () => {
+  const handleCopyCreatorStyle = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     try {
+      const user = await getUser();
+      const result = await getContentStyles(false);
+      let listsLength;
+      if (result.success) {
+        listsLength = result.data.length || 0;
+      }
+
+      if (!user.stripeSubscriptionId && !user.priceId && listsLength == 3) {
+        setShowFeatureGate(true);
+        setIsLoading(false);
+        setIsCreatorDialogOpen(false); // Close the dialog
+        return; // Cancel the request
+      }
+
       const response = await fetch("/api/content/style", {
         method: "POST",
         headers: {
@@ -417,6 +436,11 @@ export default function SavedStylesPage() {
 
   return (
     <main className="p-8">
+      {showFeatureGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <SubscriptionCard />
+        </div>
+      )}
       <div className="mb-8 text-left">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Writing Styles

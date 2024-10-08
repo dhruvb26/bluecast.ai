@@ -5,7 +5,7 @@ interface PostStore {
   linkedInPost: string;
   isLoading: boolean;
   isGeneratingInstructions: boolean;
-  error: string | null;
+  error: string | any;
   isStreamComplete: boolean;
   linkedInPostInstructions: string;
   resetPostData: () => void; // Add this new function
@@ -76,7 +76,16 @@ export const usePostStore = create<PostStore>((set) => ({
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) throw new Error("Failed to submit. Try again later.");
+      if (!response.ok) {
+        if (path === "repurpose/blog") {
+          const errorData = await response.json();
+          throw new Error("Failed to submit. Try again later.", {
+            cause: "blog",
+          });
+        } else {
+          throw new Error("Failed to submit. Try again later.");
+        }
+      }
 
       const reader = response.body?.getReader();
       if (!reader) throw new Error("Failed to read response");
@@ -92,12 +101,24 @@ export const usePostStore = create<PostStore>((set) => ({
         const chunkText = decoder.decode(value);
         set((state) => ({ linkedInPost: state.linkedInPost + chunkText }));
       }
-    } catch (err) {
-      set({
-        error: err instanceof Error ? err.message : "An error occurred",
-        isLoading: false,
-      });
-      console.error("Error submitting:", err);
+    } catch (error) {
+      if (error instanceof Error) {
+        set({
+          error: {
+            message: error.message,
+            cause: error.cause as string,
+          },
+          isLoading: false,
+        });
+      } else {
+        set({
+          error: {
+            message: "An unexpected error occurred",
+            cause: "unknown",
+          },
+          isLoading: false,
+        });
+      }
     }
   },
   handleGenerateInstructions: async (data) => {

@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_user" ADD COLUMN "generated_posts" integer DEFAULT 0 NOT NULL;

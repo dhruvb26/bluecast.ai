@@ -21,6 +21,7 @@ import LinkedInSignInButton from "@/components/auth/linkedin-signin-button";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
 import { env } from "@/env";
+import { Button } from "@/components/ui/button";
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -57,7 +58,7 @@ const SettingsPage = async () => {
 
   return (
     <main className="p-8">
-      <div className="space-y-16">
+      <div className="space-y-12">
         <div className="text-left">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             Account Settings
@@ -113,27 +114,6 @@ const SettingsPage = async () => {
             <p className="text-sm text-muted-foreground">
               Manage your account settings and billing details.
             </p>
-            <div className="pr-8">
-              <div className="mt-2 rounded-md bg-blue-100 p-4 text-left text-xs text-blue-600">
-                <span>
-                  <strong>NOTE: </strong>
-                  To update your card, cancel your subscription, or make other
-                  changes, please visit the{" "}
-                  <Link
-                    target="_blank"
-                    className="hover:text-blue-700 hover:underline group"
-                    href={`${customerPortalLink}?prefilled_email=${user.email}`}
-                  >
-                    {" "}
-                    customer portal here.{" "}
-                    {/* <ArrowUpRight
-                      size={12}
-                      className="inline transition-transform group-hover:translate-y-[-2px] group-hover:translate-x-[2px]"
-                    /> */}
-                  </Link>
-                </span>
-              </div>
-            </div>
           </div>
           <div className="w-2/3 space-y-4">
             <div className="space-y-2">
@@ -152,8 +132,23 @@ const SettingsPage = async () => {
               <h2 className="text-sm font-medium text-foreground">Validity</h2>
               <div className="text-sm text-gray-400">{validityInfo}</div>
             </div>
+            <div className="flex space-y-2 items-start justify-start flex-col">
+              <h2 className="text-sm font-medium text-foreground">
+                Subscription
+              </h2>
+
+              <Button variant={"outline"}>
+                <Link
+                  target="_blank"
+                  href={`${customerPortalLink}?prefilled_email=${user.email}`}
+                >
+                  Stripe Portal
+                </Link>
+              </Button>
+            </div>
           </div>
         </section>
+
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">

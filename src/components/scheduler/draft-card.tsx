@@ -25,7 +25,7 @@ interface User {
 interface DraftCardProps {
   draft: Draft;
   style?: React.CSSProperties;
-  view: "1week" | "2weeks" | "month";
+  view: "1week" | "2weeks" | "month" | "day";
 }
 
 const DraftCard: React.FC<DraftCardProps> = ({ draft, view, style }) => {

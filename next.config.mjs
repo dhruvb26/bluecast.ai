@@ -13,7 +13,11 @@ const nextConfig = {
   },
   experimental: {
     instrumentationHook: true,
-    serverComponentsExternalPackages: ["bullmq"],
+    serverComponentsExternalPackages: [
+      "bullmq",
+      "puppeteer-extra",
+      "puppeteer-extra-plugin-stealth",
+    ],
     esmExternals: "loose",
   },
   images: {

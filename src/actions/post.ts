@@ -109,7 +109,7 @@ export async function getPostsByCreatorId(
     const offset = (page - 1) * limit;
     const creatorPosts = await db.query.posts.findMany({
       where: eq(posts.creatorId, creatorId),
-      orderBy: () => sql`RANDOM()`,
+      orderBy: [asc(posts.time)],
       with: {
         creator: true,
       },

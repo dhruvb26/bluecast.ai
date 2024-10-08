@@ -172,8 +172,10 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
           <div className="flex-grow overflow-y-auto">
             <div
               className={`grid ${
-                currentView === "month" ? "grid-cols-7" : "grid-cols-7"
-              } gap-px bg-gray-100 `}
+                currentView === "month"
+                  ? "grid-cols-7"
+                  : "md:grid-cols-7 grid-cols-1"
+              } gap-px bg-gray-100`}
             >
               {dates.map((date, index) => (
                 <div
@@ -313,17 +315,20 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
             <>{formatDates(currentDate)}</>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 px-6">
             <SchedulePostDialog />
-            <Separator orientation="vertical" className="h-10" />
+            <Separator
+              orientation="vertical"
+              className="h-10 hidden sm:block"
+            />
             <Tabs
-              className="mr-6"
+              className="mr-6 hidden sm:block"
               value={currentView}
               onValueChange={(value) =>
                 setCurrentView(value as "1week" | "2weeks" | "month")
               }
             >
-              <TabsList className="grid grid-cols-3  text-sm">
+              <TabsList className="grid grid-cols-3 text-sm">
                 <TabsTrigger value="1week">1 Week</TabsTrigger>
                 <TabsTrigger value="2weeks">2 Weeks</TabsTrigger>
                 <TabsTrigger value="month">Month</TabsTrigger>
