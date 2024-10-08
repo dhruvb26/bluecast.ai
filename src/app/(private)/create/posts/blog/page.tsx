@@ -10,7 +10,7 @@ import { ChevronLeft } from "lucide-react";
 const BlogLinkedInPage = () => {
   return (
     <main>
-      <div className="mb-8">
+      <div className="mb-2">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Convert any Blog to LinkedIn Post
         </h1>
@@ -19,14 +19,21 @@ const BlogLinkedInPage = () => {
           for you.
         </p>
       </div>
-      {/* <div className="mb-2 rounded-md bg-blue-100 p-4 text-left text-sm text-blue-600">
+      <div className="mb-2 rounded-md bg-blue-50 p-4 text-left text-sm text-blue-600">
         <span>
           <strong>NOTE: </strong>
-          If you can't get the URL to work here, try converting the page to a
-          PDF using (Ctrl + P) and then head over to our PDF repurposing
-          template, so your content creation journey is never stopped.
+          If you don't get the expected result, try converting the page to a PDF
+          and then head over to our{" "}
+          <Link
+            href="/create/posts/pdf"
+            className="text-blue-700 hover:underline underline"
+          >
+            PDF repurposing template
+          </Link>
+          . This ensures your content creation journey continues smoothly, even
+          with challenging web pages.
         </span>
-      </div> */}
+      </div>
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <BlogForm />

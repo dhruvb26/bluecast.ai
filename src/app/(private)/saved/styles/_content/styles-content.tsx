@@ -220,7 +220,7 @@ export default function StylesContent() {
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-md text-purple-600 p-4 text-left text-sm bg-purple-50">
+      <div className="mt-4 rounded-md text-blue-600 p-4 text-left text-sm bg-blue-50">
         <span>
           <span className="font-semibold">NOTE: </span>
           Curate high-quality post examples for optimal results. Remember, the

@@ -30,49 +30,57 @@ export async function POST(req: Request) {
     let data;
 
     try {
-      const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
+      // First, try to extract content using extractus
+      const { extract } = await import("@extractus/article-extractor");
+      data = await extract(url);
+    } catch (extractusError) {
+      console.log("Extractus failed:", extractusError);
 
-      const options = {
-        args: isLocal ? puppeteer.defaultArgs() : chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath:
-          process.env.CHROME_EXECUTABLE_PATH ||
-          (await chromium.executablePath(
-            "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
-          )),
-        headless: true,
-      };
-      const browser = await puppeteer.launch(options);
+      // If extractus fails, fall back to puppeteer method
+      try {
+        const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
 
-      const page = await browser.newPage();
+        const options = {
+          args: isLocal ? puppeteer.defaultArgs() : chromium.args,
+          defaultViewport: chromium.defaultViewport,
+          executablePath:
+            process.env.CHROME_EXECUTABLE_PATH ||
+            (await chromium.executablePath(
+              "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
+            )),
+          headless: true,
+        };
+        const browser = await puppeteer.launch(options);
 
-      // Increase timeout to 60 seconds and add error handling
-      await page
-        .goto(url, {
-          waitUntil: "networkidle0",
-          timeout: 60000, // 60 seconds
-        })
-        .catch(async (err: any) => {
-          console.log("Navigation timeout, attempting to get content anyway");
-          // Even if navigation times out, we can still try to get the content
+        const page = await browser.newPage();
+
+        // Increase timeout to 60 seconds and add error handling
+        await page
+          .goto(url, {
+            waitUntil: "networkidle0",
+            timeout: 60000, // 60 seconds
+          })
+          .catch(async (err: any) => {
+            console.log("Navigation timeout, attempting to get content anyway");
+            // Even if navigation times out, we can still try to get the content
+          });
+
+        // Wait for the body to be present
+        await page.waitForSelector("body", { timeout: 60000 }).catch(() => {
+          console.log(
+            "Timeout waiting for body, attempting to get content anyway"
+          );
         });
 
-      // Wait for the body to be present
-      await page.waitForSelector("body", { timeout: 60000 }).catch(() => {
-        console.log(
-          "Timeout waiting for body, attempting to get content anyway"
-        );
-      });
+        const content = await page.content();
+        await browser.close();
 
-      const content = await page.content();
-      await browser.close();
-
-      data = { content };
-    } catch (puppeteerError: any) {
-      console.log("Puppeteer Stealth failed:", puppeteerError);
-      throw new Error("Failed to extract content from the URL");
+        data = { content };
+      } catch (puppeteerError: any) {
+        console.log("Puppeteer Stealth failed:", puppeteerError);
+        throw new Error("Failed to extract content from the URL");
+      }
     }
-    // }
 
     if (!data || !data.content) {
       throw new Error("Failed to extract content from the URL");
