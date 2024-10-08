@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
-import { extract } from "@extractus/article-extractor";
 import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
+import chrome from "chrome-aws-lambda";
 import puppeteer from "puppeteer-core";
-import chromium from "@sparticuz/chromium";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+
+import puppeteerExtra from "puppeteer-extra";
+puppeteerExtra.use(StealthPlugin());
 
 export const maxDuration = 60;
 
@@ -25,23 +28,26 @@ export async function POST(req: Request) {
     const { url, instructions, formatTemplate, contentStyle } = body;
 
     let data;
-    // try {
-    //   data = await extract(url);
-    // } catch (error: any) {
-    //   console.log("Extractus failed, trying Puppeteer Stealth");
-    //   console.log(error);
-    try {
-      const StealthPlugin = (await import("puppeteer-extra-plugin-stealth"))
-        .default;
-      const puppeteerExtra = (await import("puppeteer-extra")).default;
-      puppeteerExtra.use(StealthPlugin());
 
-      const browser = await puppeteerExtra.launch({
-        args: chromium.args,
-        defaultViewport: chromium.defaultViewport,
-        executablePath: await chromium.executablePath(),
-        headless: chromium.headless,
-      });
+    try {
+      const options = process.env.AWS_REGION
+        ? {
+            args: chrome.args,
+            executablePath: await chrome.executablePath,
+            headless: chrome.headless,
+          }
+        : {
+            args: [],
+            executablePath:
+              process.platform === "win32"
+                ? "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+                : process.platform === "linux"
+                ? "/usr/bin/google-chrome"
+                : "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+          };
+
+      const browser = await puppeteerExtra.launch(options);
+
       const page = await browser.newPage();
 
       // Increase timeout to 60 seconds and add error handling
@@ -50,7 +56,7 @@ export async function POST(req: Request) {
           waitUntil: "networkidle0",
           timeout: 60000, // 60 seconds
         })
-        .catch(async (err) => {
+        .catch(async (err: any) => {
           console.log("Navigation timeout, attempting to get content anyway");
           // Even if navigation times out, we can still try to get the content
         });

@@ -6,6 +6,7 @@ const nextConfig = {
     if (isServer) {
       config.externals.push({
         canvas: "commonjs canvas",
+        "chrome-aws-lambda": "commonjs chrome-aws-lambda",
       });
     }
 
