@@ -41,7 +41,7 @@ export async function POST(req: Request) {
           )),
         headless: true,
       };
-      const browser = await puppeteerExtra.launch(options);
+      const browser = await puppeteer.launch(options);
 
       const page = await browser.newPage();
 
