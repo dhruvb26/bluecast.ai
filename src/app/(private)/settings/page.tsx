@@ -76,7 +76,7 @@ const SettingsPage = async () => {
               Personal
             </h2>
             <p className="text-sm text-muted-foreground">
-              We have obtained your name and email through LinkedIn.
+              We have obtained your name and email through your login.
             </p>
           </div>
           <div className="w-2/3 space-y-4">
@@ -111,18 +111,20 @@ const SettingsPage = async () => {
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">
-              Account
+              Account Access
             </h2>
             <p className="text-sm text-muted-foreground">
-              Manage your account settings and billing details.
+              This is your current account access.
             </p>
           </div>
           <div className="w-2/3 space-y-4">
             <div className="space-y-2">
-              <h2 className="text-sm font-medium text-foreground">Access</h2>
+              <h2 className="text-sm font-medium text-foreground">
+                Account Status
+              </h2>
               <Select disabled defaultValue="active">
                 <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select access" />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
@@ -162,8 +164,12 @@ const SettingsPage = async () => {
           <div className="flex w-2/3 items-center justify-start">
             <Link href={"/pricing"}>
               <Button variant={"outline"}>
-                <Money className="mr-3 inline" size={20} />
-                Pricing & Plans
+                <Money
+                  className="mr-2 inline text-[#0078d4]"
+                  size={20}
+                  weight="fill"
+                />
+                Pricing and Plans
               </Button>
             </Link>
           </div>

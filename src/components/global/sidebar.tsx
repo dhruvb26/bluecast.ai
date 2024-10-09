@@ -61,9 +61,25 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const [generatedWords, setGeneratedWords] = useState(0);
   const [validityDate, setValidityDate] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleMobileMenu = useCallback(() => {
+    if (window.innerWidth < 768) {
+      // Check if it's a mobile screen
+      setIsOpen(false); // Always close the sidebar on mobile
+      setIsMobileMenuOpen((prev) => !prev); // Toggle mobile menu
+    } else {
+      setIsOpen((prev) => !prev); // Toggle sidebar on larger screens
+    }
+  }, []);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     // Load the saved state from localStorage on the client side
     const savedIsOpen = localStorage.getItem("sidebarOpen");
@@ -95,16 +111,17 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
     fetchData();
   }, []);
-
   const isLinkActive = useCallback(
     (href: string, exact: boolean = false) => {
+      if (href === "/settings" && pathname === "/pricing") {
+        return true;
+      }
       return exact
         ? pathname === href
         : pathname === href || pathname.startsWith(href);
     },
     [pathname]
   );
-
   const renderNavLink = useCallback(
     (
       href: string,
@@ -129,6 +146,11 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 text == "Dashboard" ? "mt-4" : ""
               )}
               id={text === "Post Generator" ? "tour-1" : undefined}
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  setIsMobileMenuOpen(false);
+                }
+              }}
             >
               <span
                 className={cn(

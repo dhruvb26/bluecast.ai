@@ -405,7 +405,12 @@ function EditorSection({
     async (option: string) => {
       let textToRewrite = selectedText;
 
-      if (!textToRewrite && option !== "hook" && option !== "cta") {
+      if (
+        !textToRewrite &&
+        option !== "hook" &&
+        option !== "cta" &&
+        option !== "continue"
+      ) {
         toast.error("Please select some text to rewrite.");
         return;
       }
