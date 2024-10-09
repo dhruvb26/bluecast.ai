@@ -85,7 +85,7 @@ const PricingPage = () => {
                   <h1 className="text-xl font-semibold tracking-tight capitalize dark:text-white">
                     {isAnnual ? "Annual" : "Monthly"} Launch Plan
                     {isAnnual && (
-                      <Badge className="ml-4 space-x-1 bg-purple-50  text-purple-600 hover:bg-purple-100">
+                      <Badge className="ml-4 space-x-1 bg-blue-50 font-normal text-blue-600 hover:bg-purple-100">
                         <Cardholder className="inline mr-1" size={15} />
                         Save {20}%
                       </Badge>

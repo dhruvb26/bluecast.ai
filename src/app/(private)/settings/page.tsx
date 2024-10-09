@@ -197,7 +197,7 @@ const SettingsPage = async () => {
             <LinkedInSignInButton buttonText="Connect LinkedIn" />
           </div>
         </section>
-        <section className="flex space-x-4">
+        {/* <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">
               Delete Account
@@ -209,7 +209,7 @@ const SettingsPage = async () => {
           <div className="flex w-2/3 items-center justify-start">
             <DeleteAccountButton />
           </div>
-        </section>
+        </section> */}
       </div>
     </main>
   );
