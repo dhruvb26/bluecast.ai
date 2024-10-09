@@ -40,16 +40,8 @@ const Subscription = () => {
             </Link>
           </Button>
           <Button className="group w-full">
-            <Link
-              className="group"
-              target="_blank"
-              href={
-                env.NEXT_PUBLIC_NODE_ENV === "development"
-                  ? `https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
-                  : `https://buy.stripe.com/eVa7uTcgf4YP0kU8ww?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
-              }
-            >
-              Subscribe
+            <Link className="group" href={"/pricing"}>
+              Pricing & Plans
             </Link>
           </Button>
         </div>

@@ -40,16 +40,7 @@ const SubscriptionCard = () => {
       <CardContent className="text-center">
         <div className="space-x-2 flex flex-row items-center justify-center">
           <Button className="w-full" size="lg">
-            <Link
-              target="_blank"
-              href={
-                env.NEXT_PUBLIC_NODE_ENV === "development"
-                  ? `https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
-                  : `https://buy.stripe.com/eVa7uTcgf4YP0kU8ww?prefilled_email=${user?.primaryEmailAddress?.emailAddress}`
-              }
-            >
-              Take me there
-            </Link>
+            <Link href={"/pricing"}>Pricing & Plans</Link>
           </Button>
           <Button
             onClick={() => setShowFeatureGate(false)}

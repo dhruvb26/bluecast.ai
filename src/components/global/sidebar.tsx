@@ -13,9 +13,11 @@ import {
   CalendarDots,
   CaretDown,
   Clock,
+  CreditCard,
   Files,
   FolderSimple,
   Gear,
+  GearSix,
   House,
   Lightbulb,
   List,
@@ -28,7 +30,13 @@ import {
   Wrench,
 } from "@phosphor-icons/react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
-import { ChevronLeft, ChevronRight, Menu, PenSquare } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  DotIcon,
+  Menu,
+  PenSquare,
+} from "lucide-react";
 import { Tour } from "@frigade/react";
 import { v4 as uuid } from "uuid";
 import { cn } from "@/lib/utils";
@@ -43,6 +51,7 @@ import {
 
 import { checkValidity, getGeneratedWords, getUser } from "@/actions/user";
 import { saveDraft } from "@/actions/draft";
+import { env } from "@/env";
 
 const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const [isSavedOpen, setIsSavedOpen] = useState(false);
@@ -438,26 +447,52 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
               {" "}
               {/* Keep these items on the right */}
               {validityDate && (
-                <div className="mr-4 text-sm text-primary hidden sm:block">
-                  {" "}
-                  {/* Hide on very small screens */}
-                  <Clock size={16} weight="duotone" className="inline mr-1" />
-                  Your trial ends in{" "}
-                  {Math.ceil(
-                    (new Date(validityDate).getTime() - new Date().getTime()) /
-                      (1000 * 60 * 60 * 24)
-                  )}{" "}
-                  days!
-                </div>
+                <Link href={"/pricing"}>
+                  <div className="mr-4 text-sm text-primary hidden sm:block">
+                    {" "}
+                    {/* Hide on very small screens */}
+                    <Clock size={16} weight="duotone" className="inline mr-1" />
+                    Your trial ends in{" "}
+                    {Math.ceil(
+                      (new Date(validityDate).getTime() -
+                        new Date().getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    )}{" "}
+                    days!
+                  </div>
+                </Link>
               )}
               <UserButton
                 appearance={{
                   elements: {
+                    userButtonTrigger__open: "rounded-md",
+                    userButtonPopoverActionButton__manageAccount: "hidden",
                     userButtonPopoverCard: "shadow-sm border border-input",
                     userButtonPopoverFooter: "hidden",
                   },
                 }}
-              />
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Action
+                    label="Settings"
+                    labelIcon={<GearSix size={15} weight="fill" />}
+                    onClick={() => router.push("/settings")}
+                  />
+                </UserButton.MenuItems>
+                <UserButton.MenuItems>
+                  <UserButton.Action
+                    label="Manage Subscription"
+                    labelIcon={<CreditCard size={15} weight="fill" />}
+                    onClick={() =>
+                      router.push(
+                        env.NEXT_PUBLIC_NODE_ENV === "development"
+                          ? "https://billing.stripe.com/p/login/test_bIYcPt7RJcPs3vicMM"
+                          : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
+                      )
+                    }
+                  />
+                </UserButton.MenuItems>
+              </UserButton>
             </div>
           </header>
           <main className="flex-1 overflow-y-auto w-full">{children}</main>

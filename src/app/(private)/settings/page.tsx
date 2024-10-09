@@ -22,6 +22,8 @@ import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
 import { env } from "@/env";
 import { Button } from "@/components/ui/button";
+import DeleteAccountButton from "@/components/auth/delete-account-button";
+import { Money } from "@phosphor-icons/react/dist/ssr";
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -128,11 +130,11 @@ const SettingsPage = async () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex space-y-2 items-start justify-start flex-col">
+            {/* <div className="flex space-y-2 items-start justify-start flex-col">
               <h2 className="text-sm font-medium text-foreground">Validity</h2>
               <div className="text-sm text-gray-400">{validityInfo}</div>
-            </div>
-            <div className="flex space-y-2 items-start justify-start flex-col">
+            </div> */}
+            {/* <div className="flex space-y-2 items-start justify-start flex-col">
               <h2 className="text-sm font-medium text-foreground">
                 Subscription
               </h2>
@@ -145,10 +147,27 @@ const SettingsPage = async () => {
                   Stripe Portal
                 </Link>
               </Button>
-            </div>
+            </div> */}
           </div>
         </section>
-
+        <section className="flex space-x-4">
+          <div className="w-1/3">
+            <h2 className="text-md font-semibold tracking-tight text-foreground">
+              Pricing
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Check out our different plans and what they offer.
+            </p>
+          </div>
+          <div className="flex w-2/3 items-center justify-start">
+            <Link href={"/pricing"}>
+              <Button variant={"outline"}>
+                <Money className="mr-3 inline" size={20} />
+                Pricing & Plans
+              </Button>
+            </Link>
+          </div>
+        </section>
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">
@@ -176,6 +195,19 @@ const SettingsPage = async () => {
             ) : ( */}
 
             <LinkedInSignInButton buttonText="Connect LinkedIn" />
+          </div>
+        </section>
+        <section className="flex space-x-4">
+          <div className="w-1/3">
+            <h2 className="text-md font-semibold tracking-tight text-foreground">
+              Delete Account
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Permanently remove your account and all associated data.
+            </p>
+          </div>
+          <div className="flex w-2/3 items-center justify-start">
+            <DeleteAccountButton />
           </div>
         </section>
       </div>
