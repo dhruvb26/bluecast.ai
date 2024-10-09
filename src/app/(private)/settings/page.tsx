@@ -37,6 +37,12 @@ const SettingsPage = async () => {
 
   const provider = account?.provider;
 
+  const hasSubscription =
+    user.hasAccess &&
+    user.stripeSubscriptionId &&
+    user.stripeCustomerId &&
+    user.priceId;
+
   const specialAccess = user.specialAccess;
   const customerPortalLink =
     env.NEXT_PUBLIC_NODE_ENV === "development"
@@ -155,21 +161,32 @@ const SettingsPage = async () => {
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">
-              Pricing
+              {hasSubscription ? "Subscription" : "Pricing"}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Check out our different plans and what they offer.
+              {hasSubscription
+                ? "Manage your current subscription plan."
+                : "Check out our different plans and what they offer."}
             </p>
           </div>
           <div className="flex w-2/3 items-center justify-start">
-            <Link href={"/pricing"}>
+            <Link
+              target="_blank"
+              href={
+                hasSubscription
+                  ? env.NEXT_PUBLIC_NODE_ENV === "development"
+                    ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
+                    : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
+                  : "/pricing"
+              }
+            >
               <Button variant={"outline"}>
                 <Money
                   className="mr-2 inline text-[#0078d4]"
                   size={20}
                   weight="fill"
                 />
-                Pricing and Plans
+                {hasSubscription ? "Manage Subscription" : "Pricing and Plans"}
               </Button>
             </Link>
           </div>

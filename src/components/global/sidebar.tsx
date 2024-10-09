@@ -501,19 +501,19 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                     onClick={() => router.push("/settings")}
                   />
                 </UserButton.MenuItems>
-                <UserButton.MenuItems>
+                {/* <UserButton.MenuItems>
                   <UserButton.Action
                     label="Manage Subscription"
                     labelIcon={<CreditCard size={15} weight="fill" />}
                     onClick={() =>
                       router.push(
                         env.NEXT_PUBLIC_NODE_ENV === "development"
-                          ? "https://billing.stripe.com/p/login/test_bIYcPt7RJcPs3vicMM"
+                          ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
                           : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
                       )
                     }
                   />
-                </UserButton.MenuItems>
+                </UserButton.MenuItems> */}
               </UserButton>
             </div>
           </header>

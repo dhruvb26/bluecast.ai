@@ -10,6 +10,7 @@ import { CheckIcon, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { toast } from "sonner";
 
 const PricingPage = () => {
   const router = useRouter();
@@ -33,8 +34,11 @@ const PricingPage = () => {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server response:", errorText);
+        const errorData = (await response.json()) as any;
+        if (errorData.error === "User already has an active subscription") {
+          toast.success("You already have an active subscription!");
+          return;
+        }
         throw new Error(
           `Failed to create checkout session: ${response.status} ${response.statusText}`
         );
@@ -50,6 +54,7 @@ const PricingPage = () => {
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);
+      toast.error("Failed to create checkout session. Please try again.");
     } finally {
       setIsLoading(false);
     }
