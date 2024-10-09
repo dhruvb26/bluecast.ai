@@ -1,4 +1,5 @@
 "use client";
+import { getUser } from "@/actions/user";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,24 +20,33 @@ const PricingPage = () => {
   const annualSavingsPercentage = Math.round((1 - 200 / (29 * 12)) * 100);
 
   const handleSubscribe = async (priceId: string) => {
+    const user = await getUser();
     setIsLoading(true);
+
     try {
-      const response = await fetch("/api/stripe/session", {
+      const response = await fetch("/api/webhook/session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, user }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create checkout session");
+        const errorText = await response.text();
+        console.error("Server response:", errorText);
+        throw new Error(
+          `Failed to create checkout session: ${response.status} ${response.statusText}`
+        );
       }
-      const data: any = await response.json();
+
+      const data = (await response.json()) as any;
+
       if (data.sessionUrl) {
         router.push(data.sessionUrl);
       } else {
-        console.error("No session URL returned");
+        console.error("No session URL returned:", data);
+        throw new Error("No session URL returned from server");
       }
     } catch (error) {
       console.error("Error creating checkout session:", error);

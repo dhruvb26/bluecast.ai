@@ -8,8 +8,7 @@ const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 
 export async function POST(req: Request) {
   try {
-    const user = await getUser();
-    const { priceId } = (await req.json()) as any;
+    const { priceId, user } = (await req.json()) as any;
 
     const customer = await stripe.customers.create({
       name: user.name || "",

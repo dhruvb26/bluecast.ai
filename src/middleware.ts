@@ -7,6 +7,7 @@ const isProtectedRoute = createRouteMatcher([
   "/preferences",
   "/settings",
   "/create(.*)",
+  "/schedule(.*)",
   "/subscribe",
   "/saved(.*)",
   "/pricing(.*)",
@@ -37,7 +38,9 @@ export default clerkMiddleware((auth, req: NextRequest) => {
   if (
     userId &&
     !sessionClaims?.metadata?.hasAccess &&
-    !req.nextUrl.pathname.startsWith("/subscribe")
+    !req.nextUrl.pathname.startsWith("/subscribe") &&
+    !req.nextUrl.pathname.startsWith("/pricing") &&
+    !req.nextUrl.pathname.startsWith("/settings")
   ) {
     const subscribeUrl = new URL("/subscribe", req.url);
     return NextResponse.redirect(subscribeUrl);
