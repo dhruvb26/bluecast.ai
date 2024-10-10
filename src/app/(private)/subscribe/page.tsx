@@ -7,13 +7,12 @@ import { Button } from "@/components/ui/button";
 const Subscription = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 text-center flex flex-col items-center justify-center shadow-lg">
+      <div className="w-full max-w-md space-y-2 rounded-lg bg-white px-8 py-6 text-center flex flex-col items-center justify-center shadow-lg">
         <Image
           src="/brand/Bluecast Logo.png"
-          height={150}
-          width={150}
+          height={165}
+          width={165}
           alt="Bluecast Logo"
-          className="mb-2"
         />
 
         <Image
@@ -23,9 +22,12 @@ const Subscription = () => {
           alt="Bluecast Logo"
           className="mb-2"
         />
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Your free trial has expired!
+        </h1>
 
-        <p className="mb-6 text-sm">
-          To continue using our service, please subscribe to our launch plan &
+        <p className="mb-6 text-sm text-muted-foreground">
+          To continue using our service, please subscribe to one of our plans &
           continue growing on LinkedIn.
         </p>
 
@@ -35,12 +37,23 @@ const Subscription = () => {
               View Pricing
             </Link>
           </Button> */}
-          <Button className="group w-full">
+          <Button className="group w-full my-5">
             <Link className="group" href={"/pricing"}>
-              Pricing & Plans
+              Upgrade Plan
             </Link>
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground">
+          If you want to learn more about the features and what we offer, please
+          reach out to{" "}
+          <Link
+            href="mailto:support@bluecast.ai"
+            className="text-blue-600 hover:underline"
+          >
+            support@bluecast.ai
+          </Link>{" "}
+          to get a free demo.
+        </p>
       </div>
     </div>
   );

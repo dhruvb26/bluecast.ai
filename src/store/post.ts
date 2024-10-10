@@ -23,10 +23,15 @@ interface PostStore {
   setShowLinkedInConnect: (show: boolean) => void;
   showFeatureGate: boolean;
   setShowFeatureGate: (show: boolean) => void;
+  submissionSuccessful: boolean;
+  setSubmissionSuccessful: (successful: boolean) => void;
 }
 
 export const usePostStore = create<PostStore>((set) => ({
   showFeatureGate: false,
+  submissionSuccessful: false,
+  setSubmissionSuccessful: (successful) =>
+    set({ submissionSuccessful: successful }),
   setShowFeatureGate: (show) => set({ showFeatureGate: show }),
   showLinkedInConnect: false,
   setShowLinkedInConnect: (show) => set({ showLinkedInConnect: show }),
@@ -67,6 +72,7 @@ export const usePostStore = create<PostStore>((set) => ({
       error: null,
       linkedInPost: "",
       isStreamComplete: false,
+      submissionSuccessful: false, // Reset at the start of submission
     });
 
     try {
@@ -95,7 +101,11 @@ export const usePostStore = create<PostStore>((set) => ({
       while (true) {
         const { done, value } = await reader.read();
         if (done) {
-          set({ isStreamComplete: true, isLoading: false });
+          set({
+            isStreamComplete: true,
+            isLoading: false,
+            submissionSuccessful: true,
+          }); // Set to true on successful completion
           break;
         }
         const chunkText = decoder.decode(value);
@@ -105,10 +115,14 @@ export const usePostStore = create<PostStore>((set) => ({
       if (error instanceof Error) {
         set({
           error: {
-            message: error.message,
-            cause: error.cause as string,
+            message:
+              error instanceof Error
+                ? error.message
+                : "An unexpected error occurred",
+            cause: error instanceof Error ? (error.cause as string) : "unknown",
           },
           isLoading: false,
+          submissionSuccessful: false, // Ensure it's false on error
         });
       } else {
         set({

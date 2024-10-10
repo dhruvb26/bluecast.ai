@@ -24,6 +24,7 @@ import { env } from "@/env";
 import { Button } from "@/components/ui/button";
 import DeleteAccountButton from "@/components/auth/delete-account-button";
 import { Money } from "@phosphor-icons/react/dist/ssr";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -88,6 +89,17 @@ const SettingsPage = async () => {
           <div className="w-2/3 space-y-4">
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium">
+                Image
+              </label>
+              <div className="flex items-center space-x-4">
+                <Avatar>
+                  <AvatarImage src={user.image || ""} alt={user.name || ""} />
+                  <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
+            <div>
+              <label htmlFor="name" className="mb-1 block text-sm font-medium">
                 Name
               </label>
               <Input
@@ -120,20 +132,31 @@ const SettingsPage = async () => {
               Account Access
             </h2>
             <p className="text-sm text-muted-foreground">
-              This is your current account access.
+              This is your current account access information.
             </p>
           </div>
           <div className="w-2/3 space-y-4">
             <div className="space-y-2">
-              <h2 className="text-sm font-medium text-foreground">
-                Account Status
-              </h2>
-              <Select disabled defaultValue="active">
+              {/* <h2 className="text-sm font-medium text-foreground">
+                Current Plan
+              </h2> */}
+              <Select
+                disabled
+                defaultValue={user.hasAccess ? "Active" : "Inactive"}
+              >
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="Active">
+                    {user.priceId === "price_1Q32GdRrqqSKPUNWN1sG48XI" ||
+                    user.priceId === "price_1Q1VQ4RrqqSKPUNWMMbGj3yh"
+                      ? "Annual Plan"
+                      : user.priceId === "price_1Q32F1RrqqSKPUNWkMQXCrVC" ||
+                        user.priceId === "price_1Pb0w5RrqqSKPUNWGX1T2G3O"
+                      ? "Monthly Plan"
+                      : "Active"}
+                  </SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>

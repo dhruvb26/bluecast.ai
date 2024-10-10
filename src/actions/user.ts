@@ -80,12 +80,10 @@ export async function checkAccess() {
       throw new Error("User not found in the database.");
     }
 
-    if (user[0].hasAccess) {
-      return user[0].generatedWords < 50000;
-    }
-
     if (user[0].specialAccess) {
       return user[0].generatedPosts < 10;
+    } else if (user[0].hasAccess) {
+      return user[0].generatedWords < 50000;
     }
 
     return false;
@@ -130,12 +128,34 @@ export async function setGeneratedWords(words: number) {
     }
 
     const userId = userClerk.id;
-    await db
-      .update(users)
-      .set({
-        generatedWords: sql`${users.generatedWords} + ${words}`,
+    const user = await db
+      .select({
+        hasAccess: users.hasAccess,
+        specialAccess: users.specialAccess,
       })
-      .where(eq(users.id, userId));
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user[0]) {
+      throw new Error("User not found in the database.");
+    }
+
+    if (user[0].specialAccess) {
+      await db
+        .update(users)
+        .set({
+          generatedPosts: sql`${users.generatedPosts} + 1`,
+        })
+        .where(eq(users.id, userId));
+    } else if (user[0].hasAccess) {
+      await db
+        .update(users)
+        .set({
+          generatedWords: sql`${users.generatedWords} + ${words}`,
+        })
+        .where(eq(users.id, userId));
+    }
   } catch (error) {
     console.error("Error in setGeneratedWords:", error);
     throw error;
@@ -175,8 +195,7 @@ export async function getGeneratedPosts() {
     const result = await db
       .select({ generatedPosts: users.generatedPosts })
       .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+      .where(eq(users.id, userId));
 
     if (!result[0]) {
       throw new Error("User not found in the database.");

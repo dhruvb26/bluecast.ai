@@ -18,13 +18,6 @@ export async function POST(req: Request) {
       where: eq(users.email, user.email),
     });
 
-    if (dbUser && dbUser.hasAccess) {
-      return NextResponse.json(
-        { error: "User already has an active subscription" },
-        { status: 400 }
-      );
-    }
-
     const customer = await stripe.customers.create({
       name: user.name || "",
       email: user.email || "",

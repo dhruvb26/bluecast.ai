@@ -145,6 +145,7 @@ export async function POST(req: Request) {
                 priceId: priceId,
                 trialEndsAt: null,
                 hasAccess: true,
+                specialAccess: false,
                 stripeSubscriptionId: subscription.id,
               })
               .where(eq(users.id, user.id));
@@ -349,7 +350,6 @@ export async function POST(req: Request) {
         console.log(`Removed access for user ${user.id} due to refund`);
         break;
       }
-
       default:
         console.log(`Unhandled event type: ${eventType}`);
     }

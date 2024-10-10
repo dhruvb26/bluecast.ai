@@ -8,39 +8,41 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getUser, getGeneratedWords, getGeneratedPosts } from "@/actions/user";
+import { usePostStore } from "@/store/post";
+import Link from "next/link";
 
 const WordsCard = () => {
   const [user, setUser] = useState<any>(null);
   const [generatedWords, setGeneratedWords] = useState(0);
   const [generatedPosts, setGeneratedPosts] = useState(0);
+  const submissionSuccessful = usePostStore(
+    (state) => state.submissionSuccessful
+  );
+  const setSubmissionSuccessful = usePostStore(
+    (state) => state.setSubmissionSuccessful
+  );
 
   useEffect(() => {
     const fetchUserData = async () => {
       const userData = await getUser();
       setUser(userData);
-      if (userData.hasAccess) {
-        const words = await getGeneratedWords();
-        setGeneratedWords(words);
-      } else {
+      if (userData.specialAccess) {
         const posts = await getGeneratedPosts();
         setGeneratedPosts(posts);
       }
+      if (userData.hasAccess) {
+        const words = await getGeneratedWords();
+        setGeneratedWords(words);
+      }
     };
     fetchUserData();
-  }, []);
-
-  if (
-    user &&
-    user.stripeSubscriptionId &&
-    user.stripeCustomerId &&
-    user.priceId
-  ) {
-    return null;
-  }
+    setSubmissionSuccessful(false);
+  }, [submissionSuccessful, setSubmissionSuccessful]);
 
   const limit = user?.specialAccess ? 10 : 50000;
   const generated = user?.specialAccess ? generatedPosts : generatedWords;
   const percentage = (generated / limit) * 100;
+  const hasHitLimit = generated >= limit;
 
   const formatNumber = (num: number) => {
     return num >= 1000 ? `${(num / 1000).toFixed(1)}k` : num;
@@ -62,9 +64,21 @@ const WordsCard = () => {
           ></div>
         </div>
         <CardDescription className="text-xs text-muted-foreground">
-          {user?.hasAccess
-            ? "This plan allows you to generate 50k words as of now."
-            : "This plan allows you to generate 10 posts as of now."}
+          {user?.specialAccess ? (
+            hasHitLimit ? (
+              <>
+                You've hit the limit.{" "}
+                <Link href="/pricing" className="text-blue-600 hover:underline">
+                  Upgrade your plan
+                </Link>{" "}
+                for more content generation.
+              </>
+            ) : (
+              "This plan allows you to generate 10 posts as of now."
+            )
+          ) : (
+            "This plan allows you to generate 50k words monthly as of now."
+          )}
           {" More features & plans coming soon."}
         </CardDescription>
       </CardHeader>

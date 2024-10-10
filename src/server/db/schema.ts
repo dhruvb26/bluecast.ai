@@ -189,7 +189,7 @@ export const users = createTable("user", {
   generatedWords: integer("generated_words").default(0).notNull(),
   generatedPosts: integer("generated_posts").default(0).notNull(),
   onboardingData: jsonb("onboarding_data"),
-  specialAccess: boolean("special_access").default(false),
+  specialAccess: boolean("special_access").default(true),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

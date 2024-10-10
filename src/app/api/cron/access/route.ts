@@ -18,25 +18,13 @@ export async function GET(req: NextRequest): Promise<Response> {
     const usersToUpdate = await db
       .select({ id: users.id })
       .from(users)
-      .where(
-        and(
-          eq(users.hasAccess, true),
-          lt(users.trialEndsAt, now),
-          eq(users.specialAccess, false)
-        )
-      );
+      .where(and(lt(users.trialEndsAt, now)));
 
     // Update users in the database
     const result = await db
       .update(users)
-      .set({ hasAccess: false, trialEndsAt: null })
-      .where(
-        and(
-          eq(users.hasAccess, true),
-          lt(users.trialEndsAt, now),
-          eq(users.specialAccess, false)
-        )
-      );
+      .set({ hasAccess: false, trialEndsAt: null, specialAccess: false })
+      .where(and(lt(users.trialEndsAt, now)));
 
     // Update Clerk metadata for each user
     for (const user of usersToUpdate) {

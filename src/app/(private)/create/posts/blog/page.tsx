@@ -29,7 +29,7 @@ const BlogLinkedInPage = () => {
           error, consider converting the page to PDF format, then proceed to our{" "}
           <Link
             href="/create/posts/pdf"
-            className="text-blue-700 hover:underline underline"
+            className="text-blue-700 hover:underline italic"
           >
             PDF repurposing template
           </Link>

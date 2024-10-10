@@ -95,7 +95,7 @@ export default function SavedStylesPage() {
         listsLength = result.data.length || 0;
       }
 
-      if (!user.stripeSubscriptionId && !user.priceId && listsLength == 3) {
+      if (user.specialAccess && listsLength == 1) {
         setShowFeatureGate(true);
         setIsLoading(false);
         setIsCreatorDialogOpen(false); // Close the dialog
