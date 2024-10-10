@@ -132,29 +132,31 @@ export async function setGeneratedWords(words: number) {
       .select({
         hasAccess: users.hasAccess,
         specialAccess: users.specialAccess,
+        stripeSubscriptionId: users.stripeSubscriptionId,
       })
       .from(users)
-      .where(eq(users.id, userId))
-      .limit(1);
+      .where(eq(users.id, userId));
 
     if (!user[0]) {
       throw new Error("User not found in the database.");
     }
 
-    if (user[0].specialAccess) {
-      await db
-        .update(users)
-        .set({
-          generatedPosts: sql`${users.generatedPosts} + 1`,
-        })
-        .where(eq(users.id, userId));
-    } else if (user[0].hasAccess) {
-      await db
-        .update(users)
-        .set({
-          generatedWords: sql`${users.generatedWords} + ${words}`,
-        })
-        .where(eq(users.id, userId));
+    if (user[0].hasAccess) {
+      if (user[0].specialAccess) {
+        await db
+          .update(users)
+          .set({
+            generatedPosts: sql`${users.generatedPosts} + 1`,
+          })
+          .where(eq(users.id, userId));
+      } else {
+        await db
+          .update(users)
+          .set({
+            generatedWords: sql`${users.generatedWords} + ${words}`,
+          })
+          .where(eq(users.id, userId));
+      }
     }
   } catch (error) {
     console.error("Error in setGeneratedWords:", error);
