@@ -54,12 +54,14 @@ const WordsCard = () => {
         <CardTitle className="mb-2 flex items-center justify-between">
           <Badge
             className={`${
-              user?.subscriptionId && user?.customerId
-                ? "bg-blue-400 hover:bg-blue-400 font-normal tracking-normal"
+              user?.stripeSubscriptionId && user?.stripeCustomerId
+                ? "bg-blue-600 hover:bg-blue-600 font-normal tracking-normal"
                 : "bg-yellow-400 hover:bg-yellow-400 font-normal tracking-normal"
             } text-xs`}
           >
-            {user?.subscriptionId && user?.customerId ? "Launch" : "Trial"}
+            {user?.stripeSubscriptionId && user?.stripeCustomerId
+              ? "Launch"
+              : "Trial"}
           </Badge>
           <span className="text-xs text-foreground">
             {formatNumber(generated)} / {formatNumber(limit)}{" "}
