@@ -83,12 +83,11 @@ const WordsCard = () => {
                 for more content generation.
               </>
             ) : (
-              "This plan allows you to generate 10 posts as of now."
+              "This trial allows you to generate 10 posts as of now. Upgrade your plan for more content generation."
             )
           ) : (
-            "This plan allows you to generate 50k words monthly as of now."
+            "This plan allows you to generate 50k words monthly as of now. More features & plans coming soon."
           )}
-          {" More features & plans coming soon."}
         </CardDescription>
       </CardHeader>
     </Card>
