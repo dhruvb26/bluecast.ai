@@ -1,4 +1,6 @@
 // store.ts
+import { getGeneratedPosts, getUser } from "@/actions/user";
+import { toast } from "sonner";
 import { create } from "zustand";
 
 interface PostStore {
@@ -76,6 +78,24 @@ export const usePostStore = create<PostStore>((set) => ({
     });
 
     try {
+      const user = await getUser(); // You'll need to import this function
+      const generatedPosts = await getGeneratedPosts(); // You'll need to import this function
+
+      if (user.specialAccess && generatedPosts >= 10) {
+        // User has hit the limit
+        toast.error(
+          "You've hit the post limit. Please upgrade your plan for more content generation."
+        );
+        set({
+          isLoading: false,
+          error: {
+            message: "Post limit reached.",
+            cause: "limit",
+          },
+        });
+        return;
+      }
+
       const response = await fetch(`/api/ai/${path}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

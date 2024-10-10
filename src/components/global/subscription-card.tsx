@@ -40,7 +40,7 @@ const SubscriptionCard = () => {
       <CardContent className="text-center">
         <div className="space-x-2 flex flex-row items-center justify-center">
           <Button className="w-full" size="lg">
-            <Link href={"/pricing"}>Pricing & Plans</Link>
+            <Link href={"/pricing"}>Upgrade Plan</Link>
           </Button>
           <Button
             onClick={() => setShowFeatureGate(false)}

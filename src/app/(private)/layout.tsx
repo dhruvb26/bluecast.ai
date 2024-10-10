@@ -15,7 +15,9 @@ export default async function DashboardLayout({
     <Suspense>
       <Sidebar>
         <NextSSRPlugin routerConfig={routerConfig} />
+
         <TourVideoAnnouncement />
+
         {children}
       </Sidebar>
     </Suspense>

@@ -52,9 +52,18 @@ const WordsCard = () => {
     <Card className="border-none p-0 w-full">
       <CardHeader className="p-2 pt-2 md:p-2">
         <CardTitle className="mb-2 flex items-center justify-between">
-          <Badge className="bg-blue-600 text-xs">Launch</Badge>
+          <Badge
+            className={`${
+              user?.subscriptionId && user?.customerId
+                ? "bg-blue-400 hover:bg-blue-400 font-normal tracking-normal"
+                : "bg-yellow-400 hover:bg-yellow-400 font-normal tracking-normal"
+            } text-xs`}
+          >
+            {user?.subscriptionId && user?.customerId ? "Launch" : "Trial"}
+          </Badge>
           <span className="text-xs text-foreground">
-            {formatNumber(generated)} / {formatNumber(limit)}
+            {formatNumber(generated)} / {formatNumber(limit)}{" "}
+            {user?.specialAccess ? "posts" : ""}
           </span>
         </CardTitle>
         <div className="mb-2 h-1.5 w-full rounded-full bg-gray-200">
