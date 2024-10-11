@@ -73,6 +73,7 @@ export async function POST(req: Request) {
             Examine these examples carefully to:
             a) Identify a common format or structure used across the posts
             b) Determine the overall tone and writing style of the creator
+               c) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
 
             Now, generate a LinkedIn post based on the following inputs:
             <audio_transcription>
