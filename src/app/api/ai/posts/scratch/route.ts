@@ -65,8 +65,9 @@ export async function POST(req: Request) {
 
             Examine these examples carefully to:
             a) Identify a common format or structure used across the posts
-            b) Determine the overall tone and writing style of the creator
-            c) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
+            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
+            c) Determine the overall tone and writing style of the creator
+            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
 
             Now, generate a LinkedIn post based on the following inputs:
 
@@ -91,7 +92,7 @@ export async function POST(req: Request) {
             </custom_instructions>
 
             When writing the post:
-            1. Prioritize the format identified from the creator's examples.
+            1. Prioritize the format, style and tone identified from the creator's examples.
             2. Incorporate the given topic.
             3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
             4. Adhere to any custom instructions given.

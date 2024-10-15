@@ -4,6 +4,7 @@ import { db } from "@/server/db";
 import { posts } from "@/server/db/schema";
 import { asc, eq, desc, sql } from "drizzle-orm";
 import { checkAccess } from "./user";
+import { parseRelativeTime } from "@/utils/date";
 export type Post = {
   id: string;
   creatorId: string;
@@ -109,14 +110,22 @@ export async function getPostsByCreatorId(
     const offset = (page - 1) * limit;
     const creatorPosts = await db.query.posts.findMany({
       where: eq(posts.creatorId, creatorId),
-      orderBy: [asc(posts.time)],
+      orderBy: [desc(posts.time)],
       with: {
         creator: true,
       },
       limit: limit,
       offset: offset,
     });
-    return { success: true, posts: creatorPosts };
+
+    // Sort posts based on relative time
+    const sortedPosts = creatorPosts.sort((a, b) => {
+      const timeA = parseRelativeTime(a.time || "");
+      const timeB = parseRelativeTime(b.time || "");
+      return timeB.getTime() - timeA.getTime();
+    });
+
+    return { success: true, posts: sortedPosts };
   } catch (error) {
     console.error("Error fetching posts by creator:", error);
     return { success: false, error: "Failed to fetch posts by creator" };

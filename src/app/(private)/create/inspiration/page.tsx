@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import PostCard from "@/components/inspiration/post-card";
 import { getCreatorLists } from "@/actions/list";
-import { getPostsByCreatorId } from "@/actions/post";
+import { getPostsByCreatorId, Post } from "@/actions/post";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { shuffle } from "@/utils/shuffle";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { CreatorList } from "@/actions/list";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
 import { BarLoader } from "react-spinners";
+import { parseRelativeTime } from "@/utils/date";
 
 export default function Home() {
   const router = useRouter();
@@ -97,18 +98,25 @@ export default function Home() {
         return result.success ? result.posts : [];
       })
     );
-    const flattenedPosts = shuffle(newPosts.flat().reverse());
+
+    // Flatten, filter out undefined, and sort all posts by relative time
+    const allPosts: any[] = newPosts.flat().sort((a: any, b: any) => {
+      const timeA = parseRelativeTime(a.time || "");
+      const timeB = parseRelativeTime(b.time || "");
+      return timeB.getTime() - timeA.getTime();
+    });
+
     setPosts((prev) => ({
       ...prev,
-      [listId]: [...prev[listId], ...flattenedPosts],
-    }));
-    setPosts((prev) => ({
-      ...prev,
-      [listId]: [...prev[listId], ...flattenedPosts],
+      [listId]: [...prev[listId], ...allPosts],
     }));
     setCurrentPage((prev) => ({
       ...prev,
       [listId]: prev[listId] + 1,
+    }));
+    setHasMore((prev) => ({
+      ...prev,
+      [listId]: allPosts.length === postsPerPage * creatorIds.length,
     }));
   };
 

@@ -105,10 +105,10 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           width={500}
           height={500}
           style={{
-            maxWidth: "100%",
-            height: "auto",
-            maxHeight: "500px",
-            objectFit: "contain",
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            aspectRatio: "1 / 1",
           }}
         />
       );

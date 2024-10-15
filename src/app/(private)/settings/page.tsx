@@ -25,6 +25,9 @@ import { Button } from "@/components/ui/button";
 import DeleteAccountButton from "@/components/auth/delete-account-button";
 import { Money } from "@phosphor-icons/react/dist/ssr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// import { UploadButton } from "@/utils/uploadthing";
+import { toast } from "sonner";
+import UpdateProfilePictureButton from "@/components/buttons/update-profile-picture-button";
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -96,6 +99,7 @@ const SettingsPage = async () => {
                   <AvatarImage src={user.image || ""} alt={user.name || ""} />
                   <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
+                <UpdateProfilePictureButton />
               </div>
             </div>
             <div>

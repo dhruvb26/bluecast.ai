@@ -43,18 +43,15 @@ export async function POST(req: Request) {
       //   const options = {
       //     args: isLocal ? puppeteer.defaultArgs() : chromium.args,
       //     defaultViewport: chromium.defaultViewport,
-      //     executablePath:
-      //       process.env.CHROME_EXECUTABLE_PATH ||
-      //       (await chromium.executablePath(
-      //         "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
-      //       )),
+      //     executablePath: await chromium.executablePath(
+      //       "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
+      //     ),
       //     headless: true,
       //   };
       //   const browser = await puppeteer.launch(options);
 
       //   const page = await browser.newPage();
 
-      //   // Increase timeout to 60 seconds and add error handling
       //   await page
       //     .goto(url, {
       //       waitUntil: "networkidle0",
@@ -62,10 +59,8 @@ export async function POST(req: Request) {
       //     })
       //     .catch(async (err: any) => {
       //       console.log("Navigation timeout, attempting to get content anyway");
-      //       // Even if navigation times out, we can still try to get the content
       //     });
 
-      //   // Wait for the body to be present
       //   await page.waitForSelector("body", { timeout: 60000 }).catch(() => {
       //     console.log(
       //       "Timeout waiting for body, attempting to get content anyway"
@@ -86,11 +81,10 @@ export async function POST(req: Request) {
       throw new Error("Failed to extract content from the URL");
     }
 
-    // Clean up the extracted content
     const cleanContent = data.content
-      .replace(/<\/?[^>]+(>|$)/g, "") // Remove HTML tags
-      .replace(/\n+/g, "\n") // Replace multiple newlines with a single newline
-      .trim(); // Remove leading and trailing whitespace
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      .replace(/\n+/g, "\n")
+      .trim();
 
     let examples;
     if (contentStyle) {
@@ -122,8 +116,9 @@ export async function POST(req: Request) {
 
             Examine these examples carefully to:
             a) Identify a common format or structure used across the posts
-            b) Determine the overall tone and writing style of the creator
-               c) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
+            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
+            c) Determine the overall tone and writing style of the creator
+            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
 
             Now, generate a LinkedIn post based on the following inputs:
             <article_content>

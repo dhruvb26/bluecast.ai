@@ -1,10 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
-import { checkAccess, getUser } from "@/actions/user";
-import { db } from "@/server/db";
-import { eq } from "drizzle-orm";
-import { accounts } from "@/server/db/schema";
-import { updateDraftField } from "@/actions/draft";
+import { checkAccess, getUser, updateUserImage } from "@/actions/user";
 
 const f = createUploadthing();
 
@@ -54,6 +50,18 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      return { uploadedBy: metadata.userId, uploadedUrl: file.url };
+    }),
+  profilePictureUploader: f({ image: { maxFileSize: "128MB" } })
+    .middleware(async ({ req }) => {
+      await checkAccess();
+      const user = await getUser();
+
+      return { userId: user.id };
+    })
+    .onUploadComplete(async ({ metadata, file }) => {
+      await updateUserImage(metadata.userId, file.url);
+
       return { uploadedBy: metadata.userId, uploadedUrl: file.url };
     }),
 } satisfies FileRouter;

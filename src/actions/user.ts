@@ -270,3 +270,29 @@ export async function completeOnboarding(onboardingData: any) {
     throw error;
   }
 }
+
+export async function updateUserImage(userId: string, fileUrl: string) {
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  try {
+    // Fetch the image from the fileUrl
+    const response = await fetch(fileUrl);
+    const blob = await response.blob();
+
+    // Create a File object from the blob
+    const file = new File([blob], "profile-picture.png", { type: "image/png" });
+
+    // Update Clerk user profile image
+    await clerkClient.users.updateUserProfileImage(userId, { file });
+
+    // Update the image URL in your database
+    await db.update(users).set({ image: fileUrl }).where(eq(users.id, userId));
+
+    return { message: "Profile image updated successfully" };
+  } catch (error) {
+    console.error("Error updating user image:", error);
+    throw error;
+  }
+}
