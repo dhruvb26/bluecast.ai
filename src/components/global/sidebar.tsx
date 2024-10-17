@@ -267,7 +267,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             className="text-brand-blue-primary"
             weight="regular"
           />,
-          "Posts"
+          "Post Templates"
         )}
         {renderNavLink(
           "/create/ideas",
