@@ -167,10 +167,10 @@ const SettingsPage = async () => {
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">
-              Account Access
+              Usage Limits
             </h2>
             <p className="text-sm text-muted-foreground">
-              This is your current account access information.
+              Here you can view your current usage limits for posts and words.
             </p>
           </div>
           <div className="w-[30%] space-y-4">
