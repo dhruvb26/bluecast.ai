@@ -33,6 +33,7 @@ import {
 } from "react-icons/fa";
 import { Check } from "@phosphor-icons/react";
 import { completeOnboarding, getUser } from "@/actions/user";
+import { ForYouForm } from "@/components/forms/for-you-form";
 
 const formSchema = z.object({
   role: z.string({

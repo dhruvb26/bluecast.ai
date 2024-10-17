@@ -27,10 +27,14 @@ interface PostStore {
   setShowFeatureGate: (show: boolean) => void;
   submissionSuccessful: boolean;
   setSubmissionSuccessful: (successful: boolean) => void;
+  wordsGenerated: number;
+  setWordsGenerated: (words: number) => void;
 }
 
 export const usePostStore = create<PostStore>((set) => ({
   showFeatureGate: false,
+  wordsGenerated: 0,
+  setWordsGenerated: (words) => set({ wordsGenerated: words }),
   submissionSuccessful: false,
   setSubmissionSuccessful: (successful) =>
     set({ submissionSuccessful: successful }),

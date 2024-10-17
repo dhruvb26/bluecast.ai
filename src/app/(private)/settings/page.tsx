@@ -140,10 +140,7 @@ const SettingsPage = async () => {
             </p>
           </div>
           <div className="w-2/3 space-y-4">
-            <div className="space-y-2">
-              {/* <h2 className="text-sm font-medium text-foreground">
-                Current Plan
-              </h2> */}
+            <div className="flex items-center justify-start space-x-4">
               <Select
                 disabled
                 defaultValue={user.hasAccess ? "Active" : "Inactive"}
@@ -165,26 +162,40 @@ const SettingsPage = async () => {
                 </SelectContent>
               </Select>
             </div>
-            {/* <div className="flex space-y-2 items-start justify-start flex-col">
-              <h2 className="text-sm font-medium text-foreground">Validity</h2>
-              <div className="text-sm text-gray-400">{validityInfo}</div>
-            </div> */}
-            {/* <div className="flex space-y-2 items-start justify-start flex-col">
-              <h2 className="text-sm font-medium text-foreground">
-                Subscription
-              </h2>
-
-              <Button variant={"outline"}>
-                <Link
-                  target="_blank"
-                  href={`${customerPortalLink}?prefilled_email=${user.email}`}
-                >
-                  Stripe Portal
-                </Link>
-              </Button>
-            </div> */}
           </div>
         </section>
+        <section className="flex space-x-4">
+          <div className="w-1/3">
+            <h2 className="text-md font-semibold tracking-tight text-foreground">
+              Account Access
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              This is your current account access information.
+            </p>
+          </div>
+          <div className="w-[30%] space-y-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-foreground">
+                {user.specialAccess
+                  ? `${user.generatedPosts || 0} / 10 posts`
+                  : `${user.generatedWords || 0} / 50000 words`}
+              </span>
+              <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
+                <div
+                  className="h-1.5 rounded-full bg-blue-600 transition-all duration-300 ease-in-out"
+                  style={{
+                    width: `${
+                      user.specialAccess
+                        ? ((user.generatedPosts || 0) / 10) * 100
+                        : ((user.generatedWords || 0) / 50000) * 100
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-md font-semibold tracking-tight text-foreground">
@@ -228,38 +239,9 @@ const SettingsPage = async () => {
             </p>
           </div>
           <div className="flex w-2/3 items-center justify-start">
-            {/* {provider === "linkedin" ? (
-              <Button
-                disabled
-                className="flex items-center justify-center rounded-lg border border-neutral-100 bg-neutral-50 px-4 py-2 text-sm text-foreground shadow hover:bg-neutral-100"
-              >
-                <Image
-                  src="/icons/linkedin.svg"
-                  width={20}
-                  height={20}
-                  alt="LinkedIn Logo"
-                  className="mr-2"
-                />
-                Connected
-              </Button>
-            ) : ( */}
-
             <LinkedInSignInButton buttonText="Connect LinkedIn" />
           </div>
         </section>
-        {/* <section className="flex space-x-4">
-          <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
-              Delete Account
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Permanently remove your account and all associated data.
-            </p>
-          </div>
-          <div className="flex w-2/3 items-center justify-start">
-            <DeleteAccountButton />
-          </div>
-        </section> */}
       </div>
     </main>
   );

@@ -80,6 +80,10 @@ export default withUt({
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        shine: {
+          "0%": { backgroundPosition: "-200% center" },
+          "100%": { backgroundPosition: "200% center" },
+        },
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
@@ -100,9 +104,16 @@ export default withUt({
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
+        shine: "shine 2s linear infinite",
         float: "float 3s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      backgroundImage: {
+        "shine-gradient": "linear-gradient(90deg, #1E40AF, #3B82F6, #1E40AF)",
+      },
+      backgroundSize: {
+        "shine-size": "200% auto",
       },
     },
   },

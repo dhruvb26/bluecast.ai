@@ -5,7 +5,6 @@ import PostCard from "@/components/inspiration/post-card";
 import { getCreatorLists } from "@/actions/list";
 import { getPostsByCreatorId, Post } from "@/actions/post";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { shuffle } from "@/utils/shuffle";
 import { Button } from "@/components/ui/button";
 import { Plus } from "@phosphor-icons/react";
 import { CreatorList } from "@/actions/list";

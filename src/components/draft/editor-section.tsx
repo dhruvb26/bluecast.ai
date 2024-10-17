@@ -354,7 +354,7 @@ function EditorSection({
       }
     } catch (error: any) {
       if (error.name === "AbortError") {
-        toast.info("Publishing cancelled");
+        toast.error("Publishing cancelled");
       } else {
         console.error("Error publishing post:", error);
         toast.error(

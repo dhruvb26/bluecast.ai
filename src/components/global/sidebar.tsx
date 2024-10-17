@@ -22,9 +22,11 @@ import {
   Lightbulb,
   List,
   ListBullets,
+  Rocket,
   Rows,
   SidebarSimple,
   SignOut,
+  Sparkle,
   TrendUp,
   UserSound,
   Wrench,
@@ -175,7 +177,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 </span>
               )}
               {badge && isOpen && (
-                <Badge variant="outline" className="ml-auto">
+                <Badge className="ml-auto font-normal bg-indigo-50 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600">
                   {badge.icon}
                   <span>{badge.text}</span>
                 </Badge>
@@ -286,6 +288,22 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             weight="regular"
           />,
           "Inspire"
+        )}
+        {renderNavLink(
+          "/create/for-you",
+          <Rocket size={20} className="text-gray-500" />,
+          <Rocket
+            size={20}
+            className="text-brand-blue-primary"
+            weight="regular"
+          />,
+          "Posts For You",
+          false,
+          {
+            text: "New",
+            color: "",
+            icon: <Sparkle weight="duotone" className="mr-1" />,
+          }
         )}
         {renderNavLink(
           "/schedule",

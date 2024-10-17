@@ -1,4 +1,5 @@
 "use client";
+import { CaretUp } from "@phosphor-icons/react";
 import React, { useRef, useEffect, useState } from "react";
 import { Descendant, Element as SlateElement, Text } from "slate";
 
@@ -64,9 +65,9 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
   useEffect(() => {
     const checkOverflow = () => {
       if (contentRef.current) {
-        setIsOverflowing(
-          contentRef.current.scrollHeight > contentRef.current.clientHeight
-        );
+        const isContentOverflowing =
+          contentRef.current.scrollHeight > contentRef.current.clientHeight;
+        setIsOverflowing(isContentOverflowing);
       }
     };
 
@@ -74,7 +75,7 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
     window.addEventListener("resize", checkOverflow);
 
     return () => window.removeEventListener("resize", checkOverflow);
-  }, [value]);
+  }, [value, isExpanded]);
 
   const toggleExpand = () => {
     if (!disabled) {
@@ -97,30 +98,23 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
           <React.Fragment key={index}>{renderNode(node)}</React.Fragment>
         ))}
       </div>
-      {isOverflowing && !isExpanded && (
+      {(isOverflowing || isExpanded) && (
         <button
           onClick={toggleExpand}
-          className={`text-sm font-medium ${
+          className={`text-sm ${
             disabled
               ? "text-gray-400 cursor-not-allowed"
-              : "text-gray-500 hover:text-gray-700"
+              : "text-gray-500 hover:text-blue-700 hover:underline"
           }`}
           disabled={disabled}
         >
-          ...more
-        </button>
-      )}
-      {isExpanded && (
-        <button
-          onClick={toggleExpand}
-          className={`text-sm font-medium ${
-            disabled
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          disabled={disabled}
-        >
-          See less
+          {isExpanded ? (
+            <>
+              See less <CaretUp weight="bold" className="inline-block" />
+            </>
+          ) : (
+            "...more"
+          )}
         </button>
       )}
     </div>

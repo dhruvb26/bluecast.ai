@@ -19,22 +19,21 @@ const BlogLinkedInPage = () => {
           for you.
         </p>
       </div>
-      <div className="mb-2 rounded-md bg-blue-50 p-4 text-left text-sm text-blue-600">
+      <div className="mb-4 rounded-md bg-indigo-50 p-4 text-left text-sm text-indigo-500 border border-indigo-200">
         <span>
           <strong>NOTE: </strong>
           If you encounter a{" "}
-          <span className="text-red-500">
-            "Failed to submit. Try again later"
+          <span className="text-red-500 font-medium">
+            Failed to submit. Try again later.
           </span>{" "}
-          error, consider converting the page to PDF format, then proceed to our{" "}
+          Consider converting the page to PDF, and then proceed to our{" "}
           <Link
             href="/create/posts/pdf"
-            className="text-blue-700 hover:underline italic"
+            className="text-indigo-600 font-medium hover:underline"
           >
-            PDF repurposing template
+            PDF Repurpose Template
           </Link>
-          . This ensures your content creation journey continues smoothly, even
-          with challenging web pages.
+          . We're working on a fix right now.
         </span>
       </div>
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">

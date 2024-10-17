@@ -2,10 +2,15 @@
 
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/server/db";
-import { accounts, users } from "@/server/db/schema";
+import { accounts, forYouAnswers, users } from "@/server/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
+import { generatedPosts } from "@/server/db/schema";
+import { v4 as uuidv4 } from "uuid";
+import { LinkedInPost } from "@/app/api/ai/for-you/route";
+import { usePostStore } from "@/store/post";
+
 export async function getLinkedInId() {
   try {
     const user = await currentUser();
@@ -149,6 +154,8 @@ export async function setGeneratedWords(words: number) {
             generatedPosts: sql`${users.generatedPosts} + 1`,
           })
           .where(eq(users.id, userId));
+
+        usePostStore.getState().setWordsGenerated(1); // Update the store
       } else {
         await db
           .update(users)
@@ -156,6 +163,8 @@ export async function setGeneratedWords(words: number) {
             generatedWords: sql`${users.generatedWords} + ${words}`,
           })
           .where(eq(users.id, userId));
+
+        usePostStore.getState().setWordsGenerated(words); // Update the store
       }
     }
   } catch (error) {
@@ -293,6 +302,166 @@ export async function updateUserImage(userId: string, fileUrl: string) {
     return { message: "Profile image updated successfully" };
   } catch (error) {
     console.error("Error updating user image:", error);
+    throw error;
+  }
+}
+
+export async function saveForYouAnswers(
+  aboutYourself: string,
+  targetAudience: string,
+  personalTouch: string,
+  contentStyle?: string,
+  topics?: string[],
+  formats?: string[]
+) {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+
+    // Check if the user already has a for_you_answer entry
+    const existingAnswer = await db.query.forYouAnswers.findFirst({
+      where: eq(forYouAnswers.userId, userId),
+    });
+
+    const topicsToSave = Array.isArray(topics) ? topics : [];
+    const formatsToSave = Array.isArray(formats) ? formats : [];
+
+    if (existingAnswer) {
+      // Update existing entry
+      await db
+        .update(forYouAnswers)
+        .set({
+          aboutYourself,
+          targetAudience,
+          personalTouch,
+          contentStyle,
+          topics: topicsToSave,
+          formats: formatsToSave,
+          updatedAt: new Date(),
+        })
+        .where(eq(forYouAnswers.userId, userId));
+    } else {
+      // Create new entry
+      await db.insert(forYouAnswers).values({
+        id: crypto.randomUUID(),
+        userId,
+        aboutYourself,
+        targetAudience,
+        personalTouch,
+        contentStyle,
+        topics: topicsToSave,
+        formats: formatsToSave,
+      });
+    }
+
+    return { message: "For You answers saved successfully" };
+  } catch (error) {
+    console.error("Error saving For You answers:", error);
+    throw error;
+  }
+}
+
+export async function getForYouAnswers() {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+
+    const answers = await db.query.forYouAnswers.findFirst({
+      where: eq(forYouAnswers.userId, userId),
+    });
+
+    if (!answers) {
+      return null;
+    }
+
+    return {
+      aboutYourself: answers.aboutYourself,
+      targetAudience: answers.targetAudience,
+      personalTouch: answers.personalTouch,
+      contentStyle: answers.contentStyle,
+      topics: answers.topics,
+      formats: answers.formats,
+    };
+  } catch (error) {
+    console.error("Error fetching For You answers:", error);
+    throw error;
+  }
+}
+
+export async function getForYouPosts() {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+
+    const posts = await db.query.generatedPosts.findMany({
+      where: eq(generatedPosts.userId, userId),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            name: true,
+            headline: true,
+            image: true,
+          },
+        },
+      },
+    });
+
+    return posts.map((post) => ({
+      ...post,
+      user: {
+        id: post.user.id,
+        name: post.user.name,
+        headline: post.user.headline,
+        image: post.user.image,
+      },
+    }));
+  } catch (error) {
+    console.error("Error fetching For You posts:", error);
+    throw error;
+  }
+}
+
+export async function saveForYouPosts(posts: LinkedInPost[]) {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+
+    // Delete existing posts for the user
+    await db.delete(generatedPosts).where(eq(generatedPosts.userId, userId));
+
+    // Insert new posts (up to 6)
+    const newPosts = posts.slice(0, 6).map((post) => ({
+      id: uuidv4(),
+      userId,
+      content: post.content,
+    }));
+
+    await db.insert(generatedPosts).values(newPosts);
+
+    return { message: "For You posts saved successfully" };
+  } catch (error) {
+    console.error("Error saving For You posts:", error);
     throw error;
   }
 }

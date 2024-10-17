@@ -213,14 +213,14 @@ export default function StylesContent() {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Delete</p>
+                  <p>Delete Style</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
         </div>
       </div>
-      <div className="mt-4 rounded-md text-blue-600 p-4 text-left text-sm bg-blue-50">
+      <div className="mt-4 rounded-md text-indigo-500 p-4 text-left text-sm bg-indigo-50 border border-indigo-200">
         <span>
           <span className="font-semibold">NOTE: </span>
           Curate high-quality post examples for optimal results. Remember, the
@@ -229,7 +229,7 @@ export default function StylesContent() {
           your desired style.
         </span>
       </div>
-      <div className="relative overflow-hidden mt-6">
+      <div className="relative overflow-hidden mt-2">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -237,27 +237,19 @@ export default function StylesContent() {
           {Array.from({ length: Math.ceil(examples.length / 3) }, (_, i) => (
             <div
               key={i}
-              className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-2 pt-8 z-50"
+              className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 z-50"
             >
               {examples.slice(i * 3, i * 3 + 3).map((example, index) => (
                 <div key={index} className="mb-4">
                   <div className="flex space-x-2 justify-end py-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={() => handleDeleteExample(index)}
-                            variant={"outline"}
-                            size={"sm"}
-                          >
-                            <Trash size={15} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Button
+                      onClick={() => handleDeleteExample(index)}
+                      variant={"outline"}
+                      size={"sm"}
+                    >
+                      <Trash size={15} />
+                    </Button>
+
                     {changedExamples.has(index) && (
                       <TooltipProvider>
                         <Tooltip>

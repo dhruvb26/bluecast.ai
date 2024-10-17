@@ -69,10 +69,9 @@ interface WritingStyleFieldProps {
   onSelectStyle: (styleId: string) => void;
 }
 
-export const WritingStyleField: React.FC<WritingStyleFieldProps> = ({
-  form,
-  onSelectStyle,
-}) => {
+export const WritingStyleField: React.FC<
+  WritingStyleFieldProps & { optional?: boolean }
+> = ({ form, onSelectStyle, optional = false }) => {
   const router = useRouter();
 
   return (
@@ -81,13 +80,16 @@ export const WritingStyleField: React.FC<WritingStyleFieldProps> = ({
       name="contentStyle"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Writing Style</FormLabel>
+          <FormLabel>
+            {optional ? "Writing Style (Optional)" : "Writing Style"}
+          </FormLabel>
           <FormControl>
             <ContentStyleSelector onSelectStyle={onSelectStyle} />
           </FormControl>
           <FormDescription>
-            Choose a writing style to emulate a creator or create your custom
-            styles.
+            {optional
+              ? "Optionally choose a writing style to emulate a creator or create your custom styles."
+              : "Choose a writing style to emulate a creator or create your custom styles."}
           </FormDescription>
           <FormMessage />
         </FormItem>

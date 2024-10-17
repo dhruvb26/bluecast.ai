@@ -16,7 +16,7 @@ export default function NotFound() {
             width={250}
             alt=""
           />
-          <p className="mb-4 text-lg text-muted-foreground">
+          <p className="mb-4 text-muted-foreground">
             Sorry, we can't find that page. You'll find lots to explore on the
             dashboard.
           </p>
