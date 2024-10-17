@@ -8,7 +8,12 @@ import { ForYouForm } from "@/components/forms/for-you-form";
 import { BarLoader } from "react-spinners";
 import { getForYouAnswers, getForYouPosts } from "@/actions/user";
 import { toast } from "sonner";
-import { Brain, Empty, Sparkle } from "@phosphor-icons/react";
+import {
+  ArrowsCounterClockwise,
+  Brain,
+  Empty,
+  Sparkle,
+} from "@phosphor-icons/react";
 import ShinyLoader from "@/components/global/shiny-loader";
 import { RefreshCcw } from "lucide-react";
 import { usePostStore } from "@/store/post";
@@ -146,7 +151,11 @@ export default function ForYouPage() {
               onClick={handleGenerateContent}
               disabled={isGenerating}
             >
-              <RefreshCcw className="mr-1 stroke-1 size-4" />
+              <ArrowsCounterClockwise
+                size={16}
+                className="mr-1"
+                weight="bold"
+              />
               Refresh
             </Button>
           )}
