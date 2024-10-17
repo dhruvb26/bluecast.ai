@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
-import { FaCommentAlt } from "react-icons/fa";
 import { Button } from "../ui/button";
+import { Chat } from "@phosphor-icons/react/dist/ssr";
 
 const FeedbackButton: React.FC = () => {
   return (
@@ -11,8 +11,8 @@ const FeedbackButton: React.FC = () => {
       passHref
       className="hover:shadow-sm"
     >
-      <Button className="fixed bottom-5 right-5 rounded-full w-12 h-12 flex items-center justify-center shadow-md transition-colors duration-200 ease-in-out">
-        <FaCommentAlt size={25} />
+      <Button className="fixed bottom-5 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-md transition-colors duration-200 ease-in-out">
+        <Chat size={35} weight="fill" />
       </Button>
     </Link>
   );
