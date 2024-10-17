@@ -126,11 +126,9 @@ export async function POST(req: Request) {
           }
         }
         controller.close();
-
-        await setGeneratedWords(wordCount);
       },
     });
-
+    await setGeneratedWords(wordCount);
     return new Response(readable, {
       headers: {
         "Content-Type": "text/event-stream",

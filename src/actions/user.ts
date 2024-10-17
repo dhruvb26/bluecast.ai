@@ -126,6 +126,7 @@ export async function checkValidity() {
 
 export async function setGeneratedWords(words: number) {
   try {
+    console.log("Starting setGeneratedWords function");
     const userClerk = await currentUser();
 
     if (!userClerk) {
@@ -133,6 +134,7 @@ export async function setGeneratedWords(words: number) {
     }
 
     const userId = userClerk.id;
+    console.log(`User ID: ${userId}`);
     const user = await db
       .select({
         hasAccess: users.hasAccess,
@@ -146,8 +148,11 @@ export async function setGeneratedWords(words: number) {
       throw new Error("User not found in the database.");
     }
 
+    console.log(`User found: ${JSON.stringify(user[0])}`);
+
     if (user[0].hasAccess) {
       if (user[0].specialAccess) {
+        console.log("User has special access. Incrementing generated posts.");
         await db
           .update(users)
           .set({
@@ -156,7 +161,11 @@ export async function setGeneratedWords(words: number) {
           .where(eq(users.id, userId));
 
         usePostStore.getState().setWordsGenerated(1); // Update the store
+        console.log("Generated posts incremented by 1.");
       } else {
+        console.log(
+          `User does not have special access. Incrementing generated words by ${words}.`
+        );
         await db
           .update(users)
           .set({
@@ -165,6 +174,7 @@ export async function setGeneratedWords(words: number) {
           .where(eq(users.id, userId));
 
         usePostStore.getState().setWordsGenerated(words); // Update the store
+        console.log(`Generated words incremented by ${words}.`);
       }
     }
   } catch (error) {

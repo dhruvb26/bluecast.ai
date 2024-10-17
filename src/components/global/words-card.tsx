@@ -89,7 +89,7 @@ const WordsCard = () => {
                 >
                   Upgrade your plan
                 </Link>{" "}
-                for more content generation.
+                for more content generation.{" "}
                 <Link
                   href="/settings"
                   className="text-blue-600 hover:underline"
