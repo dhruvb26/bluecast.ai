@@ -6,7 +6,7 @@ import { env } from "@/env";
 import { RepurposeRequestBody } from "@/types";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
-
+export const maxDuration = 180;
 export async function POST(req: Request) {
   try {
     // Get the user session
