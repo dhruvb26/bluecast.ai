@@ -22,7 +22,6 @@ const WordsCard = () => {
   const setSubmissionSuccessful = usePostStore(
     (state) => state.setSubmissionSuccessful
   );
-  const wordsGenerated = usePostStore((state) => state.wordsGenerated);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -41,11 +40,10 @@ const WordsCard = () => {
     };
     fetchUserData();
     setSubmissionSuccessful(false);
-  }, [submissionSuccessful, setSubmissionSuccessful, wordsGenerated]);
+  }, []);
 
   const limit = user?.specialAccess ? 10 : 50000;
   const generated = user?.specialAccess ? generatedPosts : generatedWords;
-  const percentage = (generated / limit) * 100;
   const hasHitLimit = generated >= limit;
 
   const formatNumber = (num: number) => {
@@ -71,21 +69,7 @@ const WordsCard = () => {
           >
             {isLaunchUser ? "Launch" : "Trial"}
           </Badge>
-          {!isLaunchUser && (
-            <span className="text-xs text-foreground">
-              {formatNumber(generated)} / {formatNumber(limit)}{" "}
-              {user?.specialAccess ? "posts" : "words"}
-            </span>
-          )}
         </CardTitle>
-        {!isLaunchUser && (
-          <div className="mb-2 h-1.5 w-full rounded-full bg-gray-200">
-            <div
-              className="h-1.5 rounded-full bg-blue-600 transition-all duration-300 ease-in-out"
-              style={{ width: `${percentage}%` }}
-            ></div>
-          </div>
-        )}
         <CardDescription className="text-xs text-muted-foreground">
           {user?.specialAccess ? (
             hasHitLimit ? (
@@ -97,7 +81,23 @@ const WordsCard = () => {
                 for more content generation.
               </>
             ) : (
-              "This trial allows you to generate 10 posts as of now. Upgrade your plan for more content generation."
+              <>
+                This trial allows you to generate 10 posts as of now.{" "}
+                <Link
+                  href={"/pricing"}
+                  className="text-blue-600 hover:underline"
+                >
+                  Upgrade your plan
+                </Link>{" "}
+                for more content generation.
+                <Link
+                  href="/settings"
+                  className="text-blue-600 hover:underline"
+                >
+                  Check usage here
+                </Link>
+                .
+              </>
             )
           ) : isLaunchUser ? (
             <>
@@ -109,7 +109,14 @@ const WordsCard = () => {
               .
             </>
           ) : (
-            "This plan allows you to generate 50k words monthly as of now. More features & plans coming soon."
+            <>
+              This plan allows you to generate 50k words monthly as of now. More
+              features & plans coming soon.{" "}
+              <Link href="/settings" className="text-blue-600 hover:underline">
+                Check usage here
+              </Link>
+              .
+            </>
           )}
         </CardDescription>
       </CardHeader>
