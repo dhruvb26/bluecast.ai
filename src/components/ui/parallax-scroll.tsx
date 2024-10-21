@@ -121,10 +121,12 @@ export const ParallaxScroll = ({
                 ? "bg-green-50 text-xs font-normal text-green-600 hover:bg-green-100"
                 : post.status === "scheduled"
                 ? "bg-yellow-50 text-xs font-normal text-yellow-600 hover:bg-yellow-100"
+                : post.status === "progress"
+                ? "bg-orange-50 text-xs font-normal text-orange-600 hover:bg-orange-100"
                 : "bg-blue-50 text-xs font-normal text-blue-600 hover:bg-blue-100"
             }
           >
-            {post.status}
+            {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
           </Badge>
           {post.status !== "published" && (
             <div className="flex space-x-2">
@@ -158,28 +160,30 @@ export const ParallaxScroll = ({
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Cancel Schedule</p>
+                      <p>Cancel</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               )}
 
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={"outline"}
-                      size={"sm"}
-                      onClick={() => onDeleteDraft(post.id)}
-                    >
-                      <Trash size={15} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Delete</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              {post.status !== "scheduled" && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        size={"sm"}
+                        onClick={() => onDeleteDraft(post.id)}
+                      >
+                        <Trash size={15} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Delete</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
           )}
         </div>

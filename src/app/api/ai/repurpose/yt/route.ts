@@ -4,6 +4,8 @@ import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
 import { RepurposeRequestBody } from "@/types";
+import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
 
 export async function POST(req: Request) {
   try {
@@ -34,6 +36,15 @@ export async function POST(req: Request) {
     // Combine transcript text
     const plainText = combineTranscriptText(transcript);
 
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+        examples = joinExamples(examples);
+      }
+    }
+
     const stream = await anthropic.messages.create({
       model: env.MODEL,
       max_tokens: 1024,
@@ -41,52 +52,49 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are tasked with creating an informative LinkedIn post based on a YouTube video transcript. Your goal is to understand the context of the video and generate a post that captures its key points and value.
+          content: `You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-                    First, carefully read and analyze the following transcript:
+            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
-                    <transcript>
-                    {${plainText}}
-                    </transcript>
+            First, analyze the following examples from the content creator (if given any):
 
-                    As you analyze the transcript, pay attention to:
-                    1. The main topic or theme of the video
-                    2. Key points or arguments presented
-                    3. Any notable quotes or statistics
-                    4. The overall message or takeaway
-                    5. Structure of the video (e.g., podcast, single-person informational content)
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
 
-                    Based on your analysis, create a LinkedIn post that:
-                    1. Summarizes the main idea of the video
-                    2. Highlights 2-3 key points or insights
-                    3. Is concise and engaging, suitable for a professional audience on LinkedIn
-                    4. Contains about 200-250 words
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
+            c) Determine the overall tone and writing style of the creator
+            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
 
-                    If custom instructions are provided, incorporate them into your post creation process:
-                    <custom_instructions>
-                    {${instructions}}
-                    </custom_instructions>
+            Now, generate a LinkedIn post based on the following inputs:
+            <youtube_video_content>
+            {${plainText}}
+            </youtube_video_content>
 
-                    If a format template is provided, use it to structure your post:
-                    <format_template>
-                    {${formatTemplate}}
-                    </format_template>
+            Examine the youtube video's content carefully to:
+            a) Identify the main theme of the video
 
-                    If a call-to-action (CTA) is provided, include it in your post:
-                    <cta>
-                    {${CTA}}
-                    </cta>
+            Post format (note that the creator's style takes precedence over this):
+            <post_format>
+            {${formatTemplate}}
+            </post_format>
 
-                    If engagement questions are provided, incorporate them into your post:
-                    <engagement_questions>
-                    {${engagementQuestion}}
-                    </engagement_questions>
+            Custom instructions (if any):
+            <custom_instructions>
+            {${instructions}}
+            </custom_instructions>
 
-                    If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
+            When writing the post:
+            1. Make it sound like the creator's examples given above.
+            2. Incorporate the given youtube content.
+            3. Follow the post format provided, but allow the creator's style to override in any case.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
 
-                    Use relevant emoticons unless specifically instructed not to in the custom instructions. Do not include hashtags unless explicitly mentioned in the custom instructions.
-
-                    Important: Generate and output only the content of the LinkedIn post directly. Do not include any XML tags, metadata, or additional commentary. The post should be ready to be shared on LinkedIn as-is.`,
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.`,
         },
       ],
     });
@@ -112,12 +120,9 @@ export async function POST(req: Request) {
           }
         }
         controller.close();
-
-        // Call the setGeneratedWords action with the total word count
-        await setGeneratedWords(wordCount);
       },
     });
-
+    await setGeneratedWords(wordCount);
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain",

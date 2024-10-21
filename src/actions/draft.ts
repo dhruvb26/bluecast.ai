@@ -88,6 +88,12 @@ export async function getDrafts(
             and(eq(drafts.userId, userId), eq(drafts.status, "published"))
           );
         break;
+      case "progress":
+        query = db
+          .select()
+          .from(drafts)
+          .where(and(eq(drafts.userId, userId), eq(drafts.status, "progress")));
+        break;
       default:
         query = db.select().from(drafts).where(eq(drafts.userId, userId));
         break;

@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePostStore } from "@/store/post";
-import { Loader2 } from "lucide-react";
 import {
   InstructionsField,
   WritingStyleField,
@@ -151,7 +150,7 @@ export function ScratchStoryForm({
           )}
         />
 
-        <FormField
+        {/* <FormField
           control={form.control}
           name="tone"
           render={({ field }) => (
@@ -177,7 +176,7 @@ export function ScratchStoryForm({
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
 
         <InstructionsField
           form={form}

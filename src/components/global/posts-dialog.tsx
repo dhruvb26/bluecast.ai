@@ -8,20 +8,23 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getDrafts } from "@/actions/draft";
+import { getDrafts, saveDraft } from "@/actions/draft";
 import { parseContent } from "@/utils/editor-utils";
 import { toast } from "sonner";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { Draft } from "@/actions/draft";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "../ui/textarea";
-import { Plus } from "@phosphor-icons/react";
+import { Empty, Plus } from "@phosphor-icons/react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { BookDashed, PenSquare } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { v4 as uuid } from "uuid";
 
 interface PostsDialogProps {
   onSelect: (content: string) => Promise<void>;
@@ -32,7 +35,7 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [scheduledPosts, setScheduledPosts] = useState<Draft[]>([]);
   const [publishedPosts, setPublishedPosts] = useState<Draft[]>([]);
-
+  const router = useRouter();
   useEffect(() => {
     fetchPosts();
   }, []);
@@ -79,60 +82,100 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
 
   const renderPostList = (posts: Draft[]) => (
     <div className="flex h-[500px] w-full">
-      <ScrollArea className="w-1/2 pr-4">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className={`mb-4 rounded-lg p-4 transition-all duration-200 cursor-pointer ${
-              selectedPost === post.content
-                ? "bg-blue-100"
-                : "bg-gray-50 hover:bg-gray-100"
-            }`}
-            onClick={() => {
-              setSelectedPost(parseContent(post.content || ""));
-              setEditedPost(parseContent(post.content || ""));
-            }}
-          >
-            <div className="mb-2 text-sm font-semibold">
-              {post.name || "Untitled"}
-            </div>
-            <div className="text-xs text-gray-500 mb-2">
-              Status: {post.status} | Last updated:{" "}
-              {new Date(post.updatedAt).toLocaleString()}
-            </div>
-            <pre className="whitespace-pre-wrap font-sans text-sm">
-              {parseContent(post.content || "")}
-            </pre>
+      {posts.length > 0 ? (
+        <>
+          <ScrollArea className="w-1/2 pr-4">
+            {posts.map((post) => (
+              <div
+                key={post.id}
+                className={`mb-4 rounded-lg p-4 transition-all duration-200 cursor-pointer ${
+                  selectedPost === post.id
+                    ? "bg-blue-50 border border-blue-200"
+                    : "bg-white border border-input"
+                }`}
+                onClick={() => {
+                  setSelectedPost(post.id);
+                  setEditedPost(parseContent(post.content || ""));
+                }}
+              >
+                <div className="mb-2 text-sm font-semibold">
+                  {post.name || "Untitled"}
+                </div>
+                <div className="text-xs text-gray-500 mb-2">
+                  Status: {post.status} | Last updated:{" "}
+                  {new Date(post.updatedAt).toLocaleString()}
+                </div>
+                <pre className="whitespace-pre-wrap font-sans text-sm">
+                  {parseContent(post.content || "")}
+                </pre>
+              </div>
+            ))}
+          </ScrollArea>
+          <div className="w-1/2 pl-4">
+            <Textarea
+              className="h-full w-full rounded-lg border-brand-gray-200 text-sm"
+              value={editedPost || ""}
+              onChange={handlePostChange}
+              placeholder="Select a post on the left to edit"
+            />
           </div>
-        ))}
-      </ScrollArea>
-      <div className="w-1/2 pl-4">
-        <Textarea
-          className="h-full w-full rounded-lg border-brand-gray-200 text-sm"
-          value={editedPost || ""}
-          onChange={handlePostChange}
-          placeholder="Select a post on the left to edit"
-        />
-      </div>
+        </>
+      ) : (
+        <div className="items-center justify-center h-full w-full flex flex-col">
+          <Empty className="w-12 h-12 text-primary" />
+          <span className="text-lg font-semibold tracking-tight">
+            No posts available.
+          </span>
+          <span className="text-sm text-center text-muted-foreground">
+            Start your writing journey.
+          </span>
+          <div className="flex flex-row space-x-2">
+            <Button onClick={handleCreateDraft} className="mt-4">
+              <PenSquare size={18} className="mx-1.5" />
+              Write Post
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push("/create/posts")}
+              className="mt-4"
+            >
+              <BookDashed size={18} className="mr-2" />
+              Explore Templates
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
+  const handleCreateDraft = async () => {
+    const id = uuid();
+    await saveDraft(id, "");
+    router.push(`/draft/${id}`);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) {
+      // Reset the selected post and edited post when the dialog is closed
+      setSelectedPost(null);
+      setEditedPost(null);
+    }
+  };
   return (
-    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+    <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                className=" bg-gradient-to-r h-8 to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white transition-all"
-                onClick={() => setIsDialogOpen(true)}
-              >
-                <Plus size={15} weight="bold" />
+              <Button onClick={() => setIsDialogOpen(true)}>
+                <Plus size={15} weight="bold" className="mr-1" />
+                Add Post to Style
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
+            {/* <TooltipContent>
               <p>Add Post</p>
-            </TooltipContent>
+            </TooltipContent> */}
           </Tooltip>
         </TooltipProvider>
       </DialogTrigger>

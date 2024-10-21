@@ -42,7 +42,7 @@ export function IdeaForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex w-full items-center space-x-2"
+        className="flex w-full sm:flex-row flex-col sm:space-y-0 space-y-2 sm:items-center items-start sm:space-x-2 space-x-0"
       >
         <FormField
           control={form.control}
@@ -65,7 +65,7 @@ export function IdeaForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" loading={isLoading}>
+        <Button type="submit" loading={isLoading} className="w-fit sm:w-auto">
           {isLoading ? "Generating" : "Generate"}
         </Button>
       </form>

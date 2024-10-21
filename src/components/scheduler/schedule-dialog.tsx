@@ -20,11 +20,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { DatePicker } from "./date-picker";
-import { extractContent } from "../draft/editor-section";
 import { CalendarBlank, Moon, Sun } from "@phosphor-icons/react";
 import { CalendarPlus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { usePostStore } from "@/store/post";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
+import { getDraft } from "@/actions/draft";
 
 interface ScheduleDialogProps {
   id: string;
@@ -38,7 +41,7 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
   const [scheduleHours, setScheduleHours] = useState("");
   const [scheduleMinutes, setScheduleMinutes] = useState("");
   const [isPM, setIsPM] = useState(false);
-  const router = useRouter();
+  const { setShowLinkedInConnect } = usePostStore();
   const [timezone, setTimezone] = useState("");
 
   useEffect(() => {
@@ -61,6 +64,26 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
     }
 
     setIsLoading(true);
+
+    try {
+      const linkedInAccount = await getLinkedInId();
+      if (!linkedInAccount || linkedInAccount.length === 0) {
+        setIsLoading(false);
+        setShowLinkedInConnect(true);
+        setIsOpen(false);
+        return <LinkedInConnect />;
+      }
+    } catch (error) {
+      console.error("Error getting LinkedIn ID:", error);
+      toast.error(
+        "Failed to retrieve LinkedIn account information. Please try again."
+      );
+
+      setIsLoading(false);
+      setShowLinkedInConnect(true);
+      setIsOpen(false);
+      return <LinkedInConnect />;
+    }
 
     try {
       interface ScheduleData {
@@ -97,10 +120,10 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
         },
       });
 
-      const data = await response.json();
+      const data: any = await response.json();
 
       if (response.ok) {
-        toast.success("Draft scheduled successfully.");
+        toast.success(data.message);
       } else {
         toast.error("Failed to schedule draft.");
       }
@@ -128,6 +151,41 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
   const handleCancel = () => {
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    const fetchScheduledPost = async () => {
+      try {
+        const result = await getDraft(id);
+        if (result.success && result.data) {
+          const draft = result.data;
+          if (draft.scheduledFor) {
+            const scheduledDate = new Date(draft.scheduledFor);
+            setScheduleDate(scheduledDate);
+            setPostName(draft.name);
+            const hours = scheduledDate.getHours();
+            setScheduleHours(
+              hours === 0
+                ? "12"
+                : (hours > 12
+                    ? (hours - 12).toString()
+                    : hours.toString()
+                  ).padStart(2, "0")
+            );
+            setScheduleMinutes(
+              scheduledDate.getMinutes().toString().padStart(2, "0")
+            );
+            setIsPM(hours >= 12);
+
+            setTimezone(draft.timeZone || "");
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching scheduled post:", error);
+      }
+    };
+
+    fetchScheduledPost();
+  }, [id]);
 
   const timezones = Intl.supportedValuesOf("timeZone");
 
@@ -164,6 +222,7 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
               value={postName}
               onChange={(e) => setPostName(e.target.value)}
               placeholder="Choose a name"
+              autoFocus={false} // Add this line
             />
           </div>
           <div className="flex flex-col space-y-1.5">

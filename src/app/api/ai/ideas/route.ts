@@ -32,14 +32,10 @@ export async function POST(
           content: `
               You are tasked with generating ideas for a LinkedIn post based on a given topic and a specified language. Your goal is to create a list of engaging and professional post ideas that expand upon the original concept while maintaining relevance to the LinkedIn platform.
 
-              You will be provided with two inputs:
+              You will be provided with a topic:
               <topic>
               {${topic}}
               </topic>
-
-              <language>
-              English
-              </language>
 
               Guidelines for generating ideas:
               1. Expand on the original topic, providing different angles or perspectives.

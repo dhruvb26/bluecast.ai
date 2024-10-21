@@ -1,9 +1,18 @@
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
-import { extract } from "@extractus/article-extractor";
 import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
+import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import chromium from "@sparticuz/chromium-min";
+import puppeteerExtra from "puppeteer-extra";
+import puppeteer from "puppeteer-core";
+// import puppeteer from "puppeteer-extra";
+// puppeteer.use(StealthPlugin());
+
+export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
@@ -16,26 +25,75 @@ export async function POST(req: Request) {
     }
 
     const body: RepurposeRequestBody = await req.json();
-    const {
-      url,
-      instructions,
-      formatTemplate,
-      engagementQuestion,
-      CTA,
-      contentStyle,
-    } = body;
+    const { url, instructions, formatTemplate, contentStyle } = body;
 
-    const data = await extract(url);
+    let data;
+
+    try {
+      // First, try to extract content using extractus
+      const { extract } = await import("@extractus/article-extractor");
+      data = await extract(url);
+    } catch (extractusError) {
+      console.log("Extractus failed:", extractusError);
+
+      // If extractus fails, fall back to puppeteer method
+      // try {
+      //   const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
+
+      //   const options = {
+      //     args: isLocal ? puppeteer.defaultArgs() : chromium.args,
+      //     defaultViewport: chromium.defaultViewport,
+      //     executablePath: await chromium.executablePath(
+      //       "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
+      //     ),
+      //     headless: true,
+      //   };
+      //   const browser = await puppeteer.launch(options);
+
+      //   const page = await browser.newPage();
+
+      //   await page
+      //     .goto(url, {
+      //       waitUntil: "networkidle0",
+      //       timeout: 60000, // 60 seconds
+      //     })
+      //     .catch(async (err: any) => {
+      //       console.log("Navigation timeout, attempting to get content anyway");
+      //     });
+
+      //   await page.waitForSelector("body", { timeout: 60000 }).catch(() => {
+      //     console.log(
+      //       "Timeout waiting for body, attempting to get content anyway"
+      //     );
+      //   });
+
+      //   const content = await page.content();
+      //   await browser.close();
+
+      //   data = { content };
+      // } catch (puppeteerError: any) {
+      //   console.log("Puppeteer Stealth failed:", puppeteerError);
+      //   throw new Error("Failed to extract content from the URL");
+      // }
+    }
 
     if (!data || !data.content) {
       throw new Error("Failed to extract content from the URL");
     }
 
-    // Clean up the extracted content
     const cleanContent = data.content
-      .replace(/<\/?[^>]+(>|$)/g, "") // Remove HTML tags
-      .replace(/\n+/g, "\n") // Replace multiple newlines with a single newline
-      .trim(); // Remove leading and trailing whitespace
+      .replace(/<\/?[^>]+(>|$)/g, "")
+      .replace(/\n+/g, "\n")
+      .trim();
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+        examples = joinExamples(examples);
+      }
+    }
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -44,51 +102,53 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are tasked with creating an informative LinkedIn post based on a blog article. Your goal is to understand the context of the article and generate a post that captures its key points and value.
+          content: `
+          You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-                    First, carefully read and analyze the following article content:
+            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
+            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
 
-                    <article_content>
-                    ${cleanContent}
-                    </article_content>
+            First, analyze the following examples from the content creator (if given any):
 
-                    As you analyze the content, pay attention to:
-                    1. The main topic or theme of the article
-                    2. Key points or arguments presented
-                    3. Any notable quotes or statistics
-                    4. The overall message or takeaway
+            <creator_examples>
+            {${examples}}
+            </creator_examples>
 
-                    Based on your analysis, create a LinkedIn post that:
-                    1. Summarizes the main idea of the article
-                    2. Highlights 2-3 key points or insights
-                    3. Is concise and engaging, suitable for a professional audience on LinkedIn
-                    4. Contains about 200-250 words
+            Examine these examples carefully to:
+            a) Identify a common format or structure used across the posts
+            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
+            c) Determine the overall tone and writing style of the creator
+            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
 
-                    If custom instructions are provided, incorporate them into your post creation process:
-                    <custom_instructions>
-                    ${instructions}
-                    </custom_instructions>
+            Now, generate a LinkedIn post based on the following inputs:
+            <article_content>
+            {${cleanContent}}
+            </article_content>
 
-                    If a format template is provided, use it to structure your post:
-                    <format_template>
-                    ${formatTemplate}
-                    </format_template>
+            Examine the article content carefully to:
+            a) Identify the main theme and key topics of the article
+            b) Determine the core message
+            c) Extract any notable quotes, statistics, or insights that could be highlighted
 
-                    If a call-to-action (CTA) is provided, include it in your post:
-                    <cta>
-                    ${CTA}
-                    </cta>
+            Post format (note that the creator's style takes precedence over this):
+            <post_format>
+            {${formatTemplate}}
+            </post_format>
 
-                    If engagement questions are provided, incorporate them into your post:
-                    <engagement_questions>
-                    ${engagementQuestion}
-                    </engagement_questions>
+            Custom instructions (if any):
+            <custom_instructions>
+            {${instructions}}
+            </custom_instructions>
 
-                    If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
+            When writing the post:
+            1. Prioritize the format identified from the creator's examples.
+            2. Incorporate the given article content.
+            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+            4. Adhere to any custom instructions given.
+            5. Ensure the post is between 1000-1200 characters long.
 
-                    Use relevant emoticons unless specifically instructed not to in the custom instructions. Do not include hashtags unless explicitly mentioned in the custom instructions.
-
-                    Important: Generate and output only the content of the LinkedIn post directly. Do not include any XML tags, metadata, or additional commentary. The post should be ready to be shared on LinkedIn as-is.`,
+            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
+                    `,
         },
       ],
     });
@@ -116,10 +176,9 @@ export async function POST(req: Request) {
         controller.close();
 
         // Call the setGeneratedWords action with the total word count
-        await setGeneratedWords(wordCount);
       },
     });
-
+    await setGeneratedWords(wordCount);
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain",

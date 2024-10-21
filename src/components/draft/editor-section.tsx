@@ -16,6 +16,7 @@ import {
 import { Slate, Editable, ReactEditor, useSlate } from "slate-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { Range } from "slate";
 import {
   TbFishHook,
   TbPencilCog,
@@ -32,12 +33,14 @@ import { toast } from "sonner";
 import EmojiPicker, { SkinTonePickerLocation } from "emoji-picker-react";
 import {
   Brain,
+  FileVideo,
   PaperPlaneRight,
   Smiley,
   Sparkle,
   TextB,
   TextItalic,
   TextUnderline,
+  Upload,
 } from "@phosphor-icons/react";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -46,10 +49,25 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import FileAttachmentButton from "@/components/buttons/file-attachment- button";
-import { Loader2, Send } from "lucide-react";
+import { Send } from "lucide-react";
 import { HistoryEditor } from "slate-history";
-import { deserializeContent, serializeContent } from "@/utils/editor-utils";
+import { deserializeContent } from "@/utils/editor-utils";
 import { Input } from "@/components/ui/input";
+import CustomLoader from "../global/custom-loader";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
+import { usePostStore } from "@/store/post";
+import { UploadButton } from "@/utils/uploadthing";
+import { saveDraft, updateDraftField } from "@/actions/draft";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { useRouter } from "next/navigation";
 
 export type ParagraphElement = {
   type: "paragraph";
@@ -180,14 +198,6 @@ function EditorSection({
     const { leaf, attributes, children } = props;
     const text = leaf.text;
 
-    // Check if the text is a special character
-    // const isSpecialChar = /[(){}&*^%$#@!]/.test(text);
-
-    // if (isSpecialChar) {
-    //   // Return the special character without any formatting
-    //   return <span {...attributes}>{children}</span>;
-    // }
-
     return (
       <span
         {...attributes}
@@ -259,6 +269,7 @@ function EditorSection({
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedText, setSelectedText] = useState("");
 
   const customStyles = {
     "--epr-emoji-size": "24px",
@@ -277,9 +288,29 @@ function EditorSection({
   } as React.CSSProperties;
 
   const { user } = useUser();
-
+  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
+  const router = useRouter();
   const handlePublish = async () => {
+    handleSave();
     setIsPublishing(true);
+
+    try {
+      const linkedInAccount = await getLinkedInId();
+      if (!linkedInAccount || linkedInAccount.length === 0) {
+        setIsPublishing(false);
+        setShowLinkedInConnect(true);
+        return;
+      }
+    } catch (error) {
+      console.error("Error getting LinkedIn ID:", error);
+      toast.error(
+        "Failed to retrieve LinkedIn account information. Please try again."
+      );
+
+      setIsPublishing(false);
+      setShowLinkedInConnect(true);
+      return <LinkedInConnect />;
+    }
 
     try {
       const publishData: any = {
@@ -301,24 +332,29 @@ function EditorSection({
 
       const result: any = await response.json();
 
-      const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
+      if (result.status === "progress") {
+        toast.success("Your post is being processed.", { duration: 5000 });
+        router.push("/saved/posts?tab=progress");
+      } else {
+        const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
 
-      toast.success(
-        <span>
-          Post published successfully.{" "}
-          <a
-            href={link}
-            className="font-semibold text-green-900"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Click here
-          </a>
-        </span>
-      );
+        toast.success(
+          <span>
+            Post published successfully.{" "}
+            <a
+              href={link}
+              className="font-semibold text-green-900"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Click here
+            </a>
+          </span>
+        );
+      }
     } catch (error: any) {
       if (error.name === "AbortError") {
-        toast.info("Publishing cancelled");
+        toast.error("Publishing cancelled");
       } else {
         console.error("Error publishing post:", error);
         toast.error(
@@ -367,16 +403,19 @@ function EditorSection({
   );
   const handleRewrite = useCallback(
     async (option: string) => {
-      const { selection } = editor;
-      if (!selection && option !== "hook" && option !== "cta") {
+      let textToRewrite = selectedText;
+
+      if (
+        !textToRewrite &&
+        option !== "hook" &&
+        option !== "cta" &&
+        option !== "continue"
+      ) {
         toast.error("Please select some text to rewrite.");
         return;
       }
 
       setIsRewriting(true);
-
-      const selectedText = selection ? Editor.string(editor, selection) : "";
-      const fullContent = extractContent(value);
 
       try {
         const response = await fetch("/api/ai/rewrite", {
@@ -385,8 +424,8 @@ function EditorSection({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            selectedText,
-            fullContent,
+            selectedText: textToRewrite,
+            fullContent: extractContent(value),
             option,
             customPrompt,
           }),
@@ -402,13 +441,34 @@ function EditorSection({
           throw new Error("Rewritten text is empty");
         }
 
-        if (selection) {
-          // Replace the selected text with the rewritten text
-          Transforms.select(editor, selection);
+        const { selection } = editor;
+        if (option === "hook") {
+          // Prepend the hook at the beginning of the document
+          Transforms.insertNodes(
+            editor,
+            [
+              { type: "paragraph", children: [{ text: rewrittenText }] },
+              { type: "paragraph", children: [{ text: "" }] },
+            ],
+            { at: [0] }
+          );
+        } else if (option === "cta") {
+          // Append the CTA at the end of the document
+          Transforms.insertNodes(
+            editor,
+            [
+              { type: "paragraph", children: [{ text: "" }] },
+              { type: "paragraph", children: [{ text: rewrittenText }] },
+            ],
+            { at: Editor.end(editor, []) }
+          );
+        } else if (selection && !Range.isCollapsed(selection)) {
+          // For other options, replace the selected text
           Transforms.delete(editor);
           Transforms.insertText(editor, rewrittenText);
         } else {
-          // Insert the new content at the current cursor position
+          // If there's no current selection, insert at the end
+          Transforms.select(editor, Editor.end(editor, []));
           Transforms.insertText(editor, rewrittenText);
         }
 
@@ -423,33 +483,37 @@ function EditorSection({
         setCustomPrompt("");
       }
     },
-    [editor, value, customPrompt]
+    [editor, value, customPrompt, selectedText]
   );
 
   const handleOptionClick = (option: string) => {
     handleRewrite(option);
   };
 
-  const handleDocumentUploaded = useCallback(
-    async (fileType: string) => {
-      if (fileType === "pdf" || fileType === "document") {
-        toast.success(`Document uploaded successfully.`);
-        window.location.reload();
-      } else if (fileType === "video") {
-        toast.success(`Video uploaded successfully.`);
-        window.location.reload();
-      } else {
-        toast.success(`Image uploaded successfully.`);
-        window.location.reload();
-      }
-      setFileType(fileType);
-    },
+  const handleDocumentUploaded = async (fileType: string) => {
+    handleSave();
+    if (fileType === "pdf" || fileType === "document") {
+      toast.success(`Document uploaded successfully.`);
+      window.location.reload();
+    } else if (fileType === "video") {
+      toast.success(`Video uploaded successfully.`);
+      window.location.reload();
+    } else {
+      toast.success(`Image uploaded successfully.`);
+      window.location.reload();
+    }
+    setFileType(fileType);
+  };
 
-    [id, setFileType]
-  );
+  [id, setFileType];
 
   return (
     <>
+      {showLinkedInConnect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <LinkedInConnect />
+        </div>
+      )}
       <div className="relative">
         <div className="text-left mb-2 px-4 pt-4">
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -460,8 +524,20 @@ function EditorSection({
           </p>
         </div>
 
-        <Slate editor={editor} initialValue={value} onChange={handleChange}>
-          <div className="m-2 flex space-x-2">
+        <Slate
+          editor={editor}
+          initialValue={value}
+          onChange={(newValue) => {
+            handleChange(newValue);
+            const { selection } = editor;
+            if (selection && !Range.isCollapsed(selection)) {
+              setSelectedText(Editor.string(editor, selection));
+            } else {
+              setSelectedText("");
+            }
+          }}
+        >
+          <div className="m-2 flex space-x-1">
             <ToolbarButton format="bold" icon={<TextB className="h-4 w-4" />} />
             <ToolbarButton
               format="italic"
@@ -478,6 +554,7 @@ function EditorSection({
               postId={id}
               onFileUploaded={handleDocumentUploaded}
             />
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -502,8 +579,19 @@ function EditorSection({
                   variant="ghost"
                   className="rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
                   disabled={isRewriting}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const { selection } = editor;
+                    if (selection && !Range.isCollapsed(selection)) {
+                      setSelectedText(Editor.string(editor, selection));
+                    }
+                  }}
                 >
-                  <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
+                  {isRewriting ? (
+                    <CustomLoader className="mr-1 h-3 w-3" />
+                  ) : (
+                    <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
+                  )}
                   AI
                 </Button>
               </PopoverTrigger>
@@ -511,10 +599,11 @@ function EditorSection({
                 side="right"
                 className="w-56 rounded p-1"
                 style={{ position: "absolute" }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
               >
                 <ScrollArea className="h-[250px]">
                   <div className="flex flex-col rounded">
-                    <div className="flex flex-row space-x-1 p-1">
+                    {/* <div className="flex flex-row space-x-1 p-1">
                       <Input
                         type="text"
                         value={customPrompt}
@@ -531,7 +620,7 @@ function EditorSection({
                       >
                         <PaperPlaneRight className="h-5 w-5 text-blue-600" />
                       </Button>
-                    </div>
+                    </div> */}
                     <Button
                       variant="ghost"
                       className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
@@ -561,7 +650,7 @@ function EditorSection({
                       className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
                       onClick={() => handleOptionClick("makeShorter")}
                     >
-                      <PiTextOutdent className="mr-2 h-5 w-5 text-blue-600" />
+                      <PiTextOutdent className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
                       Make shorter
                     </Button>
                     <Button
@@ -569,7 +658,7 @@ function EditorSection({
                       className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
                       onClick={() => handleOptionClick("makeLonger")}
                     >
-                      <PiTextIndent className="mr-2 h-5 w-5 text-blue-600" />
+                      <PiTextIndent className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
                       Make longer
                     </Button>
                     <Button
@@ -647,7 +736,7 @@ function EditorSection({
           <ScheduleDialog id={id} disabled={isPublishing} />
           <Button onClick={handlePublish} disabled={isPublishing}>
             {isPublishing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <CustomLoader className="mr-2 h-4 w-4 text-white" />
             ) : (
               <Send className="mr-2 h-4 w-4" />
             )}

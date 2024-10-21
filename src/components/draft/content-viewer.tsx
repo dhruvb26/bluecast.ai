@@ -1,21 +1,23 @@
 "use client";
+import { CaretUp } from "@phosphor-icons/react";
 import React, { useRef, useEffect, useState } from "react";
 import { Descendant, Element as SlateElement, Text } from "slate";
 
 interface ContentViewerProps {
   postId: string;
   disabled?: boolean; // Add this line
-
   value: Descendant[];
+  expanded?: boolean; // Add this line
 }
 
 const ContentViewer: React.FC<ContentViewerProps> = ({
   value,
   postId,
   disabled,
+  expanded = false,
 }) => {
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(expanded);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const renderElement = (props: any) => {
@@ -63,9 +65,9 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
   useEffect(() => {
     const checkOverflow = () => {
       if (contentRef.current) {
-        setIsOverflowing(
-          contentRef.current.scrollHeight > contentRef.current.clientHeight
-        );
+        const isContentOverflowing =
+          contentRef.current.scrollHeight > contentRef.current.clientHeight;
+        setIsOverflowing(isContentOverflowing);
       }
     };
 
@@ -73,50 +75,46 @@ const ContentViewer: React.FC<ContentViewerProps> = ({
     window.addEventListener("resize", checkOverflow);
 
     return () => window.removeEventListener("resize", checkOverflow);
-  }, [value]);
+  }, [value, isExpanded]);
 
   const toggleExpand = () => {
     if (!disabled) {
       setIsExpanded(!isExpanded);
     }
   };
+  useEffect(() => {
+    setIsExpanded(expanded);
+  }, [expanded]);
 
   return (
     <div className="mb-2">
       <div
         ref={contentRef}
-        className={`whitespace-pre-wrap break-words text-sm text-black  ${
-          isExpanded ? "min-h-[100px]" : "max-h-[100px] overflow-hidden"
+        className={`whitespace-pre-wrap break-words text-sm text-black min-h-[100px] ${
+          isExpanded ? "" : "max-h-[100px] overflow-hidden"
         }`}
       >
         {value.map((node, index) => (
           <React.Fragment key={index}>{renderNode(node)}</React.Fragment>
         ))}
       </div>
-      {isOverflowing && !isExpanded && (
+      {(isOverflowing || isExpanded) && (
         <button
           onClick={toggleExpand}
-          className={`text-sm font-medium ${
+          className={`text-sm ${
             disabled
               ? "text-gray-400 cursor-not-allowed"
-              : "text-gray-500 hover:text-gray-700"
+              : "text-gray-500 hover:text-blue-700 hover:underline"
           }`}
           disabled={disabled}
         >
-          ...more
-        </button>
-      )}
-      {isExpanded && (
-        <button
-          onClick={toggleExpand}
-          className={`text-sm font-medium ${
-            disabled
-              ? "text-gray-400 cursor-not-allowed"
-              : "text-gray-500 hover:text-gray-700"
-          }`}
-          disabled={disabled}
-        >
-          See less
+          {isExpanded ? (
+            <>
+              See less <CaretUp weight="bold" className="inline-block" />
+            </>
+          ) : (
+            "...more"
+          )}
         </button>
       )}
     </div>

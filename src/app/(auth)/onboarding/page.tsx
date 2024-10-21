@@ -34,6 +34,7 @@ import {
 } from "react-icons/fa";
 import { Check } from "@phosphor-icons/react";
 import { completeOnboarding } from "@/actions/user";
+import { useClerk } from "@clerk/nextjs";
 
 const formSchema = z.object({
   role: z.string({
@@ -48,6 +49,9 @@ const formSchema = z.object({
 });
 
 const roles = [
+  "B2B Founder",
+  "B2B Creator",
+  "B2B Marketer",
   "Entrepreneur",
   "Professional",
   "Job Seeker",
@@ -79,6 +83,8 @@ const topicSuggestions = [
 ];
 
 export default function OnboardingForm() {
+  const { session } = useClerk();
+
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [topicInput, setTopicInput] = useState("");
@@ -149,9 +155,10 @@ export default function OnboardingForm() {
     try {
       const result = await completeOnboarding(values);
       if (result.message === "Onboarding completed successfully") {
-        toast.success("Welcome to Spireo! Your onboarding is complete.");
+        toast.info("Welcome to Bluecast! Start creating your first post.");
+        // Update the session claims
+        await session?.reload();
         router.push(`/create/posts`);
-        router.refresh();
       } else {
         throw new Error("Onboarding failed");
       }
@@ -161,15 +168,15 @@ export default function OnboardingForm() {
       setIsSubmitting(false);
     }
   }
-
   async function handleSkip() {
     setIsSubmitting(true);
     try {
       const result = await completeOnboarding({ onboardingComplete: true });
-      if (result.message === "Onboarding completed successfully") {
-        toast.success("Onboarding skipped. You can always complete it later.");
-        router.push("/create/posts");
-        router.refresh();
+      if (result.message) {
+        toast.info("Welcome to Bluecast! Start creating your first post.");
+
+        await session?.reload();
+        router.push(`/create/posts`);
       } else {
         throw new Error("Failed to skip onboarding");
       }
@@ -179,18 +186,19 @@ export default function OnboardingForm() {
       setIsSubmitting(false);
     }
   }
+
   return (
     <div className="flex min-h-screen items-center  justify-center ">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl">
+      <div className="w-full max-w-lg rounded-lg bg-white p-8 space-y-14">
         <div className="mb-4 flex flex-row items-center justify-center space-x-2">
           <Image
             src="/brand/Bluecast Logo.png"
-            width={150}
-            height={150}
+            width={200}
+            height={200}
             alt="Bluecast Logo"
           />
         </div>
-        <p className="mb-6 text-center text-sm">
+        <p className="mb-6 text-center text-muted-foreground">
           Thank you for choosing Bluecast. Fill out this form and help us
           understand you better.
         </p>
@@ -319,7 +327,7 @@ export default function OnboardingForm() {
             />
             <div className="flex flex-col items-center justify-center space-y-3">
               <Button className="w-full" type="submit" loading={isSubmitting}>
-                {isSubmitting ? "Processing" : "Finish"}
+                {isSubmitting ? "Setting Up" : "Complete Onboarding"}
               </Button>
               <Button
                 variant={"link"}

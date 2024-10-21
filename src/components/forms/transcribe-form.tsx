@@ -14,6 +14,7 @@ import {
   WritingStyleField,
   InstructionsField,
 } from "./form-fields";
+import AudioUploadButton from "../global/audio-upload-button";
 
 export const RepurposeFormSchema = z.object({
   url: z.string().url(),
@@ -109,7 +110,7 @@ export function TranscribeForm() {
 
         <WritingStyleField form={form} onSelectStyle={handleSelectStyle} />
         <div className="flex w-full items-center justify-start">
-          <FileUploadButton />
+          <AudioUploadButton />
         </div>
         {/* <Collapsible
           open={isOpen}

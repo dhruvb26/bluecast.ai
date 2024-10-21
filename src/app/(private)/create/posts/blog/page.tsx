@@ -10,7 +10,7 @@ import { ChevronLeft } from "lucide-react";
 const BlogLinkedInPage = () => {
   return (
     <main>
-      <div className="mb-8">
+      <div className="mb-2">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Convert any Blog to LinkedIn Post
         </h1>
@@ -18,6 +18,23 @@ const BlogLinkedInPage = () => {
           Simply paste the URL of the blog and we'll generate a LinkedIn post
           for you.
         </p>
+      </div>
+      <div className="mb-4 rounded-md bg-indigo-50 p-4 text-left text-sm text-indigo-500 border border-indigo-200">
+        <span>
+          <strong>NOTE: </strong>
+          If you encounter a{" "}
+          <span className="text-red-500 font-medium">
+            Failed to submit. Try again later.
+          </span>{" "}
+          Consider converting the page to PDF, and then proceed to our{" "}
+          <Link
+            href="/create/posts/pdf"
+            className="text-indigo-600 font-medium hover:underline"
+          >
+            PDF Repurpose Template
+          </Link>
+          . We're working on a fix right now.
+        </span>
       </div>
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">
         <div className="w-full lg:w-1/2">

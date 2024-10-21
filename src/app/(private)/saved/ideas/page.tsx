@@ -10,6 +10,7 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import {
+  ArrowsCounterClockwise,
   ArrowUpRight,
   Empty,
   PaperPlaneTilt,
@@ -17,7 +18,7 @@ import {
   ShareFat,
   TrashSimple,
 } from "@phosphor-icons/react";
-import { Delete, Edit, Loader2, Trash } from "lucide-react";
+import { Delete, Edit, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BarLoader } from "react-spinners";
@@ -95,7 +96,12 @@ const SavedIdeasPage = () => {
               variant={"outline"}
               onClick={() => router.push("/create/ideas")}
             >
-              Generate
+              <ArrowsCounterClockwise
+                size={16}
+                className="mr-1"
+                weight="bold"
+              />
+              Generate Ideas
             </Button>
           </div>
         ) : (

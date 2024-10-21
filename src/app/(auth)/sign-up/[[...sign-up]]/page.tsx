@@ -3,6 +3,7 @@ import Image from "next/image";
 import AvatarCircles from "@/components/magicui/avatar-circles";
 import { SignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function SignUpPage() {
   const avatarUrls = [
@@ -12,40 +13,32 @@ export default function SignUpPage() {
     "https://media.licdn.com/dms/image/v2/D5603AQHYENPGn3m5DQ/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1682725967530?e=1732147200&v=beta&t=_obCXYmwSZUAsEDkRVdIetMnuYF_kauBAbkvQ_thLxY",
   ];
 
-  const linkedInAuthUrl =
-    "https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=78htulmwcx0u3e&redirect_uri=http://localhost:3000/api/auth/callback/linkedin&state=foobar&scope=openid%20email%20profile%20w_member_social%20r_basicprofile";
-
   return (
-    <div className="flex min-h-screen">
-      <div className="flex w-full">
-        <div className="flex flex-1 flex-col justify-center bg-brand-blue-secondary px-8 py-12">
-          <h2 className="mb-4 text-5xl font-bold tracking-tight text-white">
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <div className="flex w-full flex-col md:flex-row">
+        <div className="flex flex-1 flex-col justify-center bg-brand-blue-secondary px-4 py-8 md:px-8 md:py-12">
+          <h2 className="mb-4 text-3xl md:text-5xl text-center md:text-left font-bold tracking-tight text-white">
             Boost your LinkedIn presence with AI
           </h2>
-          <p className="mb-8 text-base font-normal text-blue-200">
+          <p className="mb-8 text-sm md:text-base md:text-left text-center font-normal text-blue-200">
             Bluecast's AI-powered tools streamline your LinkedIn strategy,
             helping you create impactful posts in minutes, not hours. Boost your
             professional presence and grow your network with ease.
           </p>
-          <div className="flex items-center">
+          <div className="flex flex-col lg:flex-row items-center space-y-4 lg:space-y-0 lg:space-x-4">
             <AvatarCircles avatarUrls={avatarUrls} />
-            <div className="ml-2 h-10 w-px bg-white"></div>
-            <span className="ml-2 text-sm text-white">
+            <div className="hidden lg:block h-10 w-px bg-white"></div>
+            <span className="text-xs md:text-sm text-white text-center lg:text-left">
               Trusted by founders, marketers, and other LinkedIn experts
             </span>
           </div>
         </div>
         <div className="flex flex-1 flex-col bg-white px-14 py-8">
           <div className="flex items-center justify-center h-full flex-col space-y-2">
-            <Image
-              src={"/brand/Bluecast Logo.png"}
-              width={200}
-              height={200}
-              alt=""
-            />{" "}
             <SignUp
               appearance={{
                 elements: {
+                  logoImage: "h-10 w-full",
                   rootBox: "p-0",
                   cardBox: "shadow-none p-0",
                   headerTitle: "hidden",
@@ -55,14 +48,27 @@ export default function SignUpPage() {
                 },
               }}
             />
-            <span className="text-sm">
+            <span className="text-xs md:text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Button
+                variant={"link"}
+                className="px-0 text-foreground hover:text-foreground hover:underline group"
+              >
+                <Link href={"/sign-in"}>Sign in</Link>
+              </Button>
+            </span>
+            <span className="text-xs md:text-sm text-center">
               By connecting, you agree to our{" "}
               <Button variant={"link"} className="px-0">
-                Terms of Service
+                <Link href={"https://www.bluecast.ai/terms-of-service"}>
+                  Terms of Service
+                </Link>
               </Button>{" "}
               and{" "}
               <Button className="px-0" variant={"link"}>
-                Privacy Policy.
+                <Link href={"https://www.bluecast.ai/privacy-policy"}>
+                  Privacy Policy.
+                </Link>
               </Button>
             </span>
           </div>

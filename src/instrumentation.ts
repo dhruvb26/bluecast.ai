@@ -5,7 +5,7 @@ export const register = async () => {
     const { postWorker } = await import("./server/bull/worker");
     const { getRedisConnection } = await import("./utils/redis");
 
-    const redisConnection = await getRedisConnection();
+    const redisConnection = await getRedisConnection("subscriber");
     // Create a new worker to process jobs from the queue
     const worker = new Worker("linkedin-posts", postWorker, {
       connection: redisConnection,

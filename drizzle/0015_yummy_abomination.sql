@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_user" ALTER COLUMN "special_access" SET DEFAULT true;

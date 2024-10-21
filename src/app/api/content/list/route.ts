@@ -12,7 +12,9 @@ export async function POST(
 ): Promise<NextResponse<RouteHandlerResponse<{ data: any }>>> {
   try {
     const user = await getUser();
-    const { url, listName, isPublic } = (await req.json()) as any;
+    const { url, listName } = (await req.json()) as any;
+
+    const isPublic = false;
 
     if (!url || !listName) {
       return NextResponse.json(

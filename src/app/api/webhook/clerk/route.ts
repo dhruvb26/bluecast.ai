@@ -5,9 +5,11 @@ import { db } from "@/server/db";
 import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
+import { env } from "@/env";
+import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
+  const WEBHOOK_SECRET = env.WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
     throw new Error(
@@ -57,6 +59,16 @@ export async function POST(req: Request) {
   // Update user data in the database
   if (eventType === "user.created") {
     const { id, first_name, last_name, image_url, email_addresses } = evt.data;
+
+    // // Check if a user with the given email already exists
+    // const existingUser = await db.query.users.findFirst({
+    //   where: eq(users.email, email_addresses[0].email_address),
+    // });
+
+    // if (existingUser) {
+    //   // Redirect to access denied page
+    //   return NextResponse.redirect(new URL("/blocked", req.url));
+    // }
 
     await clerkClient().users.updateUserMetadata(id, {
       publicMetadata: {

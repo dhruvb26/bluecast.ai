@@ -19,30 +19,41 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `
-            You are a human instructing an AI model to generate custom instructions for generating a LinkedIn post. Write a prompt that will guide the AI to create these instructions. The prompt should cover:
+          content: `You are tasked with creating instructions for generating a LinkedIn post. These instructions will be used by another AI to create the actual post. Don't cover structure or tone of the post in these instructions. Follow these guidelines:
 
-            1. Tone and style appropriate for LinkedIn
-            2. Content structure (e.g., bullet points, paragraphs)
-            3. Word count recommendation
-            4. Use of emojis
-            5. Hashtag usage
-            6. Call-to-action for engagement
+                    1. Character count: The instructions should say what the total post length will be. (For example: 1000 - 1500 characters for most)
 
-            Your prompt should be concise, around 50 words, and in paragraph style without bullet points. Enclose the entire prompt within <generated></generated> tags, but in your response, only include the content within these tags without the tags themselves.
+                    2. Strictly avoid using any emojis or hashtags in the post.
 
-            Remember, you are acting as a human giving instructions to an AI, not as the AI itself.
-          `,
+                    Here is an example of the instructions you'll be creating:
+                    
+                    <example>
+                    Use the following format:
+           
+                    {Story}
+
+                    {Bulleted list of takeaways}
+
+                    {1-3 sentences of a conclusion}
+
+                    {Call to action}
+
+                    Don't use any hashtags and don't use any emojis.
+                    </example>
+
+                    Generate the instructions now.`,
+        },
+        {
+          role: "assistant",
+          content: "Here are the instructions for generating a LinkedIn post:",
         },
       ],
     });
 
     const encoder = new TextEncoder();
-    let isWithinTags = false;
     let wordCount = 0;
     const readable = new ReadableStream({
       async start(controller) {
-        let isFirstChunk = true;
         let buffer = "";
         for await (const chunk of stream) {
           if (
@@ -51,43 +62,17 @@ export async function POST(req: Request) {
           ) {
             let text = chunk.delta.text;
             buffer += text;
-
-            if (buffer.includes("<generated>")) {
-              isWithinTags = true;
-              buffer = buffer.split("<generated>")[1] as any;
-              continue;
-            }
-
-            if (buffer.includes("</generated>")) {
-              isWithinTags = true;
-              text = buffer.split("</generated>")[0] as any;
-              controller.enqueue(encoder.encode(text));
-              wordCount += text
-                .split(/\s+/)
-                .filter((word: string) => word.length > 0).length;
-              controller.close();
-              break;
-            }
-
-            if (isWithinTags) {
-              if (isFirstChunk) {
-                text = text.trimStart();
-                isFirstChunk = false;
-              }
-              controller.enqueue(encoder.encode(text));
-              wordCount += text
-                .split(/\s+/)
-                .filter((word: string) => word.length > 0).length;
-              buffer = "";
-            }
+            controller.enqueue(encoder.encode(text));
           }
         }
-        if (isWithinTags) {
-          controller.close();
-        }
+
+        // Count words in the buffer
+        wordCount = buffer.trim().split(/\s+/).length;
 
         // Call the setGeneratedWords action with the total word count
         await setGeneratedWords(wordCount);
+
+        controller.close();
       },
     });
 

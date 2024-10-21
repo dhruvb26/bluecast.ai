@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_for_you_answer" ADD COLUMN "topics" jsonb;

@@ -13,7 +13,7 @@ export async function initializeQueue() {
 
   console.log("Creating new queue");
 
-  const redisConnection = await getRedisConnection();
+  const redisConnection = await getRedisConnection("client");
   queue = new Queue("linkedin-posts", {
     connection: redisConnection,
   });
@@ -37,7 +37,7 @@ export async function closeConnections() {
     await queue.close();
     console.log("Queue closed");
   }
-  const redisConnection = await getRedisConnection();
+  const redisConnection = await getRedisConnection("client");
   await redisConnection.quit();
   console.log("Redis connection closed");
   console.log("All connections closed");
