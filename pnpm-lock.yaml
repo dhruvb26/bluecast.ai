@@ -16,7 +16,7 @@ importers:
         version: 1.4.2
       '@clerk/nextjs':
         specifier: ^5.5.2
-        version: 5.5.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 5.5.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@extractus/article-extractor':
         specifier: ^8.0.10
         version: 8.0.10
@@ -127,7 +127,7 @@ importers:
         version: 10.0.0
       '@uploadthing/react':
         specifier: ^6.7.2
-        version: 6.7.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(uploadthing@6.13.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))))
+        version: 6.7.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(uploadthing@6.13.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))))
       '@upstash/redis':
         specifier: ^1.34.0
         version: 1.34.0
@@ -202,10 +202,10 @@ importers:
         version: 3.5.0
       next:
         specifier: 14.2.5
-        version: 14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
         specifier: 4.24.7
-        version: 4.24.7(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 4.24.7(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       pdf-parse:
         specifier: ^1.1.1
         version: 1.1.1
@@ -217,7 +217,10 @@ importers:
         version: 1.47.2
       playwright-aws-lambda:
         specifier: ^0.11.0
-        version: 0.11.0(playwright-core@1.47.2)
+        version: 0.11.0(playwright-core@1.48.1)
+      playwright-extra:
+        specifier: ^4.3.6
+        version: 4.3.6(playwright-core@1.48.1)(playwright@1.47.2)
       postgres:
         specifier: ^3.4.4
         version: 3.4.4
@@ -235,7 +238,7 @@ importers:
         version: 3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)
       puppeteer-extra-plugin-stealth:
         specifier: ^2.11.2
-        version: 2.11.2(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
+        version: 2.11.2(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
       react:
         specifier: ^18
         version: 18.3.1
@@ -298,7 +301,7 @@ importers:
         version: 1.0.7(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4)))
       uploadthing:
         specifier: ^6.13.2
-        version: 6.13.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4)))
+        version: 6.13.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4)))
       uuid:
         specifier: ^10.0.0
         version: 10.0.0
@@ -324,6 +327,9 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^4.20240821.1
         version: 4.20240903.0
+      '@playwright/test':
+        specifier: ^1.48.1
+        version: 1.48.1
       '@types/luxon':
         specifier: ^3.4.2
         version: 3.4.2
@@ -1944,6 +1950,11 @@ packages:
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
+
+  '@playwright/test@1.48.1':
+    resolution: {integrity: sha512-s9RtWoxkOLmRJdw3oFvhFbs9OJS0BzrLUc8Hf6l2UdCNd1rqeEyD4BhCJkvzeEoD1FsK4mirsWwGerhVmYKtZg==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@pnpm/config.env-replace@1.1.0':
     resolution: {integrity: sha512-htyl8TWnKL7K/ESFa1oW2UB5lVDxuF5DpM7tBi6Hu2LNL3mWkIzNLG6N4zoCUP1lCKNxWy/3iu8mS8MvToGd6w==}
@@ -5605,8 +5616,30 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  playwright-core@1.48.1:
+    resolution: {integrity: sha512-Yw/t4VAFX/bBr1OzwCuOMZkY1Cnb4z/doAFSwf4huqAGWmf9eMNjmK7NiOljCdLmxeRYcGPPmcDgU0zOlzP0YA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright-extra@4.3.6:
+    resolution: {integrity: sha512-q2rVtcE8V8K3vPVF1zny4pvwZveHLH8KBuVU2MoE3Jw4OKVoBWsHI9CH9zPydovHHOCDxjGN2Vg+2m644q3ijA==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      playwright: '*'
+      playwright-core: '*'
+    peerDependenciesMeta:
+      playwright:
+        optional: true
+      playwright-core:
+        optional: true
+
   playwright@1.47.2:
     resolution: {integrity: sha512-nx1cLMmQWqmA3UsnjaaokyoUpdVaaDhJhMoxX2qj3McpjnsqFHs516QAKYhqHAgOP+oCFTEOCOAaD1RgD/RQfA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.48.1:
+    resolution: {integrity: sha512-j8CiHW/V6HxmbntOfyB4+T/uk08tBy6ph0MpBXwuoofkSnLmlfdYNNkFTYD6ofzzlSqLA1fwH4vwvVFvJgLN0w==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -7279,14 +7312,14 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       tslib: 2.4.1
 
-  '@clerk/nextjs@5.5.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@clerk/nextjs@5.5.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@clerk/backend': 1.11.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@clerk/clerk-react': 5.8.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@clerk/shared': 2.7.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@clerk/types': 4.20.1
       crypto-js: 4.2.0
-      next: 14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
       server-only: 0.0.1
@@ -8163,6 +8196,10 @@ snapshots:
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
+  '@playwright/test@1.48.1':
+    dependencies:
+      playwright: 1.48.1
+
   '@pnpm/config.env-replace@1.1.0': {}
 
   '@pnpm/network.ca-file@1.0.2':
@@ -8903,16 +8940,16 @@ snapshots:
 
   '@uploadthing/mime-types@0.2.10': {}
 
-  '@uploadthing/react@6.7.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(uploadthing@6.13.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))))':
+  '@uploadthing/react@6.7.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)(uploadthing@6.13.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))))':
     dependencies:
       '@uploadthing/dropzone': 0.4.1(react@18.3.1)
       '@uploadthing/shared': 6.7.8
       file-selector: 0.6.0
       react: 18.3.1
       tailwind-merge: 2.5.2
-      uploadthing: 6.13.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4)))
+      uploadthing: 6.13.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4)))
     optionalDependencies:
-      next: 14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
     transitivePeerDependencies:
       - solid-js
       - svelte
@@ -11565,13 +11602,13 @@ snapshots:
 
   netmask@2.0.2: {}
 
-  next-auth@4.24.7(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next-auth@4.24.7(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.25.6
       '@panva/hkdf': 1.2.1
       cookie: 0.5.0
       jose: 4.15.9
-      next: 14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       oauth: 0.9.15
       openid-client: 5.6.5
       preact: 10.11.3
@@ -11580,7 +11617,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       uuid: 8.3.2
 
-  next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@next/env': 14.2.5
       '@swc/helpers': 0.5.5
@@ -11601,6 +11638,7 @@ snapshots:
       '@next/swc-win32-arm64-msvc': 14.2.5
       '@next/swc-win32-ia32-msvc': 14.2.5
       '@next/swc-win32-x64-msvc': 14.2.5
+      '@playwright/test': 1.48.1
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
@@ -11894,16 +11932,33 @@ snapshots:
     optionalDependencies:
       '@napi-rs/nice': 1.0.1
 
-  playwright-aws-lambda@0.11.0(playwright-core@1.47.2):
+  playwright-aws-lambda@0.11.0(playwright-core@1.48.1):
     dependencies:
       lambdafs: 2.1.1
-      playwright-core: 1.47.2
+      playwright-core: 1.48.1
 
   playwright-core@1.47.2: {}
+
+  playwright-core@1.48.1: {}
+
+  playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2):
+    dependencies:
+      debug: 4.3.7
+    optionalDependencies:
+      playwright: 1.47.2
+      playwright-core: 1.48.1
+    transitivePeerDependencies:
+      - supports-color
 
   playwright@1.47.2:
     dependencies:
       playwright-core: 1.47.2
+    optionalDependencies:
+      fsevents: 2.3.2
+
+  playwright@1.48.1:
+    dependencies:
+      playwright-core: 1.48.1
     optionalDependencies:
       fsevents: 2.3.2
 
@@ -12067,44 +12122,48 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  puppeteer-extra-plugin-stealth@2.11.2(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
+  puppeteer-extra-plugin-stealth@2.11.2(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
     dependencies:
       debug: 4.3.7
-      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
-      puppeteer-extra-plugin-user-preferences: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
+      puppeteer-extra-plugin: 3.2.3(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
+      puppeteer-extra-plugin-user-preferences: 2.4.1(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
     optionalDependencies:
+      playwright-extra: 4.3.6(playwright-core@1.48.1)(playwright@1.47.2)
       puppeteer-extra: 3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra-plugin-user-data-dir@2.4.1(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
+  puppeteer-extra-plugin-user-data-dir@2.4.1(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
     dependencies:
       debug: 4.3.7
       fs-extra: 10.1.0
-      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
+      puppeteer-extra-plugin: 3.2.3(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
       rimraf: 3.0.2
     optionalDependencies:
+      playwright-extra: 4.3.6(playwright-core@1.48.1)(playwright@1.47.2)
       puppeteer-extra: 3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra-plugin-user-preferences@2.4.1(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
+  puppeteer-extra-plugin-user-preferences@2.4.1(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
     dependencies:
       debug: 4.3.7
       deepmerge: 4.3.1
-      puppeteer-extra-plugin: 3.2.3(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
-      puppeteer-extra-plugin-user-data-dir: 2.4.1(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
+      puppeteer-extra-plugin: 3.2.3(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
+      puppeteer-extra-plugin-user-data-dir: 2.4.1(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5))
     optionalDependencies:
+      playwright-extra: 4.3.6(playwright-core@1.48.1)(playwright@1.47.2)
       puppeteer-extra: 3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)
     transitivePeerDependencies:
       - supports-color
 
-  puppeteer-extra-plugin@3.2.3(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
+  puppeteer-extra-plugin@3.2.3(playwright-extra@4.3.6(playwright-core@1.48.1)(playwright@1.47.2))(puppeteer-extra@3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)):
     dependencies:
       '@types/debug': 4.1.12
       debug: 4.3.7
       merge-deep: 3.0.3
     optionalDependencies:
+      playwright-extra: 4.3.6(playwright-core@1.48.1)(playwright@1.47.2)
       puppeteer-extra: 3.3.6(puppeteer-core@22.13.1)(puppeteer@18.0.5)
     transitivePeerDependencies:
       - supports-color
@@ -13164,7 +13223,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  uploadthing@6.13.2(next@14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))):
+  uploadthing@6.13.2(next@14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(tailwindcss@3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))):
     dependencies:
       '@effect/schema': 0.68.12(effect@3.4.5)
       '@uploadthing/mime-types': 0.2.10
@@ -13173,7 +13232,7 @@ snapshots:
       effect: 3.4.5
       std-env: 3.7.0
     optionalDependencies:
-      next: 14.2.5(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.5(@babel/core@7.25.2)(@playwright/test@1.48.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       tailwindcss: 3.4.10(ts-node@10.9.1(@types/node@20.16.4)(typescript@5.5.4))
 
   uri-js@4.4.1:

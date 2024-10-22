@@ -289,7 +289,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           />,
           "Inspire"
         )}
-        {renderNavLink(
+        {/* {renderNavLink(
           "/create/for-you",
           <Rocket size={20} className="text-gray-500" />,
           <Rocket
@@ -304,7 +304,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             color: "",
             icon: <Sparkle weight="duotone" className="mr-1" />,
           }
-        )}
+        )} */}
         {renderNavLink(
           "/schedule",
           <CalendarDots size={20} className="text-gray-500" />,

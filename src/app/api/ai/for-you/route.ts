@@ -115,13 +115,10 @@ export async function POST(
     Write 6 full LinkedIn posts following these guidelines:
 
     a. Each post should be between 1200 and 1500 characters long.
-    b. Start writing each post directly without including a starting idea (one-liner) or hook unless one is explicitly extracted from the provided examples.
-    c. Never start a post with a headline or title. Get straight to the content.
-    d. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-    e. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
-    f. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing prefernce over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
-
-    Remember, the goal is to create engaging, professional LinkedIn posts that reflect the user's career information, cater to their target audience, and cover the specified topics while maintaining their personal touch.
+    b. Start writing each post directly without including a starting idea (one-liner) or hook. The posts should not have a title or subtitle.
+    c. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
+    d. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
+    e. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing prefernce over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
 
     Respond with 6 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post. Do not include any explanations, comments, or additional formatting.`;
 
@@ -158,8 +155,6 @@ export async function POST(
       .update(users)
       .set({ forYouGeneratedPosts: sql`${users.forYouGeneratedPosts} + 1` })
       .where(eq(users.id, userId));
-
-    console.log(posts);
 
     return NextResponse.json({ success: true, data: posts }, { status: 200 });
   } catch (error) {
