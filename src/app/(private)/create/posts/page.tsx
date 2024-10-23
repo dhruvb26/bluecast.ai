@@ -7,6 +7,7 @@ import Image from "next/image";
 import { usePostStore } from "@/store/post";
 import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
 
 const PostsPage = () => {
   const resetPostFields = usePostStore((state) => state.resetPostData);
@@ -135,7 +136,7 @@ const PostsPage = () => {
           </h2>
         </>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {/* <Link href={"/create/posts/refresh"} id="tour-2">
+          <Link href={"/create/posts/refresh"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">
                 <CardTitle className="text-base font-semibold tracking-tight items-end">
@@ -146,10 +147,10 @@ const PostsPage = () => {
                     alt=""
                     className="inline mr-2"
                   />
-                  Refresh Your Post{" "}
-                  <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-500 font-normal  ml-1">
-                    <Sparkle
-                      weight="duotone"
+                  Refresh Writing Style{" "}
+                  <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500 font-normal  ml-1">
+                    <Sparkles
+                      // weight="duotone"
                       size={12}
                       className="inline mr-1 text-indigo-500"
                     />
@@ -157,12 +158,12 @@ const PostsPage = () => {
                   </Badge>
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
-                  Let AI help you make your existing post better. No need to
-                  rewrite, just let AI do the rest.
+                  Use our AI-powered tool to adapt any post to a new writing
+                  style, instantly.
                 </p>
               </CardContent>
             </Card>
-          </Link> */}
+          </Link>
           <Link href={"/create/posts/scratch"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">

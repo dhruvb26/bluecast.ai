@@ -118,7 +118,7 @@ export function MakeItBetterForm() {
                 </FormControl>
                 <FormDescription>
                   Put in your current post or select an existing one, and we'll
-                  make it better for you.
+                  refresh it for you.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

@@ -9,11 +9,12 @@ const MakeItBetterPage = () => {
     <main>
       <div className="mb-8">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Refresh Your Existing Post
+          Refresh Writing Style of Your Post
         </h1>
         <p className="text-sm text-muted-foreground">
-          Use our AI-powered tool to enhance and improve your existing posts. No
-          need to rewrite from scratch, just let our AI do the work for you.
+          Instantly transform any post with our AI-powered tool, giving it a
+          fresh and unique writing style. No need to rewrite, just let AI do the
+          rest.
         </p>
       </div>
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">

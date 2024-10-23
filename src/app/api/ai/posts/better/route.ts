@@ -79,14 +79,14 @@ export async function POST(req: Request) {
             4. Pay attention to number of lines per paragraph and adjust accordingly
             5. Apply the post format only if it aligns perfectly with the creator's style
             6. Implement all custom instructions without exception
-            7. Enhance readability and impact without altering the fundamental content
-            8. Do not introduce any new information or content not present in the original post
-            9. If the original post uses bullet points but the examples don't, rewrite without bullet points
-            10. Adapt the content structure to match the examples, even if it means reorganizing bullet points into paragraphs or vice versa
-            11. Never start with a one liner idea or a hook, get right into the post.
-            12. Never use emojis or hashtags unless specifically mentioned in the custom instructions.
+            7. Do not introduce any new information or content not present in the original post
+            8. If the original post uses bullet points but the examples don't, rewrite without bullet points
+            9. Adapt the content structure to match the examples, even if it means reorganizing bullet points into paragraphs or vice versa
+            10. Never start with a one liner idea or a hook, get right into the post
+            11. Never use emojis or hashtags unless specifically mentioned in the custom instructions
+            12. If the topic of the current post doesn't match the examples, rewrite the post using the examples' tone and style. This includes adopting the formatting, structure, and tone (e.g., formal, discrete, humorous) from the examples
 
-            Provide only the rewritten post, without any explanations or additional comments.
+            Provide only the rewritten post, without any explanations or additional comments. Ensure strict adherence to all guidelines, especially the instruction to rewrite in the examples' style if the topic differs.
             `,
         },
       ],
