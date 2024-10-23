@@ -11,7 +11,7 @@ const FeedbackButton: React.FC = () => {
       passHref
       className="hover:shadow-sm"
     >
-      <Button className="fixed bottom-5 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-md transition-colors duration-200 ease-in-out">
+      <Button className="z-50 fixed bottom-5 right-5 w-14 h-14 rounded-full flex items-center justify-center shadow-md transition-colors duration-200 ease-in-out">
         <Chat size={35} weight="fill" />
       </Button>
     </Link>

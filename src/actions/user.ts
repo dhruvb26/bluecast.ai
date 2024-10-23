@@ -60,7 +60,6 @@ export async function getUser() {
     throw error;
   }
 }
-
 export async function checkAccess() {
   try {
     const userClerk = await currentUser();

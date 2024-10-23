@@ -25,22 +25,31 @@ import {
 import { BookDashed, PenSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
+import { BarLoader } from "react-spinners";
 
 interface PostsDialogProps {
   onSelect: (content: string) => Promise<void>;
+  triggerText: string;
+  onOpenDialog?: (e: React.MouseEvent) => void;
 }
 
-export function PostsDialog({ onSelect }: PostsDialogProps) {
+export function PostsDialog({
+  onSelect,
+  triggerText,
+  onOpenDialog,
+}: PostsDialogProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [scheduledPosts, setScheduledPosts] = useState<Draft[]>([]);
   const [publishedPosts, setPublishedPosts] = useState<Draft[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   useEffect(() => {
     fetchPosts();
   }, []);
 
   const fetchPosts = async () => {
+    setIsLoading(true);
     const draftsResult = await getDrafts("saved");
     const scheduledResult = await getDrafts("scheduled");
     const publishedResult = await getDrafts("published");
@@ -62,6 +71,7 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
     } else {
       toast.error(publishedResult.error);
     }
+    setIsLoading(false);
   };
 
   const [selectedPost, setSelectedPost] = useState<string | null>(null);
@@ -82,7 +92,11 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
 
   const renderPostList = (posts: Draft[]) => (
     <div className="flex h-[500px] w-full">
-      {posts.length > 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center w-full">
+          <BarLoader color="#1d51d7" height={3} width={300} />
+        </div>
+      ) : posts.length > 0 ? (
         <>
           <ScrollArea className="w-1/2 pr-4">
             {posts.map((post) => (
@@ -168,14 +182,16 @@ export function PostsDialog({ onSelect }: PostsDialogProps) {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button onClick={() => setIsDialogOpen(true)}>
+              <Button
+                onClick={(e) => {
+                  onOpenDialog?.(e);
+                  setIsDialogOpen(true);
+                }}
+              >
                 <Plus size={15} weight="bold" className="mr-1" />
-                Add Post to Style
+                {triggerText}
               </Button>
             </TooltipTrigger>
-            {/* <TooltipContent>
-              <p>Add Post</p>
-            </TooltipContent> */}
           </Tooltip>
         </TooltipProvider>
       </DialogTrigger>

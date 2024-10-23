@@ -5,14 +5,9 @@ import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
-import chromium from "@sparticuz/chromium-min";
-import puppeteerExtra from "puppeteer-extra";
-import puppeteer from "puppeteer-core";
-// import puppeteer from "puppeteer-extra";
-// puppeteer.use(StealthPlugin());
+import { linkedInPostPrompt } from "@/utils/prompt-template";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {
@@ -27,64 +22,36 @@ export async function POST(req: Request) {
     const body: RepurposeRequestBody = await req.json();
     const { url, instructions, formatTemplate, contentStyle } = body;
 
-    let data;
+    let textContent: string | null = null;
 
     try {
-      // First, try to extract content using extractus
-      const { extract } = await import("@extractus/article-extractor");
-      data = await extract(url);
-    } catch (extractusError) {
-      console.log("Extractus failed:", extractusError);
+      const response = await fetch(
+        `https://bluecast-be-playwright-image.onrender.com/extract-text?url=${encodeURIComponent(
+          url
+        )}`
+      );
 
-      // If extractus fails, fall back to puppeteer method
-      // try {
-      //   const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      //   const options = {
-      //     args: isLocal ? puppeteer.defaultArgs() : chromium.args,
-      //     defaultViewport: chromium.defaultViewport,
-      //     executablePath: await chromium.executablePath(
-      //       "https://utfs.io/f/Hny9aU7MkSTDPwsFPO8WauwPiRvmCf8zTpQgHbnVkB0EYeLO"
-      //     ),
-      //     headless: true,
-      //   };
-      //   const browser = await puppeteer.launch(options);
+      const data: any = await response.json();
 
-      //   const page = await browser.newPage();
-
-      //   await page
-      //     .goto(url, {
-      //       waitUntil: "networkidle0",
-      //       timeout: 60000, // 60 seconds
-      //     })
-      //     .catch(async (err: any) => {
-      //       console.log("Navigation timeout, attempting to get content anyway");
-      //     });
-
-      //   await page.waitForSelector("body", { timeout: 60000 }).catch(() => {
-      //     console.log(
-      //       "Timeout waiting for body, attempting to get content anyway"
-      //     );
-      //   });
-
-      //   const content = await page.content();
-      //   await browser.close();
-
-      //   data = { content };
-      // } catch (puppeteerError: any) {
-      //   console.log("Puppeteer Stealth failed:", puppeteerError);
-      //   throw new Error("Failed to extract content from the URL");
-      // }
-    }
-
-    if (!data || !data.content) {
+      if (data.status === "success") {
+        textContent = data.text;
+      } else {
+        throw new Error("Failed to extract content from the URL");
+      }
+    } catch (error) {
+      console.error("Error fetching content:", error);
       throw new Error("Failed to extract content from the URL");
     }
 
-    const cleanContent = data.content
-      .replace(/<\/?[^>]+(>|$)/g, "")
-      .replace(/\n+/g, "\n")
-      .trim();
+    if (!textContent) {
+      throw new Error("Failed to extract content from the URL");
+    }
+
+    const cleanContent = textContent;
 
     let examples;
     if (contentStyle) {
@@ -102,53 +69,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `
-          You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
-
-            1. Do not include a starting idea or hook unless one is extracted from the examples provided.
-            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-            First, analyze the following examples from the content creator (if given any):
-
-            <creator_examples>
-            {${examples}}
-            </creator_examples>
-
-            Examine these examples carefully to:
-            a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
-
-            Now, generate a LinkedIn post based on the following inputs:
-            <article_content>
-            {${cleanContent}}
-            </article_content>
-
-            Examine the article content carefully to:
-            a) Identify the main theme and key topics of the article
-            b) Determine the core message
-            c) Extract any notable quotes, statistics, or insights that could be highlighted
-
-            Post format (note that the creator's style takes precedence over this):
-            <post_format>
-            {${formatTemplate}}
-            </post_format>
-
-            Custom instructions (if any):
-            <custom_instructions>
-            {${instructions}}
-            </custom_instructions>
-
-            When writing the post:
-            1. Prioritize the format identified from the creator's examples.
-            2. Incorporate the given article content.
-            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
-            4. Adhere to any custom instructions given.
-            5. Ensure the post is between 1000-1200 characters long.
-
-            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
-                    `,
+          content: linkedInPostPrompt
+            .replace("{examples}", examples || "")
+            .replace("<content>{content}</content>", cleanContent)
+            .replace("{formatTemplate}", formatTemplate)
+            .replace("{instructions}", instructions),
         },
       ],
     });
@@ -173,12 +98,11 @@ export async function POST(req: Request) {
             wordCount += wordsInChunk;
           }
         }
+        await setGeneratedWords(wordCount);
         controller.close();
-
-        // Call the setGeneratedWords action with the total word count
       },
     });
-    await setGeneratedWords(wordCount);
+
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain",

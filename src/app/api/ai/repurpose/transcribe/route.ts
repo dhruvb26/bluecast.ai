@@ -6,6 +6,7 @@ import { env } from "@/env";
 import { RepurposeRequestBody } from "@/types";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
+import { linkedInPostPrompt } from "@/utils/prompt-template";
 export const maxDuration = 180;
 export async function POST(req: Request) {
   try {
@@ -59,51 +60,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: ` You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
-
-            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
-            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-            First, analyze the following examples from the content creator (if given any):
-
-            <creator_examples>
-            {${examples}}
-            </creator_examples>
-
-            Examine these examples carefully to:
-            a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
-
-            Now, generate a LinkedIn post based on the following inputs:
-            <audio_transcription>
-            {${transcript.text}}
-            </audio_transcription>
-
-            Examine the audio's content carefully to:
-            a) Identify the main theme and key topics of the audio content
-            b) Determine the core message
-
-            Post format (note that the creator's style takes precedence over this):
-            <post_format>
-            {${formatTemplate}}
-            </post_format>
-
-            Custom instructions (if any):
-            <custom_instructions>
-            {${instructions}}
-            </custom_instructions>
-
-            When writing the post:
-            1. Prioritize the format identified from the creator's examples.
-            2. Incorporate the given transcription.
-            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
-            4. Adhere to any custom instructions given.
-            5. Ensure the post is between 1000-1200 characters long.
-
-            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
-                    `,
+          content: linkedInPostPrompt
+            .replace("{examples}", examples || "")
+            .replace("<content>{content}</content>", transcript.text)
+            .replace("{formatTemplate}", formatTemplate)
+            .replace("{instructions}", instructions),
         },
       ],
     });
@@ -128,12 +89,11 @@ export async function POST(req: Request) {
             wordCount += wordsInChunk;
           }
         }
+        await setGeneratedWords(wordCount);
         controller.close();
-
-        // Call the setGeneratedWords action with the total word count
       },
     });
-    await setGeneratedWords(wordCount);
+
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain",

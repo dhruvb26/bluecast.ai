@@ -1,11 +1,12 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight, Sparkle } from "@phosphor-icons/react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import { usePostStore } from "@/store/post";
 import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
 
 const PostsPage = () => {
   const resetPostFields = usePostStore((state) => state.resetPostData);
@@ -134,6 +135,34 @@ const PostsPage = () => {
           </h2>
         </>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* <Link href={"/create/posts/refresh"} id="tour-2">
+            <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">
+                <CardTitle className="text-base font-semibold tracking-tight items-end">
+                  <Image
+                    src="/icons/better.svg"
+                    width={20}
+                    height={20}
+                    alt=""
+                    className="inline mr-2"
+                  />
+                  Refresh Your Post{" "}
+                  <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-500 font-normal  ml-1">
+                    <Sparkle
+                      weight="duotone"
+                      size={12}
+                      className="inline mr-1 text-indigo-500"
+                    />
+                    New
+                  </Badge>
+                </CardTitle>
+                <p className="mt-2 flex-grow text-sm text-muted-foreground">
+                  Let AI help you make your existing post better. No need to
+                  rewrite, just let AI do the rest.
+                </p>
+              </CardContent>
+            </Card>
+          </Link> */}
           <Link href={"/create/posts/scratch"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">

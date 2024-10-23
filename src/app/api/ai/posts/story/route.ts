@@ -126,12 +126,11 @@ export async function POST(req: Request) {
             wordCount += wordsInChunk;
           }
         }
+        await setGeneratedWords(wordCount);
         controller.close();
-
-        // Call the setGeneratedWords action with the total word count
       },
     });
-    await setGeneratedWords(wordCount);
+
     return new Response(readable, {
       headers: {
         "Content-Type": "text/event-stream",

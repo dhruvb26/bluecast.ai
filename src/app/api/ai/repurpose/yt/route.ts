@@ -6,6 +6,8 @@ import { anthropic } from "@/server/model";
 import { RepurposeRequestBody } from "@/types";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
+import { linkedInPostPrompt } from "@/utils/prompt-template";
+import { Linkedin } from "lucide-react";
 
 export async function POST(req: Request) {
   try {
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
     const transcript = await fetchTranscript(regularUrl);
 
     // Combine transcript text
-    const plainText = combineTranscriptText(transcript);
+    // const plainText = combineTranscriptText(transcript);
 
     let examples;
     if (contentStyle) {
@@ -44,6 +46,9 @@ export async function POST(req: Request) {
         examples = joinExamples(examples);
       }
     }
+    const plainText = `This is a transcript from a YouTube video. Understand the main topic and context of the video and draft a LinkedIn post sharing the main points:<content>\n\n${combineTranscriptText(
+      transcript
+    )}</content>`;
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -52,49 +57,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
-
-            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
-            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-            First, analyze the following examples from the content creator (if given any):
-
-            <creator_examples>
-            {${examples}}
-            </creator_examples>
-
-            Examine these examples carefully to:
-            a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
-
-            Now, generate a LinkedIn post based on the following inputs:
-            <youtube_video_content>
-            {${plainText}}
-            </youtube_video_content>
-
-            Examine the youtube video's content carefully to:
-            a) Identify the main theme of the video
-
-            Post format (note that the creator's style takes precedence over this):
-            <post_format>
-            {${formatTemplate}}
-            </post_format>
-
-            Custom instructions (if any):
-            <custom_instructions>
-            {${instructions}}
-            </custom_instructions>
-
-            When writing the post:
-            1. Make it sound like the creator's examples given above.
-            2. Incorporate the given youtube content.
-            3. Follow the post format provided, but allow the creator's style to override in any case.
-            4. Adhere to any custom instructions given.
-            5. Ensure the post is between 1000-1200 characters long.
-
-            Do not include the tags in response. Do not include any explanations or comments outside of these tags.`,
+          content: linkedInPostPrompt
+            .replace("{examples}", examples || "")
+            .replace("<content>{content}</content>", plainText)
+            .replace("{formatTemplate}", formatTemplate)
+            .replace("{instructions}", instructions),
         },
       ],
     });
@@ -119,10 +86,11 @@ export async function POST(req: Request) {
             wordCount += wordsInChunk;
           }
         }
+        await setGeneratedWords(wordCount);
         controller.close();
       },
     });
-    await setGeneratedWords(wordCount);
+
     return new Response(readable, {
       headers: {
         "Content-Type": "text/plain",
@@ -217,8 +185,6 @@ async function fetchTranscript(url: string): Promise<string[]> {
         return "";
       })
       .filter((text) => text !== "");
-
-    console.log("Extracted transcript:", transcriptLines);
 
     return transcriptLines;
   } catch (error) {

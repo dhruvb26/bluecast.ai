@@ -10,7 +10,7 @@ import { ChevronLeft } from "lucide-react";
 const BlogLinkedInPage = () => {
   return (
     <main>
-      <div className="mb-2">
+      <div className="mb-8">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Convert any Blog to LinkedIn Post
         </h1>
@@ -19,7 +19,7 @@ const BlogLinkedInPage = () => {
           for you.
         </p>
       </div>
-      <div className="mb-4 rounded-md bg-indigo-50 p-4 text-left text-sm text-indigo-500 border border-indigo-200">
+      {/* <div className="mb-4 rounded-md bg-indigo-50 p-4 text-left text-sm text-indigo-500 border border-indigo-200">
         <span>
           <strong>NOTE: </strong>
           If you encounter a{" "}
@@ -35,7 +35,7 @@ const BlogLinkedInPage = () => {
           </Link>
           . We're working on a fix right now.
         </span>
-      </div>
+      </div> */}
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <BlogForm />

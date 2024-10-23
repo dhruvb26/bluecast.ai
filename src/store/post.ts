@@ -107,6 +107,21 @@ export const usePostStore = create<PostStore>((set) => ({
       });
 
       if (!response.ok) {
+        const errorData: any = await response.json();
+
+        if (response.status === 401) {
+          toast.error(
+            errorData.error || "Not authorized. Please log in and try again."
+          );
+          set({
+            isLoading: false,
+            error: {
+              message: errorData.error || "Not authorized",
+              cause: "auth",
+            },
+          });
+          return;
+        }
         if (path === "repurpose/blog") {
           const errorData = await response.json();
           throw new Error("Failed to submit. Try again later.", {

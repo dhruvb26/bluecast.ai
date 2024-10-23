@@ -181,7 +181,7 @@ export default function StylesContent() {
           <p className="text-muted-foreground text-sm mb-4">
             Add your first example to get started.
           </p>
-          <PostsDialog onSelect={handleAddExample} />
+          <PostsDialog triggerText="Add Example" onSelect={handleAddExample} />
         </div>
       </main>
     );
@@ -199,7 +199,10 @@ export default function StylesContent() {
             </p>
           </div>
           <div className="flex space-x-2">
-            <PostsDialog onSelect={handleAddExample} />
+            <PostsDialog
+              triggerText="Add Example"
+              onSelect={handleAddExample}
+            />
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
