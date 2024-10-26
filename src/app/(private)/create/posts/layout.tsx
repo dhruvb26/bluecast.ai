@@ -14,9 +14,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {showBackButton && (
         <Link
           href="/create/posts"
-          className="inline-flex transition-all items-center text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex transition-all  items-center text-sm text-muted-foreground hover:text-foreground"
         >
-          <ChevronLeft className="mr-1 h-4 w-4 stroke-2" />
+          <ChevronLeft className=" h-4 w-4 stroke-2" />
           Back
         </Link>
       )}

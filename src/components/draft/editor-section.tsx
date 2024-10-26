@@ -496,7 +496,7 @@ function EditorSection({
         </div>
       )}
       <div className="relative">
-        <div className="text-left px-4 pt-4">
+        <div className="text-left px-4 pt-8">
           <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Write Post
           </h1>
