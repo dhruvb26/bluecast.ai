@@ -78,7 +78,7 @@ export const usePostStore = create<PostStore>((set) => ({
       error: null,
       linkedInPost: "",
       isStreamComplete: false,
-      submissionSuccessful: false, // Reset at the start of submission
+      submissionSuccessful: false,
     });
 
     try {
@@ -111,13 +111,15 @@ export const usePostStore = create<PostStore>((set) => ({
 
         if (response.status === 401) {
           toast.error(
-            errorData.error || "Not authorized. Please log in and try again."
+            "You've hit your usage limits. Limits reset every first day of the month."
           );
           set({
             isLoading: false,
             error: {
-              message: errorData.error || "Not authorized",
-              cause: "auth",
+              message:
+                errorData.error ||
+                "You've hit your usage limits. Limits reset every first day of the month.",
+              cause: "usage",
             },
           });
           return;

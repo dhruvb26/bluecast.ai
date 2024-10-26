@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     // Check if the user has access
     if (!hasAccess) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+      return NextResponse.json({ error: "Not authorized!" }, { status: 401 });
     }
 
     const body: RepurposeRequestBody = await req.json();
