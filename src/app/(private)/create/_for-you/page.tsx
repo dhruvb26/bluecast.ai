@@ -94,7 +94,7 @@ export default function ForYouPage() {
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <BarLoader color="#1d51d7" height={3} width={300} />
+        <BarLoader color="#2563eb" height={3} width={300} />
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function ForYouPage() {
           Please wait while we create personalized content for you. May take up
           to 2 minutes.
         </p>
-        <BarLoader color="#1d51d7" height={3} width={300} />
+        <BarLoader color="#2563eb" height={3} width={300} />
       </div>
     );
   }

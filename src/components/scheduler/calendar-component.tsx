@@ -91,7 +91,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
     const year = date.getFullYear();
 
     return (
-      <span className="text-xl font-semibold items-center flex tracking-tight">
+      <span className="text-lg font-semibold items-center flex tracking-tight">
         {month} {year}
       </span>
     );
@@ -283,7 +283,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
       <div className="calendar-container min-h-screen pb-4">
         <div className="mb-2 flex items-center justify-between">
           <div className="flex flex-col space-y-2 p-4">
-            <div className="flex flex-row space-x-2">
+            <div className="flex flex-row items-center space-x-2">
               {formatMonthYearWeek(currentDate)}
               <Button
                 variant={"outline"}

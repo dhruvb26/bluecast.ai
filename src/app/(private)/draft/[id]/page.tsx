@@ -116,11 +116,11 @@ export default function EditDraft() {
     <main className="flex min-h-full">
       {isLoading ? (
         <div className="flex h-screen w-full items-center justify-center">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       ) : (
         <div className="flex w-full flex-col min-h-full lg:flex-row">
-          <div className="w-full lg:w-1/2  border-input">
+          <div className="w-full lg:w-1/2 border-input">
             <EditorSection
               id={id}
               initialValue={value}

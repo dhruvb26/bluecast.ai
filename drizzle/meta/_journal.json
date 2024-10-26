@@ -162,6 +162,13 @@
       "when": 1729147545745,
       "tag": "0022_marvelous_moon_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1729819345243,
+      "tag": "0023_clean_wolfsbane",
+      "breakpoints": true
     }
   ]
 }

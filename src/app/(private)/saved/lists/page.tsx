@@ -16,7 +16,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { getCreatorLists } from "@/actions/list";
 import { CreatorList } from "@/actions/list";
-import { Empty, Plus } from "@phosphor-icons/react";
+import { Empty } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import { UserPlus } from "lucide-react";
 import { BarLoader } from "react-spinners";
 import { getUser } from "@/actions/user";
@@ -151,7 +152,7 @@ export default function CreateCreatorList() {
       )}
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Creator Lists
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -162,7 +163,7 @@ export default function CreateCreatorList() {
           {creatorLists.length > 0 && (
             <DialogTrigger asChild>
               <Button>
-                <Plus weight="bold" className="inline mr-1" size={15} />
+                <Plus className="inline mr-1" size={16} />
                 Create a Custom List
               </Button>
             </DialogTrigger>
@@ -249,7 +250,7 @@ export default function CreateCreatorList() {
 
       {isFetching ? (
         <div className="flex justify-center items-center min-h-[400px]">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       ) : creatorLists.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
@@ -263,7 +264,7 @@ export default function CreateCreatorList() {
             Create customized creator lists to keep up with.
           </p>
           <Button onClick={() => setIsDialogOpen(true)} variant={"outline"}>
-            <Plus weight="bold" className="inline mr-1" size={15} />
+            <Plus className="inline mr-1" size={16} />
             Create a Custom List
           </Button>
         </div>

@@ -137,7 +137,7 @@ export default function StylesContent() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <BarLoader color="#1d51d7" height={3} width={300} />
+        <BarLoader color="#2563eb" height={3} width={300} />
       </div>
     );
   }
@@ -146,7 +146,7 @@ export default function StylesContent() {
       <main className="p-8">
         <div className="mb-8 text-left">
           <div className="flex flex-row space-x-2 items-center justify-between">
-            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">
               {styleName}
             </h1>
             <TooltipProvider>
@@ -254,21 +254,13 @@ export default function StylesContent() {
                     </Button>
 
                     {changedExamples.has(index) && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              onClick={() => handleSaveExample(index)}
-                              size="sm"
-                            >
-                              <Save size={15} />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Save</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Button
+                        variant={"outline"}
+                        onClick={() => handleSaveExample(index)}
+                        size="sm"
+                      >
+                        <Save size={15} />
+                      </Button>
                     )}
                   </div>
                   <Textarea

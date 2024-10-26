@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { env } from "@/env";
-import { Cardholder } from "@phosphor-icons/react";
+import { Cardholder, Check } from "@phosphor-icons/react";
 import { CheckIcon, ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -82,7 +82,7 @@ const PricingPage = () => {
             Back
           </Link>
           <div className="px-7 pt-4"></div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Pricing and Plans
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -100,11 +100,10 @@ const PricingPage = () => {
         </div>
         <div className="max-w-sm w-full border rounded-lg dark:border-gray-700">
           <div className="p-6">
-            <h1 className="text-xl font-semibold tracking-tight capitalize dark:text-white">
+            <h1 className="text-lg font-semibold tracking-tight capitalize dark:text-white">
               {isAnnual ? "Annual" : "Monthly"} Launch Plan
               {isAnnual && (
-                <Badge className="ml-2 space-x-1 bg-blue-50 font-normal text-blue-600 hover:bg-purple-100">
-                  {/* <Cardholder className="inline mr-1" size={15} /> */}
+                <Badge className="ml-2 space-x-1 bg-indigo-50 font-normal text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500">
                   Save {20}%
                 </Badge>
               )}
@@ -114,9 +113,9 @@ const PricingPage = () => {
               Our most popular plan for creators.
             </p>
 
-            <h2 className="mt-2 text-xl font-semibold sm:text-2xl">
+            <h2 className="mt-2 text-lg font-semibold sm:text-2xl">
               {isAnnual ? annualPrice : monthlyPrice}{" "}
-              <span className="text-base font-normal">
+              <span className="text-sm font-normal text-muted-foreground">
                 /{isAnnual ? "Year" : "Month"}
               </span>
             </h2>
@@ -139,7 +138,7 @@ const PricingPage = () => {
             <div className="mt-4 space-y-4">
               {[
                 "Post Generator (50K words)",
-                "Repurpose Content from YouTube, Blogs, PDF, and Audio",
+                "Repurpose from YouTube, Blogs, PDF, & Audio",
                 "Create Your Own Voice",
                 "Idea Generator",
                 "Inspiration from Top LinkedIn Influencers",
@@ -147,9 +146,9 @@ const PricingPage = () => {
                 "Post Preview and Formatter",
                 "Content Scheduler",
               ].map((feature, index) => (
-                <div key={index} className="flex items-center">
-                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
-                    <CheckIcon className="w-3 h-3 text-white" />
+                <div key={index} className="flex items-center w-full">
+                  <div className="bg-primary text-white rounded-full p-1">
+                    <Check weight="bold" size={12} />
                   </div>
                   <span className="mx-4 dark:">{feature}</span>
                 </div>

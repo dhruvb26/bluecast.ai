@@ -6,7 +6,7 @@ import { getCreatorLists } from "@/actions/list";
 import { getPostsByCreatorId, Post } from "@/actions/post";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import { CreatorList } from "@/actions/list";
 import { useRouter } from "next/navigation";
 import { useInView } from "react-intersection-observer";
@@ -120,10 +120,10 @@ export default function Home() {
   };
 
   return (
-    <main className="p-4 sm:p-6 overflow-y-hidden">
+    <main className="p-8 overflow-y-hidden">
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg  font-semibold tracking-tight text-foreground">
             Inspiration
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-prose">
@@ -135,13 +135,13 @@ export default function Home() {
           onClick={() => router.push("/saved/lists")}
           className="whitespace-nowrap"
         >
-          <Plus className="inline mr-1" weight="bold" />
+          <Plus className="inline mr-1" size={16} />
           Create a Custom List
         </Button>
       </div>
       {loading ? (
         <div className="flex min-h-screen items-center justify-center">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       ) : (
         <Tabs value={activeTab || ""} onValueChange={setActiveTab}>
@@ -162,7 +162,7 @@ export default function Home() {
                 </div>
                 {hasMore[list.id] && (
                   <div ref={ref} className="mt-4 flex justify-center">
-                    <BarLoader color="#1d51d7" height={3} width={300} />
+                    <BarLoader color="#2563eb" height={3} width={300} />
                   </div>
                 )}
               </div>

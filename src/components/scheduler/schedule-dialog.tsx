@@ -28,6 +28,7 @@ import { usePostStore } from "@/store/post";
 import { getLinkedInId } from "@/actions/user";
 import LinkedInConnect from "../global/connect-linkedin";
 import { getDraft } from "@/actions/draft";
+import CalendarDaysOutline from "../icons/calendar-days-outline";
 
 interface ScheduleDialogProps {
   id: string;
@@ -196,7 +197,7 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" disabled={disabled}>
-          <CalendarBlank className="mr-2 h-4 w-4" />
+          <CalendarDaysOutline className="mr-1 h-5 w-5" />
           Schedule
         </Button>
       </DialogTrigger>

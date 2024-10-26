@@ -33,8 +33,8 @@ import {
   Link,
   LinkSimpleHorizontal,
   PaperclipHorizontal,
-  Plus,
 } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { getUser } from "@/actions/user";
@@ -150,7 +150,7 @@ export default function SavedStylesPage() {
           variant={"outline"}
           onClick={() => setIsCreatorDialogOpen(true)}
         >
-          <LinkSimpleHorizontal size={15} className="mr-1" />
+          <Plus size={15} className="mr-1" />
           Add Creator Style
         </Button>
         <Dialog
@@ -195,7 +195,7 @@ export default function SavedStylesPage() {
           >
             <DialogTrigger asChild>
               <Button>
-                <LinkSimpleHorizontal size={15} className="mr-1" />
+                <Plus size={15} className="mr-1" />
                 Add Creator Style
               </Button>
             </DialogTrigger>
@@ -305,7 +305,7 @@ export default function SavedStylesPage() {
           Create one to get started. Add posts to curate the writing style.
         </p>
         <Button variant={"outline"} onClick={() => setIsCustomDialogOpen(true)}>
-          <Plus size={15} className="mr-1" weight="bold" />
+          <Plus size={15} className="mr-1" />
           Create a Custom Style
         </Button>
         <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
@@ -347,7 +347,7 @@ export default function SavedStylesPage() {
           >
             <DialogTrigger asChild>
               <Button variant="outline">
-                <Plus weight="bold" className="mr-1" />
+                <Plus className="mr-1" />
                 New Custom Style
               </Button>
             </DialogTrigger>
@@ -442,7 +442,7 @@ export default function SavedStylesPage() {
         </div>
       )}
       <div className="mb-8 text-left">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Writing Styles
         </h1>
 

@@ -14,14 +14,8 @@ import { getDrafts, saveDraft } from "@/actions/draft";
 import { parseContent } from "@/utils/editor-utils";
 import { toast } from "sonner";
 import { Draft } from "@/actions/draft";
-import {
-  Empty,
-  Folder,
-  HardDrives,
-  Moon,
-  Plus,
-  Sun,
-} from "@phosphor-icons/react";
+import { Empty, Folder, HardDrives, Moon, Sun } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -45,6 +39,7 @@ import { usePostStore } from "@/store/post";
 import { useRouter } from "next/navigation";
 import { BookDashed, PenSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
+import GridCirclePlusLine from "../icons/grid-circle-plus-line";
 
 export function SchedulePostDialog() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -245,7 +240,6 @@ export function SchedulePostDialog() {
             className="w-full"
             variant={"outline"}
           >
-            <Folder size={18} className="mx-1.5" />
             Saved Posts
           </Button>
           <Button onClick={handleCreateDraft} className="w-full">
@@ -382,7 +376,7 @@ export function SchedulePostDialog() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
-                  <Plus size={15} className="mr-1" />
+                  <Plus size={16} className="mr-1" />
                   Schedule Post
                 </Button>
               </TooltipTrigger>
@@ -421,7 +415,6 @@ export function SchedulePostDialog() {
                   onClick={() => router.push("/create/posts")}
                   className="mt-4"
                 >
-                  <BookDashed size={18} className="mr-2" />
                   Explore Templates
                 </Button>
               </div>

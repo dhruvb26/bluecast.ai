@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { getDrafts, deleteDraft, Draft, saveDraft } from "@/actions/draft";
+import { getDrafts, deleteDraft, Draft } from "@/actions/draft";
 import { toast } from "sonner";
 import { ParallaxScroll } from "@/components/ui/parallax-scroll";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -14,26 +14,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { v4 as uuid } from "uuid";
+
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
-  CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
 import {
-  PenIcon,
   CalendarIcon,
   RocketIcon,
   BadgeInfoIcon,
   PenSquare,
-  BookDashed,
 } from "lucide-react";
 import { BarLoader } from "react-spinners";
-import { CalendarDots } from "@phosphor-icons/react";
 
 type TabType = "saved" | "scheduled" | "published" | "progress";
 
@@ -97,7 +93,7 @@ const SavedDraftsContent = () => {
     if (isLoading) {
       return (
         <div className="flex justify-center items-center h-[400px]">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       );
     }
@@ -125,7 +121,7 @@ const SavedDraftsContent = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-xl font-semibold tracking-tight mb-1">Drafts</h1>
+      <h1 className="text-lg font-semibold tracking-tight">Drafts</h1>
       <p className="text-muted-foreground mb-6 text-sm">
         Manage your content creation journey here.
       </p>
@@ -175,15 +171,9 @@ function EmptyState({ type }: { type: TabType }) {
       description:
         "Start your writing journey. Save your drafts and come back to them later. Explore our templates to get started.",
       actions: [
-        // {
-        //   label: "Write",
-        //   href: `/draft/${uuid()}`,
-        //   icon: <PenSquare size={18} className="mr-2" />,
-        // },
         {
           label: "Explore Templates",
           href: "/create/posts",
-          icon: <BookDashed size={18} className="mr-2" />,
         },
       ],
       action: "",
@@ -254,9 +244,6 @@ function EmptyState({ type }: { type: TabType }) {
               }
             }}
           >
-            {type === "scheduled" && (
-              <CalendarDots size={18} className="mr-2" />
-            )}
             {content[type].action}
           </Button>
         ) : null}

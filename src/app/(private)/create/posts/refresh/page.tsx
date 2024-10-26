@@ -8,7 +8,7 @@ const MakeItBetterPage = () => {
   return (
     <main>
       <div className="mb-8">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Refresh Writing Style of Your Post
         </h1>
         <p className="text-sm text-muted-foreground">

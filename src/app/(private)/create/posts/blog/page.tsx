@@ -9,9 +9,9 @@ import { ChevronLeft } from "lucide-react";
 
 const BlogLinkedInPage = () => {
   return (
-    <main>
+    <main className="w-full">
       <div className="mb-8">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Convert any Blog to LinkedIn Post
         </h1>
         <p className="text-sm text-muted-foreground">

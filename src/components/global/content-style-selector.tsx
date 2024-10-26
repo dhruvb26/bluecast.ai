@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getContentStyles, ContentStyle } from "@/actions/style";
-import CustomLoader from "./custom-loader";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
 import { Plus } from "lucide-react";
-
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 export function ContentStyleSelector({
   onSelectStyle,
 }: {
@@ -74,7 +73,7 @@ export function ContentStyleSelector({
         <SelectContent>
           {isLoading ? (
             <div className="flex items-center justify-center p-2">
-              <CustomLoader className="text-foreground" />
+              <Loader2 size={16} className="animate-spin" />
             </div>
           ) : (
             <>
@@ -83,12 +82,13 @@ export function ContentStyleSelector({
                   {style.name}
                 </SelectItem>
               ))}
+              <DropdownMenuSeparator />
               <SelectItem
                 className="text-sm pl-2  focus:bg-blue-600 transition-all focus:text-white"
                 value="custom"
                 hideIndicator={true}
               >
-                <Plus className="inline mr-1 w-4 h-4" />
+                <Plus className="inline mr-1" size={16} />
                 Create New
               </SelectItem>
             </>

@@ -14,16 +14,9 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { Slate, Editable, ReactEditor, useSlate } from "slate-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Range } from "slate";
-import {
-  TbFishHook,
-  TbPencilCog,
-  TbPencilPlus,
-  TbTextGrammar,
-} from "react-icons/tb";
-import { PiTextIndent, PiTextOutdent } from "react-icons/pi";
+import { TbFishHook, TbPencilCog, TbPencilPlus } from "react-icons/tb";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { HiOutlineCursorClick } from "react-icons/hi";
 import { Separator } from "@/components/ui/separator";
@@ -32,15 +25,11 @@ import ScheduleDialog from "@/components/scheduler/schedule-dialog";
 import { toast } from "sonner";
 import EmojiPicker, { SkinTonePickerLocation } from "emoji-picker-react";
 import {
-  Brain,
-  FileVideo,
-  PaperPlaneRight,
   Smiley,
   Sparkle,
   TextB,
   TextItalic,
   TextUnderline,
-  Upload,
 } from "@phosphor-icons/react";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -49,24 +38,19 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import FileAttachmentButton from "@/components/buttons/file-attachment- button";
-import { Send } from "lucide-react";
+import {
+  CircleCheckBig,
+  IndentDecrease,
+  IndentIncrease,
+  Send,
+} from "lucide-react";
 import { HistoryEditor } from "slate-history";
 import { deserializeContent } from "@/utils/editor-utils";
-import { Input } from "@/components/ui/input";
-import CustomLoader from "../global/custom-loader";
+import { Loader2 } from "lucide-react";
 import { getLinkedInId } from "@/actions/user";
 import LinkedInConnect from "../global/connect-linkedin";
 import { usePostStore } from "@/store/post";
-import { UploadButton } from "@/utils/uploadthing";
-import { saveDraft, updateDraftField } from "@/actions/draft";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "../ui/dialog";
+
 import { useRouter } from "next/navigation";
 
 export type ParagraphElement = {
@@ -280,9 +264,6 @@ function EditorSection({
     "--epr-category-label-bg-color": "#ffffff",
     "--epr-text-color": "#101828",
     "--epr-category-icon-active-color": "#ffffff",
-    "--epr-search-input-bg-color": "#dbeafe",
-    "--epr-search-input-text-color": "#1d4ed8",
-    "--epr-search-input-placeholder-color": "#2563eb",
     "--epr-category-navigation-button-size": "0px",
     "--epr-preview-height": "50px",
   } as React.CSSProperties;
@@ -515,8 +496,8 @@ function EditorSection({
         </div>
       )}
       <div className="relative">
-        <div className="text-left mb-2 px-4 pt-4">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <div className="text-left px-4 pt-4">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Write Post
           </h1>
           <p className="text-sm  text-muted-foreground ">
@@ -588,7 +569,7 @@ function EditorSection({
                   }}
                 >
                   {isRewriting ? (
-                    <CustomLoader className="mr-1 h-3 w-3" />
+                    <Loader2 size={16} className="animate-spin" />
                   ) : (
                     <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
                   )}
@@ -601,93 +582,74 @@ function EditorSection({
                 style={{ position: "absolute" }}
                 onOpenAutoFocus={(e) => e.preventDefault()}
               >
-                <ScrollArea className="h-[250px]">
-                  <div className="flex flex-col rounded">
-                    {/* <div className="flex flex-row space-x-1 p-1">
-                      <Input
-                        type="text"
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                        placeholder="Custom Instructions"
-                        className="h-8 w-full rounded border border-gray-300 px-2 py-1 text-xs"
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 items-center justify-center rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                        onClick={() => handleOptionClick("custom")}
-                        disabled={!customPrompt.trim()}
-                      >
-                        <PaperPlaneRight className="h-5 w-5 text-blue-600" />
-                      </Button>
-                    </div> */}
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("continue")}
-                    >
-                      <TbPencilPlus className="mr-2 h-5 w-5 stroke-2 text-blue-600" />
-                      Continue writing
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("improve")}
-                    >
-                      <TbPencilCog className="mr-2 h-5 w-5 text-blue-600" />
-                      Improve writing
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("fixGrammar")}
-                    >
-                      <TbTextGrammar className="mr-2 h-5 w-5 text-blue-600" />
-                      Fix grammar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("makeShorter")}
-                    >
-                      <PiTextOutdent className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
-                      Make shorter
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("makeLonger")}
-                    >
-                      <PiTextIndent className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
-                      Make longer
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("simplify")}
-                    >
-                      <HiOutlineSparkles className="mr-2 h-5 w-5 text-blue-600" />
-                      Simplify text
-                    </Button>
+                {/* <ScrollArea className="h-[250px]"> */}
+                <div className="flex flex-col rounded">
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("continue")}
+                  >
+                    <TbPencilPlus className="mr-2 h-5 w-5 stroke-1.25 text-blue-600" />
+                    Continue writing
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("improve")}
+                  >
+                    <TbPencilCog className="mr-2 h-5 w-5 text-blue-600" />
+                    Improve writing
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("fixGrammar")}
+                  >
+                    <CircleCheckBig className="mr-2 h-4 w-4 text-blue-600" />
+                    Fix grammar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("makeShorter")}
+                  >
+                    <IndentDecrease className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
+                    Make shorter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("makeLonger")}
+                  >
+                    <IndentIncrease className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
+                    Make longer
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("simplify")}
+                  >
+                    <HiOutlineSparkles className="mr-2 h-5 w-5 text-blue-600" />
+                    Simplify text
+                  </Button>
 
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("hook")}
-                    >
-                      <TbFishHook className="mr-2 h-5 w-5 text-blue-600" />
-                      Add a hook
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("cta")}
-                    >
-                      <HiOutlineCursorClick className="mr-2 h-5 w-5 text-blue-600" />
-                      Add a CTA
-                    </Button>
-                  </div>
-                </ScrollArea>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("hook")}
+                  >
+                    <TbFishHook className="mr-2 h-5 w-5 text-blue-600" />
+                    Add a hook
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("cta")}
+                  >
+                    <HiOutlineCursorClick className="mr-2 h-5 w-5 text-blue-600" />
+                    Add a CTA
+                  </Button>
+                </div>
               </PopoverContent>
             </Popover>
           </div>
@@ -713,7 +675,7 @@ function EditorSection({
             />
           </div>
         </Slate>
-        <div className="mt-2 flex w-full justify-between text-xs text-gray-500 px-4">
+        <div className="mt-2 mb-10 flex w-full justify-between text-xs text-gray-500 px-4">
           <span>
             {updateAt ? (
               `Last saved at: ${updateAt.toLocaleString()} (${
@@ -736,9 +698,9 @@ function EditorSection({
           <ScheduleDialog id={id} disabled={isPublishing} />
           <Button onClick={handlePublish} disabled={isPublishing}>
             {isPublishing ? (
-              <CustomLoader className="mr-2 h-4 w-4 text-white" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Send className="mr-2 h-4 w-4" />
+              <Send className="mr-1 h-4 w-4" />
             )}
             {isPublishing ? "Publishing" : "Publish"}
           </Button>

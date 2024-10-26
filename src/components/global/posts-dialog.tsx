@@ -15,7 +15,8 @@ import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { Draft } from "@/actions/draft";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "../ui/textarea";
-import { Empty, Plus } from "@phosphor-icons/react";
+import { Empty } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -26,6 +27,7 @@ import { BookDashed, PenSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { BarLoader } from "react-spinners";
+import GridCirclePlusLine from "../icons/grid-circle-plus-line";
 
 interface PostsDialogProps {
   onSelect: (content: string) => Promise<void>;
@@ -94,7 +96,7 @@ export function PostsDialog({
     <div className="flex h-[500px] w-full">
       {isLoading ? (
         <div className="flex items-center justify-center w-full">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       ) : posts.length > 0 ? (
         <>
@@ -153,7 +155,6 @@ export function PostsDialog({
               onClick={() => router.push("/create/posts")}
               className="mt-4"
             >
-              <BookDashed size={18} className="mr-2" />
               Explore Templates
             </Button>
           </div>
@@ -188,7 +189,7 @@ export function PostsDialog({
                   setIsDialogOpen(true);
                 }}
               >
-                <Plus size={15} weight="bold" className="mr-1" />
+                <Plus size={16} className="mr-1" />
                 {triggerText}
               </Button>
             </TooltipTrigger>

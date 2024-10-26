@@ -238,7 +238,7 @@ export default function PreferencesPage() {
   return (
     <main className="p-8">
       <div className="mb-8 text-left">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Set Account Preferences
         </h1>
         <p className="text-sm text-muted-foreground">

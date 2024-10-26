@@ -140,7 +140,7 @@ export function GeneratedContent() {
               </div>
               {!isStreamComplete && isLoading && (
                 <div className="flex h-full w-full items-center justify-center">
-                  <BarLoader color="#1d51d7" height={3} width={150} />
+                  <BarLoader color="#2563eb" height={3} width={150} />
                 </div>
               )}
             </div>

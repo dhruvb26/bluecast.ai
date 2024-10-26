@@ -298,7 +298,7 @@ export function ForYouForm() {
   if (isLoading) {
     return (
       <div className="h-full w-full items-center justify-center flex">
-        <BarLoader color="#1d51d7" height={3} width={300} />
+        <BarLoader color="#2563eb" height={3} width={300} />
       </div>
     );
   }

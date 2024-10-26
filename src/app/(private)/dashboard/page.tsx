@@ -8,6 +8,7 @@ import { BookDashed, PenSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { saveDraft } from "@/actions/draft";
+import GridCirclePlusLine from "@/components/icons/grid-circle-plus-line";
 
 const GettingStartedSteps = async () => {
   const router = useRouter();
@@ -17,10 +18,10 @@ const GettingStartedSteps = async () => {
     router.push(`/draft/${id}`);
   };
   return (
-    <main className="space-y-8 p-4 sm:p-8">
+    <main className="space-y-6 p-8">
       <div>
         <div className="mb-8 text-left">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Explore Our Features and Resources
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -47,11 +48,11 @@ const GettingStartedSteps = async () => {
                   className="block h-full"
                 >
                   <div className="flex flex-col h-full">
-                    <div className="mb-4 flex-shrink-0 flex items-center justify-center w-full">
+                    <div className="flex-shrink-0 flex items-center justify-center w-full">
                       <Image
-                        src="/brand/Bluecast Symbol.png"
-                        width={40}
-                        height={40}
+                        src="/images/growth.png"
+                        width={150}
+                        height={150}
                         alt="AI-powered growth tools"
                         className="object-contain"
                       />
@@ -78,11 +79,11 @@ const GettingStartedSteps = async () => {
                   className="block h-full"
                 >
                   <div className="flex flex-col h-full items-center justify-center">
-                    <div className="mb-4 flex-shrink-0 flex items-center justify-center w-full">
+                    <div className=" flex-shrink-0 flex items-center justify-center w-full">
                       <Image
-                        src="/icons/feedback.png"
-                        width={65}
-                        height={65}
+                        src="/images/feedback.png"
+                        width={150}
+                        height={150}
                         alt="AI-powered growth tools"
                         className="object-contain"
                       />
@@ -101,46 +102,38 @@ const GettingStartedSteps = async () => {
           </div>
         </div>
         <div className="flex flex-col items-start justify-center mt-8">
-          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 w-full">
-            <Card className="flex-1">
-              <CardContent className="p-6 flex flex-col items-center">
+          <Card className="w-full">
+            <CardContent className="p-6 flex flex-row items-center justify-between">
+              <div className="flex-grow">
                 <h3 className="text-lg font-semibold tracking-tight mb-2">
-                  Start from Scratch
+                  Create Your LinkedIn Content
                 </h3>
-                <p className="text-sm text-muted-foreground mb-4 text-center">
-                  Begin with a blank canvas and let your creativity flow,
-                  complete with real-time post preview.
+                <p className="text-sm text-muted-foreground">
+                  Choose your starting point: begin with a blank canvas to craft
+                  your unique message, or explore our curated templates for
+                  inspiration. Our intuitive editor provides real-time post
+                  previews, helping you create engaging LinkedIn content
+                  effortlessly.
                 </p>
-
+              </div>
+              <div className="ml-6 flex-shrink-0 flex flex-col space-y-2">
                 <Button
                   onClick={handleCreateDraft}
                   className="bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white transition-all duration-300"
                 >
                   <PenSquare size={18} className="mr-2" />
-                  Write My First Post
+                  Write Post
                 </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="flex-1">
-              <CardContent className="p-6 flex flex-col items-center">
-                <h3 className="text-lg font-semibold tracking-tight">
-                  Use a Template
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4 text-center">
-                  Craft your Bluecast-powered post. Choose from our curated
-                  templates.
-                </p>
                 <Button
                   variant="outline"
-                  onClick={() => router.push("/create/posts")}
+                  className="transition-all duration-300"
                 >
-                  <BookDashed size={18} className="mr-2" />
+                  {/* <LayoutTemplate size={18} className="mr-2" /> */}
                   Explore Templates
                 </Button>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </main>

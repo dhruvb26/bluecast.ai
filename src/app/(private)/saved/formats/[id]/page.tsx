@@ -1,12 +1,12 @@
 "use client";
 
 import { Suspense } from "react";
-import CustomLoader from "@/components/global/custom-loader";
+import { Loader2 } from "lucide-react";
 import FormatContent from "../_content/formats-content";
 
 export default function FormatPage() {
   return (
-    <Suspense fallback={<CustomLoader size={32} />}>
+    <Suspense fallback={<Loader2 size={32} className="animate-spin" />}>
       <FormatContent />
     </Suspense>
   );

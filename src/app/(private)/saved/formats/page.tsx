@@ -11,7 +11,7 @@ import {
   deletePostFormat,
 } from "@/actions/format";
 import { toast } from "sonner";
-import CustomLoader from "@/components/global/custom-loader";
+import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -94,7 +94,7 @@ export default function SavedFormatsPage() {
       </div>
 
       {isLoading ? (
-        <CustomLoader size={32} />
+        <Loader2 size={32} className="animate-spin" />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {userFormats.map((format) => (

@@ -171,6 +171,26 @@ export const postRelations = relations(posts, ({ one }) => ({
   }),
 }));
 
+export const instructions = createTable("instruction", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  userId: varchar("user_id", { length: 256 })
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  instructions: text("instructions").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+});
+
+export const instructionRelations = relations(instructions, ({ one }) => ({
+  user: one(users, { fields: [instructions.userId], references: [users.id] }),
+}));
+
 // Users & Accounts
 export const users = createTable("user", {
   id: varchar("id", { length: 255 }).primaryKey(),
@@ -200,6 +220,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   drafts: many(drafts),
   forYouAnswers: many(forYouAnswers),
   generatedPosts: many(generatedPosts),
+  instructions: many(instructions),
 }));
 
 export const accounts = createTable(

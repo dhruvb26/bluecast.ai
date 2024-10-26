@@ -9,7 +9,7 @@ export default function FormatPage() {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-full">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       }
     >

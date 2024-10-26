@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useIdeasStore } from "@/store/idea";
-import CustomLoader from "../global/custom-loader";
 
 const formSchema = z.object({
   topic: z.string().min(2, {

@@ -18,7 +18,11 @@ const SchedulerPage = async () => {
     console.error("Error fetching drafts:", error);
   }
 
-  return <Calendar drafts={drafts} />;
+  return (
+    <div className="p-4">
+      <Calendar drafts={drafts} />
+    </div>
+  );
 };
 
 export default SchedulerPage;

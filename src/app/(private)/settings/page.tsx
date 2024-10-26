@@ -72,7 +72,7 @@ const SettingsPage = async () => {
     <main className="p-8">
       <div className="space-y-12">
         <div className="text-left">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Account Settings
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -219,11 +219,6 @@ const SettingsPage = async () => {
               }
             >
               <Button variant={"outline"}>
-                <Money
-                  className="mr-2 inline text-[#0078d4]"
-                  size={20}
-                  weight="fill"
-                />
                 {hasSubscription ? "Manage Subscription" : "Pricing and Plans"}
               </Button>
             </Link>

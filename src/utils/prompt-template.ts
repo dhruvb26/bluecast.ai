@@ -38,6 +38,7 @@ Writing guidelines:
 10. NEVER start with a one liner idea or a hook, get right into the post
 11. NEVER use emojis or hashtags unless specifically mentioned in the custom instructions
 12. If the examples don't use bullet points, don't use bullet points
+13. DO NOT use any information outside of the given content
 
 Provide only the rewritten post, without any explanations or additional comments.
 `;

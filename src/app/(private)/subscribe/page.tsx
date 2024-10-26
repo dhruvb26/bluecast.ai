@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 const Subscription = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md space-y-2 rounded-lg bg-white px-8 py-6 text-center flex flex-col items-center justify-center shadow-lg">
+      <div className="w-full max-w-md space-y-1 rounded-lg bg-white px-8 py-6 text-center flex flex-col items-center justify-center shadow-lg">
         <Image
           src="/brand/Bluecast Logo.png"
           height={165}

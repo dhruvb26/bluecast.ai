@@ -4,7 +4,6 @@ import { Toaster } from "sonner";
 import { Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { PHProvider } from "./providers";
-import FeedbackButton from "@/components/buttons/feedback-button";
 import dynamic from "next/dynamic";
 import * as Frigade from "@frigade/react";
 import { env } from "@/env";
@@ -51,12 +50,10 @@ export default async function RootLayout({
             <body>
               <PostHogPageView />
               {children}
-              <FeedbackButton />
               <Toaster
                 className="ml-0 mr-0"
                 position="top-right"
                 offset={32}
-                // closeButton={true}
                 toastOptions={{
                   unstyled: true,
                   classNames: {
