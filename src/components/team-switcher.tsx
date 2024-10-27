@@ -19,15 +19,16 @@ import {
 import Image from "next/image";
 import { Badge } from "./ui/badge";
 import { HourglassSimpleHigh } from "@phosphor-icons/react";
-
 export function TeamSwitcher({
   teams,
+  loading = false,
 }: {
   teams: {
     name: string;
     logo: React.ReactNode;
     plan: string;
   }[];
+  loading?: boolean;
 }) {
   const { isMobile, state } = useSidebar();
   const [activeTeam, setActiveTeam] = React.useState(teams[0]);
@@ -36,7 +37,10 @@ export function TeamSwitcher({
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger
+            className="focus-visible:ring-0 focus-visible:ring-offset-0"
+            asChild
+          >
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground rounded-md"
@@ -47,6 +51,7 @@ export function TeamSwitcher({
                 } w-full`}
               >
                 <Image
+                  priority
                   src="/brand/Bluecast Symbol.png"
                   alt="Bluecast"
                   width={24}
@@ -57,6 +62,7 @@ export function TeamSwitcher({
                   <>
                     <div className="ml-2 grid flex-1 text-left text-sm leading-tight">
                       <Image
+                        priority
                         src="/brand/Name.png"
                         alt="Bluecast"
                         width={80}
@@ -64,7 +70,11 @@ export function TeamSwitcher({
                         className="w-20 h-5 object-contain"
                       />
                       <span className="truncate text-xs text-muted-foreground">
-                        {activeTeam.plan}
+                        {loading ? (
+                          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                        ) : (
+                          activeTeam.plan
+                        )}
                       </span>
                     </div>
                     <ChevronsUpDown className="ml-auto size-4" />

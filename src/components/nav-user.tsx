@@ -36,7 +36,10 @@ export function NavUser({ user }: { user: any }) {
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger
+            className="focus-visible:ring-0 focus-visible:ring-offset-0"
+            asChild
+          >
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"

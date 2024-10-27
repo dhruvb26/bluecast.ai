@@ -11,6 +11,8 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import GridCirclePlus from "./icons/grid-circle-plus";
@@ -33,6 +35,7 @@ import MsgBubbleUser from "./icons/msg-bubble-user";
 import Rocket from "./icons/rocket";
 import RocketOutline from "./icons/rocket-outline";
 import { StackSimple } from "@phosphor-icons/react";
+import Image from "next/image";
 
 const data = {
   user: {
@@ -152,14 +155,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     fetchUser();
   }, []);
 
-  if (!user) {
-    return null;
-  }
-
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={data.teams} loading={!isLoaded} />
       </SidebarHeader>
       <SidebarContent className="gap-0">
         <NavCreate projects={data.create} />
@@ -167,7 +166,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <NavFooter user={user} footerItems={data.footer} />
       <SidebarFooter>
-        {isLoaded && user && <NavUser user={user} />}
+        {isLoaded && user ? (
+          <NavUser user={user} />
+        ) : (
+          <div className="flex items-center gap-2 p-2 h-[48px]">
+            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+            <div className="flex flex-col gap-1">
+              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+              <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </div>
+        )}
       </SidebarFooter>
     </Sidebar>
   );

@@ -25,7 +25,7 @@ export function NavFooter({
     url: string;
     icon: React.ReactNode;
   }[];
-  user: User;
+  user: User | null;
 }) {
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -86,26 +86,26 @@ export function NavFooter({
               <div className="w-48 space-y-2">
                 <div className="flex flex-col">
                   <span className="text-xs text-foreground">
-                    {user.specialAccess
-                      ? `${user.generatedPosts || 0} / 10 posts`
-                      : `${user.generatedWords || 0} / 50000 words`}
+                    {user?.specialAccess
+                      ? `${user?.generatedPosts || 0} / 10 posts`
+                      : `${user?.generatedWords || 0} / 50000 words`}
                   </span>
                   <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
                     <div
                       className="h-1.5 rounded-full bg-blue-600 transition-all duration-300 ease-in-out"
                       style={{
                         width: `${
-                          user.specialAccess
-                            ? ((user.generatedPosts || 0) / 10) * 100
-                            : ((user.generatedWords || 0) / 50000) * 100
+                          user?.specialAccess
+                            ? ((user?.generatedPosts || 0) / 10) * 100
+                            : ((user?.generatedWords || 0) / 50000) * 100
                         }%`,
                       }}
                     ></div>
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {user.specialAccess
-                    ? user.generatedPosts >= 10
+                  {user?.specialAccess
+                    ? user?.generatedPosts >= 10
                       ? "You've hit the limit. Upgrade your plan for more content generation."
                       : "This trial allows you to generate 10 posts as of now."
                     : "This plan allows you to generate 50k words monthly as of now."}
