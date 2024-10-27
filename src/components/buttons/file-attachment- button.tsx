@@ -38,6 +38,14 @@ const FileAttachmentButton = ({
   const [documentName, setDocumentName] = useState("");
   const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
 
+  // Add ref for file input
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Add function to trigger file input click
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -178,12 +186,22 @@ const FileAttachmentButton = ({
             <div className="flex flex-col space-y-3 py-4">
               <div>
                 <Input
+                  ref={fileInputRef}
                   id="file-upload"
                   type="file"
                   className="mb-1"
                   onChange={handleFileChange}
                   accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,application/pdf"
+                  style={{ display: "none" }} // Hide the default input
                 />
+                <Button className="w-full" onClick={handleUploadClick}>
+                  Choose File
+                </Button>
+                {selectedFile && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Selected: {selectedFile.name}
+                  </p>
+                )}
               </div>
               {selectedFile &&
                 (selectedFile.type === "application/pdf" ||
@@ -203,25 +221,27 @@ const FileAttachmentButton = ({
                   </div>
                 )}
               <div className="flex flex-col justify-center items-center">
-                <Button
-                  className="w-full"
-                  loading={isUploading}
-                  onClick={handleAttach}
-                  disabled={
-                    !selectedFile ||
-                    isUploading ||
-                    ((selectedFile.type === "application/pdf" ||
-                      selectedFile.type === "video/mp4") &&
-                      !documentName)
-                  }
-                >
-                  {isUploading ? "Processing" : "Upload"}
-                </Button>
+                {selectedFile && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    loading={isUploading}
+                    onClick={handleAttach}
+                    disabled={
+                      isUploading ||
+                      ((selectedFile.type === "application/pdf" ||
+                        selectedFile.type === "video/mp4") &&
+                        !documentName)
+                    }
+                  >
+                    {isUploading ? "Processing" : "Upload"}
+                  </Button>
+                )}
                 <p className="text-xs text-gray-600 mt-1">Images/PDFs (64MB)</p>
               </div>
             </div>
             <UploadButton
-              className=" ut-button:w-full ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
+              className=" ut-button:w-full ut-button:hover:bg-primary/90 ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
               endpoint="videoUploader"
               onClientUploadComplete={(res) => {
                 if (res && res[0]?.url) {

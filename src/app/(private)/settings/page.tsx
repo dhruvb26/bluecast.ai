@@ -82,7 +82,7 @@ const SettingsPage = async () => {
         </div>
         <section className="flex space-x-4">
           <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
               Personal
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -132,7 +132,7 @@ const SettingsPage = async () => {
 
         <section className="flex space-x-4">
           <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
               Account Access
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -166,7 +166,7 @@ const SettingsPage = async () => {
         </section>
         <section className="flex space-x-4">
           <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
               Usage Limits
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -198,7 +198,7 @@ const SettingsPage = async () => {
 
         <section className="flex space-x-4">
           <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
               {hasSubscription ? "Subscription" : "Pricing"}
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -226,7 +226,7 @@ const SettingsPage = async () => {
         </section>
         <section className="flex space-x-4">
           <div className="w-1/3">
-            <h2 className="text-md font-semibold tracking-tight text-foreground">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
               LinkedIn
             </h2>
             <p className="text-sm text-muted-foreground">

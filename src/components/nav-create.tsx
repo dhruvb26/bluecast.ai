@@ -3,9 +3,11 @@
 import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { PenSquare } from "lucide-react";
+import { HourglassSimpleHigh } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { saveDraft } from "@/actions/draft";
+import { Badge } from "@/components/ui/badge";
 
 import {
   SidebarGroup,
@@ -22,10 +24,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import Rocket from "./icons/rocket";
-import RocketOutline from "./icons/rocket-outline";
-import { Badge } from "./ui/badge";
-import { HourglassSimpleHigh } from "@phosphor-icons/react";
 
 export function NavCreate({
   projects,
@@ -35,6 +33,7 @@ export function NavCreate({
     url: string;
     activeIcon: React.ReactNode;
     inactiveIcon: React.ReactNode;
+    comingSoon?: boolean;
   }[];
 }) {
   const { isMobile, state } = useSidebar();
@@ -63,7 +62,14 @@ export function NavCreate({
         <Tooltip>
           <TooltipTrigger asChild>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
+              <a
+                href={item.url}
+                className={`flex items-center ${
+                  "comingSoon" in item && item.comingSoon
+                    ? "pointer-events-none"
+                    : ""
+                }`}
+              >
                 {isActive ? item.activeIcon : item.inactiveIcon}
                 {!isCollapsed && (
                   <span
@@ -73,6 +79,15 @@ export function NavCreate({
                   >
                     {item.name}
                   </span>
+                )}
+                {"comingSoon" in item && item.comingSoon && !isCollapsed && (
+                  <Badge className="ml-1 opacity-80 font-normal text-xs hover:bg-indigo-100 text-indigo-600 hover:text-indigo-600 bg-indigo-100">
+                    <HourglassSimpleHigh
+                      weight="fill"
+                      className="inline w-3 h-3"
+                    />
+                    Soon
+                  </Badge>
                 )}
               </a>
             </SidebarMenuButton>
@@ -125,35 +140,6 @@ export function NavCreate({
         )}
         <SidebarMenu>
           {projects.map((item) => renderMenuItem(item))}
-
-          <SidebarMenuItem className="hover:bg-white">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SidebarMenuButton asChild className="hover:bg-white">
-                  <div>
-                    <RocketOutline />
-                    {!isCollapsed && (
-                      <span className="text-sm font-normal flex items-center justify-between w-full">
-                        Posts for You
-                        <Badge className="opacity-80 font-normal text-xs hover:bg-indigo-100 text-indigo-600 hover:text-indigo-600 bg-indigo-100">
-                          <HourglassSimpleHigh
-                            weight="fill"
-                            className="inline mr-1 w-3 h-3"
-                          />
-                          Soon
-                        </Badge>
-                      </span>
-                    )}
-                  </div>
-                </SidebarMenuButton>
-              </TooltipTrigger>
-              {isCollapsed && (
-                <TooltipContent side="right" className="z-50">
-                  <p>Posts for You</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </>

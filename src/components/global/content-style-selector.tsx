@@ -82,7 +82,7 @@ export function ContentStyleSelector({
                   {style.name}
                 </SelectItem>
               ))}
-              <DropdownMenuSeparator />
+              {styles.length > 0 && <DropdownMenuSeparator />}
               <SelectItem
                 className="text-sm pl-2  focus:bg-blue-600 transition-all focus:text-white"
                 value="custom"

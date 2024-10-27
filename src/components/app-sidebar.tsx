@@ -27,9 +27,12 @@ import GearOutline from "./icons/gear-outline";
 import Gear from "./icons/gear";
 import { getUser } from "@/actions/user";
 import { getPlanType } from "@/utils/plan";
-import Layers from "./icons/layers";
 import { NavFooter } from "./nav-footer";
+import { User } from "@/actions/user";
 import MsgBubbleUser from "./icons/msg-bubble-user";
+import Rocket from "./icons/rocket";
+import RocketOutline from "./icons/rocket-outline";
+import { StackSimple } from "@phosphor-icons/react";
 
 const data = {
   user: {
@@ -40,7 +43,9 @@ const data = {
   teams: [
     {
       name: "Default",
-      logo: <Layers className="text-muted-foreground mr-1" />,
+      logo: (
+        <StackSimple weight="duotone" className="text-muted-foreground mr-2" />
+      ),
       plan: "",
     },
   ],
@@ -112,6 +117,13 @@ const data = {
       inactiveIcon: <ChartBarTrendUpOutline />,
     },
     {
+      name: "Posts For You",
+      url: "/create/for-you",
+      activeIcon: <Rocket className="text-blue-600" />,
+      inactiveIcon: <RocketOutline />,
+      comingSoon: true,
+    },
+    {
       name: "Content Scheduler",
       url: "/schedule",
       activeIcon: <CalendarDays className="text-blue-600" />,
@@ -121,7 +133,7 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -130,8 +142,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         const userData = await getUser();
         setUser(userData);
         setIsLoaded(true);
-
-        // Update the plan in the teams data
         data.teams[0].plan = getPlanType(userData.priceId);
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -142,6 +152,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     fetchUser();
   }, []);
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -151,7 +165,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavCreate projects={data.create} />
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <NavFooter footerItems={data.footer} />
+      <NavFooter user={user} footerItems={data.footer} />
       <SidebarFooter>
         {isLoaded && user && <NavUser user={user} />}
       </SidebarFooter>

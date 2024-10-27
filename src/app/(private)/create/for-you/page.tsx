@@ -18,6 +18,7 @@ import ShinyLoader from "@/components/global/shiny-loader";
 import { RefreshCcw } from "lucide-react";
 import { usePostStore } from "@/store/post";
 import SubscriptionCard from "@/components/global/subscription-card";
+import Refresh2 from "@/components/icons/refresh-2";
 interface Post {
   id: string;
   content: string;
@@ -103,7 +104,7 @@ export default function ForYouPage() {
     return (
       <main className="p-8">
         <div className="mb-8">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Customize Your Preferences
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -135,7 +136,7 @@ export default function ForYouPage() {
     <main className="p-8">
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Posts For You
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -151,11 +152,7 @@ export default function ForYouPage() {
               onClick={handleGenerateContent}
               disabled={isGenerating}
             >
-              <ArrowsCounterClockwise
-                size={16}
-                className="mr-1"
-                weight="bold"
-              />
+              <Refresh2 className="w-4 h-4 mr-1" />
               Refresh
             </Button>
           )}

@@ -11,6 +11,27 @@ import { v4 as uuidv4 } from "uuid";
 import { LinkedInPost } from "@/app/api/ai/for-you/route";
 import { usePostStore } from "@/store/post";
 
+export type User = {
+  id: string;
+  name: string | null;
+  email: string;
+  emailVerified: Date | null;
+  linkedInId: string | null;
+  image: string | null;
+  hasAccess: boolean | null;
+  priceId: string | null;
+  stripeCustomerId: string | null;
+  headline: string | null;
+  stripeSubscriptionId: string | null;
+  trialEndsAt: Date | null;
+  onboardingComplete: boolean | null;
+  forYouGeneratedPosts: number;
+  generatedWords: number;
+  generatedPosts: number;
+  onboardingData: any;
+  specialAccess: boolean | null;
+};
+
 export async function getLinkedInId() {
   try {
     const user = await currentUser();
