@@ -9,8 +9,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Paperclip, Loader2 } from "lucide-react";
+import { Paperclip } from "@phosphor-icons/react";
 import { updateDraftField } from "@/actions/draft";
+import { toast } from "sonner";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
+import { usePostStore } from "@/store/post";
+import { saveDraft } from "@/actions/draft";
+import { UploadButton } from "@/utils/uploadthing";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 const FileAttachmentButton = ({
   postId,
@@ -23,10 +36,34 @@ const FileAttachmentButton = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [documentName, setDocumentName] = useState("");
+  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
+
+  // Add ref for file input
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Add function to trigger file input click
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Check if the file is an MP4 and exceeds 50 MB
+      if (file.type === "video/mp4" && file.size > 50 * 1024 * 1024) {
+        toast.error("MP4 files must be 50 MB or smaller.");
+        return;
+      }
+
+      // Check if the file is an image or PDF and exceeds 64 MB
+      if (
+        (file.type.startsWith("image/") || file.type === "application/pdf") &&
+        file.size > 64 * 1024 * 1024
+      ) {
+        toast.error("Image and PDF files must be 64 MB or smaller.");
+        return;
+      }
+
       setSelectedFile(file);
       if (file.type === "application/pdf" || file.type === "video/mp4") {
         setDocumentName(file.name.replace(/\.[^/.]+$/, ""));
@@ -37,6 +74,26 @@ const FileAttachmentButton = ({
   const handleAttach = async () => {
     if (selectedFile) {
       setIsUploading(true);
+
+      try {
+        const linkedInAccount = await getLinkedInId();
+        if (!linkedInAccount || linkedInAccount.length === 0) {
+          setIsUploading(false);
+          setIsOpen(false);
+          setShowLinkedInConnect(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error getting LinkedIn ID:", error);
+        toast.error(
+          "Failed to retrieve LinkedIn account information. Please try again."
+        );
+
+        setIsUploading(false);
+        setShowLinkedInConnect(true);
+        return <LinkedInConnect />;
+      }
+
       try {
         const formData = new FormData();
         formData.append("file", selectedFile);
@@ -91,7 +148,12 @@ const FileAttachmentButton = ({
           setDocumentName("");
           setIsOpen(false);
         } else {
-          throw new Error(result.message || "Upload failed");
+          console.error(
+            result.message || "Upload failed. Try a smaller size file."
+          );
+          toast.error(
+            result.message || "Upload failed. Try a smaller size file."
+          );
         }
       } catch (error: any) {
         console.error("Error in file upload process:", error.message);
@@ -102,74 +164,104 @@ const FileAttachmentButton = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Paperclip className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
-      <DialogContent aria-description="Upload" aria-describedby={"Upload"}>
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold tracking-tight">
-            Attach File
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col space-y-3 py-4">
-          <div>
-            <Input
-              id="file-upload"
-              type="file"
-              className="mb-1"
-              onChange={handleFileChange}
-              accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,.pptx,.docx,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.openxmlformats-officedocument.wordprocessingml.document,video/mp4,video/x-ms-asf,audio/mpeg,video/mpeg"
-            />
-            {selectedFile && (
-              <p className="text-sm text-gray-500">
-                <span className="font-medium">Selected file: </span>
-                {selectedFile.name}
-              </p>
-            )}
-          </div>
-          {selectedFile &&
-            (selectedFile.type === "application/pdf" ||
-              selectedFile.type === "video/mp4") && (
+    <TooltipProvider>
+      <Tooltip>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <TooltipTrigger asChild>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Paperclip weight="light" size={22} />
+              </Button>
+            </DialogTrigger>
+          </TooltipTrigger>
+          <DialogContent aria-description="Upload" aria-describedby={"Upload"}>
+            <DialogHeader>
+              <DialogTitle className="text-lg font-semibold tracking-tight">
+                Attach File
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">
+                Upload a file to attach to your post.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col space-y-3 py-4">
               <div>
                 <Input
+                  ref={fileInputRef}
+                  id="file-upload"
+                  type="file"
                   className="mb-1"
-                  type="text"
-                  placeholder="Enter document name"
-                  value={documentName}
-                  onChange={(e) => setDocumentName(e.target.value)}
+                  onChange={handleFileChange}
+                  accept="image/jpeg,image/gif,image/png,image/heic,image/heif,image/webp,image/bmp,image/tiff,.pdf,application/pdf"
+                  style={{ display: "none" }} // Hide the default input
                 />
-                <p className="text-sm text-gray-500">
-                  This name will appear as the title for your document on
-                  LinkedIn.
-                </p>
+                <Button className="w-full" onClick={handleUploadClick}>
+                  Choose File
+                </Button>
+                {selectedFile && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    Selected: {selectedFile.name}
+                  </p>
+                )}
               </div>
-            )}
-          <Button
-            className="rounded-lg bg-blue-600 hover:bg-blue-700"
-            onClick={handleAttach}
-            disabled={
-              !selectedFile ||
-              isUploading ||
-              ((selectedFile.type === "application/pdf" ||
-                selectedFile.type === "video/mp4") &&
-                !documentName)
-            }
-          >
-            {isUploading ? (
-              <>
-                Uploading
-                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-              </>
-            ) : (
-              "Attach"
-            )}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+              {selectedFile &&
+                (selectedFile.type === "application/pdf" ||
+                  selectedFile.type === "video/mp4") && (
+                  <div>
+                    <Input
+                      className="mb-1"
+                      type="text"
+                      placeholder="Enter document name"
+                      value={documentName}
+                      onChange={(e) => setDocumentName(e.target.value)}
+                    />
+                    <p className="text-sm text-gray-500">
+                      This name will appear as the title for your document on
+                      LinkedIn.
+                    </p>
+                  </div>
+                )}
+              <div className="flex flex-col justify-center items-center">
+                {selectedFile && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    loading={isUploading}
+                    onClick={handleAttach}
+                    disabled={
+                      isUploading ||
+                      ((selectedFile.type === "application/pdf" ||
+                        selectedFile.type === "video/mp4") &&
+                        !documentName)
+                    }
+                  >
+                    {isUploading ? "Processing" : "Upload"}
+                  </Button>
+                )}
+                <p className="text-xs text-gray-600 mt-1">Images/PDFs (64MB)</p>
+              </div>
+            </div>
+            <UploadButton
+              className=" ut-button:w-full ut-button:hover:bg-primary/90 ut-button:text-sm ut-button:mx-0 ut-button:h-9 ut-button:rounded-md ut-button:px-2 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
+              endpoint="videoUploader"
+              onClientUploadComplete={(res) => {
+                if (res && res[0]?.url) {
+                  updateDraftField(postId, "downloadUrl", res[0].url);
+                }
+                toast.success("File uploaded sucessfully.");
+                window.location.reload();
+              }}
+              onUploadError={(error: Error) => {
+                toast.error(`${error.message}`);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <TooltipContent>
+          <p>Files</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 

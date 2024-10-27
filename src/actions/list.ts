@@ -139,3 +139,37 @@ export async function deleteCreatorList(
     return { success: false, error: "Failed to delete creator list" };
   }
 }
+
+export async function removeCreatorFromList(
+  listId: string,
+  creatorId: string
+): Promise<ServerActionResponse<void>> {
+  try {
+    const user = await getUser();
+    if (!user.id) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    // Check if the list belongs to the user
+    const list = await db.query.creatorLists.findFirst({
+      where: eq(creatorLists.id, listId),
+    });
+
+    if (!list || list.userId !== user.id) {
+      return { success: false, error: "List not found or unauthorized" };
+    }
+
+    // Remove the creator from the list
+    const result = await db
+      .delete(creatorListItems)
+      .where(
+        eq(creatorListItems.creatorListId, listId) &&
+          eq(creatorListItems.creatorId, creatorId)
+      );
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error("Error removing creator from list:", error);
+    return { success: false, error: "Failed to remove creator from list" };
+  }
+}

@@ -16,9 +16,20 @@ import {
 import { Label } from "@/components/ui/label";
 import { getCreatorLists } from "@/actions/list";
 import { CreatorList } from "@/actions/list";
-import { Empty, Plus } from "@phosphor-icons/react";
+import { Empty } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import { UserPlus } from "lucide-react";
-
+import { BarLoader } from "react-spinners";
+import { getUser } from "@/actions/user";
+import { usePostStore } from "@/store/post";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+const SubscriptionCard = dynamic(
+  () => import("@/components/global/subscription-card"),
+  {
+    ssr: false,
+  }
+);
 export default function CreateCreatorList() {
   const [urls, setUrls] = useState([""]);
   const [listName, setListName] = useState("");
@@ -29,6 +40,8 @@ export default function CreateCreatorList() {
   useEffect(() => {
     fetchCreatorLists();
   }, []);
+  const [isFetching, setIsFetching] = useState(true);
+  const { showFeatureGate, setShowFeatureGate } = usePostStore();
 
   const linkedInUrlRegex = /^https:\/\/(?:www\.)?linkedin\.com\/in\/[\w-]+\/?$/;
   const urlSchema = z
@@ -44,6 +57,15 @@ export default function CreateCreatorList() {
     e.preventDefault();
     setIsLoading(true);
 
+    const user = await getUser();
+
+    if (!user.stripeSubscriptionId && !user.priceId) {
+      setShowFeatureGate(true);
+      setIsLoading(false);
+      setIsDialogOpen(false); // Close the dialog
+      return; // Cancel the request
+    }
+
     try {
       const formData = {
         listName,
@@ -53,7 +75,8 @@ export default function CreateCreatorList() {
 
       const validatedData = formSchema.parse(formData);
 
-      for (const url of validatedData.urls) {
+      for (let i = 0; i < validatedData.urls.length; i++) {
+        const url = validatedData.urls[i];
         const response = await fetch("/api/content/list", {
           method: "POST",
           headers: {
@@ -71,9 +94,13 @@ export default function CreateCreatorList() {
         if (!data.success) {
           throw new Error(data.error || `Failed to add URL: ${url}`);
         }
+
+        toast.success(`Creator ${i + 1} added to list successfully.`);
       }
 
-      toast.success("Creator list created successfully.");
+      toast.success(
+        `Creator list "${validatedData.listName}" created successfully with ${validatedData.urls.length} creators.`
+      );
       // Reset form
       setUrls([""]);
       setListName("");
@@ -92,7 +119,9 @@ export default function CreateCreatorList() {
       setIsLoading(false);
     }
   };
+
   const fetchCreatorLists = async () => {
+    setIsFetching(true);
     try {
       const privateResult = await getCreatorLists(false);
 
@@ -102,6 +131,9 @@ export default function CreateCreatorList() {
     } catch (error) {
       console.error("Error fetching creator lists:", error);
       toast.error("An error occurred while fetching creator lists");
+    } finally {
+      setIsFetching(false);
+      setIsDialogOpen(false);
     }
   };
 
@@ -109,11 +141,18 @@ export default function CreateCreatorList() {
     setIsDialogOpen(false);
   };
 
+  const router = useRouter();
+
   return (
     <main className="p-8">
+      {showFeatureGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <SubscriptionCard />
+        </div>
+      )}
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Creator Lists
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -121,13 +160,14 @@ export default function CreateCreatorList() {
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              {" "}
-              <Plus weight="bold" className="inline mr-1" size={15} />
-              Create New
-            </Button>
-          </DialogTrigger>
+          {creatorLists.length > 0 && (
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="inline mr-1" size={16} />
+                Create a Custom List
+              </Button>
+            </DialogTrigger>
+          )}
           <DialogContent>
             <DialogHeader className="flex flex-row space-x-2">
               <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
@@ -208,7 +248,11 @@ export default function CreateCreatorList() {
         </Dialog>
       </div>
 
-      {creatorLists.length === 0 ? (
+      {isFetching ? (
+        <div className="flex justify-center items-center min-h-[400px]">
+          <BarLoader color="#2563eb" height={3} width={300} />
+        </div>
+      ) : creatorLists.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
           <div className="mb-2">
             <Empty className="w-12 h-12 text-primary" />
@@ -219,13 +263,18 @@ export default function CreateCreatorList() {
           <p className="text-muted-foreground text-sm mb-4">
             Create customized creator lists to keep up with.
           </p>
+          <Button onClick={() => setIsDialogOpen(true)} variant={"outline"}>
+            <Plus className="inline mr-1" size={16} />
+            Create a Custom List
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {creatorLists.map((list) => (
             <div
               key={list.id}
-              className="border transition-all  space-y-1  rounded-md border-input p-4 "
+              onClick={() => router.push(`/saved/lists/${list.id}`)}
+              className="border cursor-pointer transition-all  space-y-1 hover:-translate-y-1 hover:shadow-sm rounded-md border-input p-4 "
             >
               <p className="text-xs text-muted-foreground">
                 Updated • {list.updatedAt.toLocaleString()}

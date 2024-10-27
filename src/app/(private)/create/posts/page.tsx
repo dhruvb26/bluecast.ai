@@ -4,12 +4,27 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
+import { usePostStore } from "@/store/post";
+import { useEffect } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Sparkle } from "@phosphor-icons/react";
+import Refresh2 from "@/components/icons/refresh-2";
+import PenWriting from "@/components/icons/pen-writing";
+import Book from "@/components/icons/book";
+import CircleInfo from "@/components/icons/circle-info";
+import Keyboard from "@/components/icons/keyboard";
 
 const PostsPage = () => {
+  const resetPostFields = usePostStore((state) => state.resetPostData);
+
+  useEffect(() => {
+    resetPostFields();
+  }, [resetPostFields]);
+
   return (
-    <main className="py-8">
+    <main>
       <div className="mb-8 text-left">
-        <h1 className="text-xl tracking-tight font-semibold text-foreground">
+        <h1 className="text-lg tracking-tight font-semibold text-foreground">
           Craft Engaging Posts with AI Assistance
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -28,7 +43,7 @@ const PostsPage = () => {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <Link href="/create/posts/yt">
             <Card className="group h-fit overflow-hidden border-red-100 bg-red-50 transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex flex-col  p-4 text-foreground relative z-10 space-y-2">
+              <CardContent className="flex flex-col  p-4 text-foreground relative  space-y-2">
                 <CardTitle className="text-base font-semibold tracking-tight flex justify-center items-center space-x-2">
                   YouTube{" "}
                   <ArrowRight
@@ -76,7 +91,7 @@ const PostsPage = () => {
 
           <Link href="/create/posts/blog">
             <Card className="group h-fit overflow-hidden border-orange-100 bg-orange-50 transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex flex-col  p-4 space-y-2 text-foreground relative z-10">
+              <CardContent className="flex flex-col  p-4 space-y-2 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight flex justify-center items-center space-x-2">
                   Blog{" "}
                   <ArrowRight
@@ -95,23 +110,27 @@ const PostsPage = () => {
               </CardContent>
             </Card>
           </Link>
-
-          <Card className="group h-fit overflow-hidden border-purple-100 bg-purple-50 transition-all  hover:-translate-y-1 hover:shadow-sm relative">
-            <CardContent className="flex flex-col p-4 text-foreground space-y-2">
-              <CardTitle className="text-base font-semibold tracking-tight flex justify-center items-center space-x-">
-                PDF{" "}
-                <ArrowRight size={12} className="inline text-foreground mx-2" />{" "}
-                LinkedIn
-              </CardTitle>
-              <p className="mt-2 flex-grow text-sm text-muted-foreground text-center">
-                Our platform enables you to transform PDF documents into
-                engaging LinkedIn posts effortlessly.
-              </p>
-              <div className="w-full flex justify-center">
-                <Image src="/icons/pdf.png" width={45} height={45} alt="" />
-              </div>
-            </CardContent>
-          </Card>
+          <Link href="/create/posts/pdf">
+            <Card className="group h-fit overflow-hidden border-purple-100 bg-purple-50 transition-all  hover:-translate-y-1 hover:shadow-sm relative">
+              <CardContent className="flex flex-col p-4 text-foreground space-y-2">
+                <CardTitle className="text-base font-semibold tracking-tight flex justify-center items-center space-x-">
+                  PDF{" "}
+                  <ArrowRight
+                    size={12}
+                    className="inline text-foreground mx-2"
+                  />{" "}
+                  LinkedIn
+                </CardTitle>
+                <p className="mt-2 flex-grow text-sm text-muted-foreground text-center">
+                  Our platform enables you to transform PDF documents into
+                  engaging LinkedIn posts effortlessly.
+                </p>
+                <div className="w-full flex justify-center">
+                  <Image src="/icons/pdf.png" width={45} height={45} alt="" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
       </div>
 
@@ -122,17 +141,33 @@ const PostsPage = () => {
           </h2>
         </>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Link href={"/create/posts/refresh"} id="tour-2">
+            <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
+                <CardTitle className="text-base font-semibold tracking-tight items-end">
+                  <Refresh2 className="inline mr-2 text-foreground" />
+                  Refresh Writing Style{" "}
+                  <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500 font-normal ml-1">
+                    <Sparkle
+                      weight="duotone"
+                      className="inline mr-1"
+                      size={16}
+                    />
+                    New
+                  </Badge>
+                </CardTitle>
+                <p className="mt-2 flex-grow text-sm text-muted-foreground">
+                  Use our AI-powered tool to adapt any post to a new writing
+                  style, instantly.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href={"/create/posts/scratch"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight items-end">
-                  <Image
-                    src="/icons/scratch.svg"
-                    width={20}
-                    height={20}
-                    alt=""
-                    className="inline mr-2"
-                  />
+                  <PenWriting className="inline mr-2 text-foreground" />
                   Write from Scratch
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
@@ -144,15 +179,9 @@ const PostsPage = () => {
           </Link>
           <Link href={"/create/posts/story"}>
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight">
-                  <Image
-                    src="/icons/story.svg"
-                    width={20}
-                    height={20}
-                    alt=""
-                    className="inline mr-2"
-                  />
+                  <Keyboard className="inline mr-2 text-foreground" />
                   Share a Story
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
@@ -164,15 +193,9 @@ const PostsPage = () => {
           </Link>
           <Link href={"/create/posts/learning"}>
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight">
-                  <Image
-                    src="/icons/learning.svg"
-                    width={20}
-                    height={20}
-                    alt=""
-                    className="inline mr-2"
-                  />
+                  <Book className="inline mr-2 text-foreground" />
                   Share some Learnings
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
@@ -184,15 +207,9 @@ const PostsPage = () => {
           </Link>
           <Link href={"/create/posts/tips"}>
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative z-10">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight">
-                  <Image
-                    src="/icons/tips.svg"
-                    width={20}
-                    height={20}
-                    alt=""
-                    className="inline mr-2"
-                  />{" "}
+                  <CircleInfo className="inline mr-2 text-foreground" />
                   Share a few tips
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">

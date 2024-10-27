@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -10,11 +10,10 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { getContentStyles, ContentStyle } from "@/actions/style";
-import CustomLoader from "./custom-loader";
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-
 import { Plus } from "lucide-react";
-
+import { DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 export function ContentStyleSelector({
   onSelectStyle,
 }: {
@@ -27,13 +26,25 @@ export function ContentStyleSelector({
 
   const fetchStyles = async () => {
     setIsLoading(true);
-    const result = await getContentStyles(false);
-    if (result.success) {
-      setStyles(result.data || []);
-    } else {
-      toast.error(result.error);
+    try {
+      const [privateResult, publicResult] = await Promise.all([
+        getContentStyles(false),
+        getContentStyles(true),
+      ]);
+      if (privateResult.success && publicResult.success) {
+        setStyles([
+          ...(privateResult.data || []),
+          ...(publicResult.data || []),
+        ]);
+      } else {
+        toast.error("Failed to fetch styles");
+      }
+    } catch (error) {
+      console.error("Error fetching styles:", error);
+      toast.error("An error occurred while fetching styles");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleStyleChange = (value: string) => {
@@ -62,7 +73,7 @@ export function ContentStyleSelector({
         <SelectContent>
           {isLoading ? (
             <div className="flex items-center justify-center p-2">
-              <CustomLoader className="text-foreground" />
+              <Loader2 size={16} className="animate-spin" />
             </div>
           ) : (
             <>
@@ -71,12 +82,13 @@ export function ContentStyleSelector({
                   {style.name}
                 </SelectItem>
               ))}
+              {styles.length > 0 && <DropdownMenuSeparator />}
               <SelectItem
-                className="text-sm pl-2 bg-gray-100 focus:bg-foreground transition-all focus:text-white"
+                className="text-sm pl-2  focus:bg-blue-600 transition-all focus:text-white"
                 value="custom"
                 hideIndicator={true}
               >
-                <Plus className="inline mr-1 w-4 h-4" />
+                <Plus className="inline mr-1" size={16} />
                 Create New
               </SelectItem>
             </>

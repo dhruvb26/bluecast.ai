@@ -7,8 +7,10 @@ const isProtectedRoute = createRouteMatcher([
   "/preferences",
   "/settings",
   "/create(.*)",
+  "/schedule(.*)",
   "/subscribe",
   "/saved(.*)",
+  "/pricing(.*)",
   "/draft(.*)",
 ]);
 
@@ -36,7 +38,9 @@ export default clerkMiddleware((auth, req: NextRequest) => {
   if (
     userId &&
     !sessionClaims?.metadata?.hasAccess &&
-    !req.nextUrl.pathname.startsWith("/subscribe")
+    !req.nextUrl.pathname.startsWith("/subscribe") &&
+    !req.nextUrl.pathname.startsWith("/pricing") &&
+    !req.nextUrl.pathname.startsWith("/settings")
   ) {
     const subscribeUrl = new URL("/subscribe", req.url);
     return NextResponse.redirect(subscribeUrl);
@@ -49,8 +53,6 @@ export default clerkMiddleware((auth, req: NextRequest) => {
 export const config = {
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    // '/(api|trpc)(.*)',
+    "/((?!_next|api/webhook/|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
   ],
 };

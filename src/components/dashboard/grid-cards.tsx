@@ -2,40 +2,35 @@
 import Image from "next/image";
 import React from "react";
 import Link from "next/link";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export const GridCards = () => {
   return (
     <div className="w-7xl mx-auto grid max-w-full grid-cols-1 gap-4 lg:grid-cols-3">
-      <Card className="col-span-1 lg:col-span-2 h-full transition-all hover:-translate-y-1 hover:shadow-sm overflow-hidden">
+      <Card className="col-span-1 transition-all hover:-translate-y-1 hover:shadow-sm overflow-hidden">
         <CardContent className="p-6 relative h-full">
           <Link
-            href={"https://www.spireo.ai/"}
+            href={"https://www.bluecast.ai/blog-template"}
             target="_blank"
             className="block h-full"
           >
-            <div className="flex flex-col h-full">
-              <h2 className="text-balance text-left text-lg font-semibold tracking-tight md:text-xl mb-4">
-                AI-Powered LinkedIn Growth Tools
-              </h2>
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between flex-grow">
-                <div className="max-w-xs lg:max-w-sm">
-                  <p className="text-left text-sm text-muted-foreground">
-                    Spireo offers cutting-edge AI features to supercharge your
-                    LinkedIn presence. From content creation to engagement
-                    analysis, our tools help you grow your network effectively.
-                  </p>
-                </div>
-                <div className="mt-4 lg:mt-0 lg:ml-4 flex-shrink-0">
-                  <Image
-                    src="/images/features.png"
-                    width={350}
-                    height={350}
-                    alt="AI-powered growth tools"
-                    className="rounded-2xl object-contain"
-                  />
-                </div>
+            <div className="flex flex-col h-full items-center justify-center">
+              <div className="mb-4 flex-shrink-0 flex items-center justify-center w-full">
+                <Image
+                  src="/icons/blog1.png"
+                  width={65}
+                  height={65}
+                  alt="Blog 1"
+                  className="object-contain"
+                />
               </div>
+              <h2 className="text-balance text-center text-lg font-semibold mb-2 tracking-tight">
+                How to build a successful LinkedIn content strategy in 2024
+              </h2>
+              <p className="text-center text-sm text-muted-foreground">
+                Discover the best practices to create an effective LinkedIn
+                content strategy for 2024.
+              </p>
             </div>
           </Link>
         </CardContent>
@@ -43,67 +38,55 @@ export const GridCards = () => {
       <Card className="col-span-1 transition-all hover:-translate-y-1 hover:shadow-sm overflow-hidden">
         <CardContent className="p-6 relative h-full">
           <Link
-            href={"https://spireo.canny.io/feature-requests"}
+            href={"https://www.bluecast.ai/blog-template-2"}
             target="_blank"
             className="block h-full"
           >
-            <div className="flex flex-col h-full justify-between">
-              <div>
-                <h2 className="max-w-80 text-balance text-left text-lg font-semibold tracking-tight md:text-xl">
-                  We Value Your Feedback
-                </h2>
-                <p className="mt-4 max-w-[14rem] text-balance text-left text-sm text-muted-foreground">
-                  Have ideas for new features? We're all ears!
-                </p>
-              </div>
-              <div className="mt-4">
+            <div className="flex flex-col h-full items-center justify-center">
+              <div className="mb-4 flex-shrink-0 flex items-center justify-center w-full">
                 <Image
-                  src="/images/feedback.png"
-                  width={225}
-                  height={225}
-                  alt="Feedback and feature requests"
-                  className="rounded-2xl object-contain"
+                  src="/icons/blog2.png"
+                  width={65}
+                  height={65}
+                  alt="Blog 2"
+                  className="object-contain"
                 />
               </div>
+              <h2 className="text-balance text-center text-lg font-semibold mb-2 tracking-tight">
+                5 Powerful Hook Strategies for LinkedIn
+              </h2>
+              <p className="text-center text-sm text-muted-foreground">
+                Learn five effective hook strategies to capture attention and
+                engage your LinkedIn audience.
+              </p>
             </div>
           </Link>
         </CardContent>
       </Card>
-      <Card className="col-span-1 lg:col-span-3 transition-all hover:-translate-y-1 hover:shadow-sm overflow-hidden">
+      <Card className="col-span-1 transition-all hover:-translate-y-1 hover:shadow-sm overflow-hidden">
         <CardContent className="p-6 relative h-full">
           <Link
-            href={"https://www.spireo.ai/blog-template"}
+            href={"https://www.bluecast.ai/blog-template-3"}
             target="_blank"
             className="block h-full"
           >
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between">
-              <div className="max-w-3xl lg:max-w-2xl">
-                <h2 className="text-balance text-left text-lg font-semibold tracking-tight md:text-xl">
-                  Learn to Master Spireo
-                </h2>
-                <p className="mt-4 text-left text-sm text-muted-foreground">
-                  Explore our comprehensive blogs and in-depth video tutorials
-                  to unlock the full potential of Spireo. Discover expert tips,
-                  proven strategies, and industry best practices for
-                  accelerating your LinkedIn growth. Our regularly updated
-                  content covers everything from optimizing your profile to
-                  crafting engaging posts and building meaningful connections.
-                </p>
-                <p className="mt-2 text-left text-sm text-muted-foreground">
-                  Whether you're a LinkedIn novice or a seasoned professional,
-                  our learning resources are designed to help you stay ahead of
-                  the curve.
-                </p>
-              </div>
-              <div className="mt-4 lg:mt-0 lg:ml-4 flex-shrink-0">
+            <div className="flex flex-col h-full items-center justify-center">
+              <div className="mb-4 flex-shrink-0 flex items-center justify-center w-full">
                 <Image
-                  src="/images/tutorials.png"
-                  width={300}
-                  height={300}
-                  alt="Blogs and tutorials"
-                  className="rounded-2xl object-contain"
+                  src="/icons/blog3.png"
+                  width={65}
+                  height={65}
+                  alt="Blog 3"
+                  className="object-contain"
                 />
               </div>
+              <h2 className="text-balance text-center text-lg font-semibold mb-2 tracking-tight">
+                Top 7 Frameworks for Growing Your Personal Brand on LinkedIn
+              </h2>
+              <p className="text-center text-sm text-muted-foreground">
+                Discover the top frameworks that can help you effectively grow
+                and manage your personal brand on LinkedIn.
+              </p>
             </div>
           </Link>
         </CardContent>

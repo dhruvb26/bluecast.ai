@@ -6,22 +6,39 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  ArrowLineLeft,
+  ArrowLineRight,
   Article,
   Brain,
   CalendarDots,
   CaretDown,
+  Clock,
+  CreditCard,
   Files,
   FolderSimple,
   Gear,
+  GearSix,
+  House,
   Lightbulb,
   List,
+  ListBullets,
+  Rocket,
+  Rows,
+  SidebarSimple,
   SignOut,
+  Sparkle,
   TrendUp,
   UserSound,
   Wrench,
 } from "@phosphor-icons/react";
 import { SignOutButton, UserButton } from "@clerk/nextjs";
-import { ChevronLeft, ChevronRight, PenSquare } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  DotIcon,
+  Menu,
+  PenSquare,
+} from "lucide-react";
 import { Tour } from "@frigade/react";
 import { v4 as uuid } from "uuid";
 import { cn } from "@/lib/utils";
@@ -36,6 +53,7 @@ import {
 
 import { checkValidity, getGeneratedWords, getUser } from "@/actions/user";
 import { saveDraft } from "@/actions/draft";
+import { env } from "@/env";
 
 const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const [isSavedOpen, setIsSavedOpen] = useState(false);
@@ -44,7 +62,26 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   const [generatedWords, setGeneratedWords] = useState(0);
   const [validityDate, setValidityDate] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const toggleMobileMenu = useCallback(() => {
+    if (window.innerWidth < 768) {
+      // Check if it's a mobile screen
+      setIsOpen(false); // Always close the sidebar on mobile
+      setIsMobileMenuOpen((prev) => !prev); // Toggle mobile menu
+    } else {
+      setIsOpen((prev) => !prev); // Toggle sidebar on larger screens
+    }
+  }, []);
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
 
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   useEffect(() => {
     // Load the saved state from localStorage on the client side
     const savedIsOpen = localStorage.getItem("sidebarOpen");
@@ -55,8 +92,10 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
   const toggleSidebar = useCallback(() => {
     const newIsOpen = !isOpen;
     setIsOpen(newIsOpen);
+    setIsMobileMenuOpen(newIsOpen); // Also toggle mobile menu
     localStorage.setItem("sidebarOpen", JSON.stringify(newIsOpen));
   }, [isOpen]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -74,16 +113,17 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
     fetchData();
   }, []);
-
   const isLinkActive = useCallback(
     (href: string, exact: boolean = false) => {
+      if (href === "/settings" && pathname === "/pricing") {
+        return true;
+      }
       return exact
         ? pathname === href
         : pathname === href || pathname.startsWith(href);
     },
     [pathname]
   );
-
   const renderNavLink = useCallback(
     (
       href: string,
@@ -104,9 +144,15 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 isOpen ? "justify-start" : "justify-center",
                 isLinkActive(href, exact)
                   ? "text-foreground bg-gray-100 font-medium"
-                  : "text-muted-foreground hover:text-foreground hover:bg-gray-50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-gray-50",
+                text == "Dashboard" ? "mt-4" : ""
               )}
               id={text === "Post Generator" ? "tour-1" : undefined}
+              onClick={() => {
+                if (window.innerWidth < 768) {
+                  setIsMobileMenuOpen(false);
+                }
+              }}
             >
               <span
                 className={cn(
@@ -131,7 +177,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                 </span>
               )}
               {badge && isOpen && (
-                <Badge variant="outline" className="ml-auto">
+                <Badge className="ml-auto font-normal bg-indigo-50 text-indigo-500 hover:bg-indigo-100 hover:text-indigo-600">
                   {badge.icon}
                   <span>{badge.text}</span>
                 </Badge>
@@ -159,7 +205,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             onClick={handleCreateDraft}
             className={cn(
               "flex items-center px-2 bg-white font-semibold text-brand-gray-900 hover:bg-white w-full h-full",
-              isOpen ? "justify-start" : "justify-center"
+              isOpen ? "justify-center" : "justify-center"
             )}
           >
             <Image
@@ -168,36 +214,47 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
                   ? "/brand/Bluecast Logo.png"
                   : "/brand/Bluecast Symbol.png"
               }
-              width={isOpen ? 130 : 20} // Adjust size if needed
-              height={isOpen ? 130 : 20} // Adjust size if needed
+              width={isOpen ? 140 : 20} // Adjust size if needed
+              height={isOpen ? 140 : 20} // Adjust size if needed
               alt=""
               className={isOpen ? "" : "mx-auto"} // Center the image if it's a symbol
             />
           </Button>
         </div>
-        <TooltipProvider>
-          <Tooltip delayDuration={100}>
-            <TooltipTrigger asChild>
-              <Button
-                className={cn(
-                  "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center",
-                  isOpen ? "px-5" : "px-2"
-                )}
-                onClick={handleCreateDraft}
-              >
-                <PenSquare size={18} className={isOpen ? "mx-1.5" : ""} />
-                {isOpen && "Write Post"}
-              </Button>
-            </TooltipTrigger>
-            {!isOpen && (
-              <TooltipContent side="right">Write Post</TooltipContent>
-            )}
-          </Tooltip>
-        </TooltipProvider>
-        {/* <div className={cn("bg-input my-2", isOpen ? "h-[1px]" : "h-[1px]")} /> */}
-        <div className="flex items-center justify-between mx-2">
+        <div className="flex flex-col space-y-2">
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <Button
+                  className={cn(
+                    "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center",
+                    isOpen ? "px-5" : "px-2"
+                  )}
+                  onClick={handleCreateDraft}
+                >
+                  <PenSquare size={18} className={isOpen ? "mx-1.5" : ""} />
+                  {isOpen && "Write Post"}
+                </Button>
+              </TooltipTrigger>
+              {!isOpen && (
+                <TooltipContent side="right">Write Post</TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
+          {renderNavLink(
+            "/dashboard",
+            <House size={20} className="text-gray-500" />,
+            <House
+              size={20}
+              className="text-brand-blue-primary"
+              weight="regular"
+            />,
+            "Dashboard"
+          )}
+        </div>
+        <div className="flex items-center justify-between  mx-2">
           {isOpen && (
-            <span className="mr-1 text-xs text-gray-400 mt-4 font-medium">
+            <span className="mr-1 text-xs text-gray-400  mt-2  font-medium">
               CREATE
             </span>
           )}
@@ -210,7 +267,7 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             className="text-brand-blue-primary"
             weight="regular"
           />,
-          "Posts"
+          "Post Templates"
         )}
         {renderNavLink(
           "/create/ideas",
@@ -232,6 +289,22 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
           />,
           "Inspire"
         )}
+        {/* {renderNavLink(
+          "/create/for-you",
+          <Rocket size={20} className="text-gray-500" />,
+          <Rocket
+            size={20}
+            className="text-brand-blue-primary"
+            weight="regular"
+          />,
+          "Posts For You",
+          false,
+          {
+            text: "New",
+            color: "",
+            icon: <Sparkle weight="duotone" className="mr-1" />,
+          }
+        )} */}
         {renderNavLink(
           "/schedule",
           <CalendarDots size={20} className="text-gray-500" />,
@@ -309,8 +382,8 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
             )}
             {renderNavLink(
               "/saved/lists",
-              <List size={20} className="text-gray-500" />,
-              <List size={20} className="text-blue-600" weight="regular" />,
+              <Rows size={20} className="text-gray-500" />,
+              <Rows size={20} className="text-blue-600" weight="regular" />,
               "Creator List"
             )}
             {renderNavLink(
@@ -357,49 +430,112 @@ const Sidebar = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="flex h-screen flex-col overflow-auto">
-      <Tour
-        className="[&_.fr-title]:text-md [&_.fr-button-primary:hover]:bg-blue-700 [&_.fr-button-primary]:rounded-lg [&_.fr-button-primary]:bg-blue-600 [&_.fr-title]:font-semibold [&_.fr-title]:tracking-tight [&_.fr-title]:text-gray-900"
-        flowId="flow_wqlim5Vq"
-      />
       <div className="flex h-screen">
         <aside
           className={cn(
-            "transition-all duration-300 flex-shrink-0 bg-white flex-col border-r border-gray-200 md:flex relative",
-            isOpen ? "w-60" : "w-20"
+            "transition-all duration-300 flex-shrink-0 bg-white flex-col border-r border-gray-200 md:flex",
+            isOpen ? "w-60" : "w-20",
+            "fixed inset-y-0 left-0 z-40",
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+            "md:relative md:translate-x-0"
           )}
         >
           <Button
             variant="ghost"
             size="icon"
-            className="absolute -right-3 top-2 text-foreground border border-input bg-white h-7 w-7 z-10"
+            className={cn(
+              "absolute text-foreground rounded-full border border-input bg-white h-7 w-7",
+              isOpen
+                ? "-right-3 top-2"
+                : "left-[4.5rem] top-2 md:left-auto md:-right-3",
+              isMobileMenuOpen ? "z-50" : "z-50 md:z-10",
+              !isOpen && !isMobileMenuOpen ? "left-3 md:left-auto" : "",
+              "hidden md:flex" // Hide on mobile
+            )}
             onClick={toggleSidebar}
           >
-            {isOpen ? <ChevronLeft size={12} /> : <ChevronRight size={12} />}
+            {isOpen || (!isOpen && isMobileMenuOpen) ? (
+              <ChevronLeft size={12} />
+            ) : (
+              <ChevronRight size={12} />
+            )}
           </Button>
           <div className="flex h-full flex-col">
             {renderNavigation()}
 
             <div className={`p-4 ${isOpen ? "" : "hidden"}`}>
-              <WordsCard words={generatedWords} />
+              <WordsCard />
             </div>
           </div>
         </aside>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <header
-            className={`flex min-h-12 w-screen items-center justify-end border-b border-brand-gray-200 ${
-              isOpen ? "pr-[16rem]" : "pr-[6rem]"
-            }`}
-          >
-            <UserButton
-              appearance={{
-                elements: {
-                  userButtonPopoverCard: "shadow-sm border border-input",
-                  userButtonPopoverFooter: "hidden",
-                },
-              }}
-            />
+          <header className="flex min-h-12 items-center justify-between border-b border-brand-gray-200 px-4">
+            <div className="flex items-center">
+              <Button
+                size="icon"
+                className={cn(
+                  "md:hidden", // Only show on mobile
+                  isMobileMenuOpen ? "ml-[4.5rem]" : "ml-0", // Add left padding when sidebar is open
+                  "transition-all duration-300" // Smooth transition for padding change
+                )}
+                onClick={toggleMobileMenu}
+              >
+                {isMobileMenuOpen ? <List size={18} /> : <List size={18} />}
+              </Button>
+            </div>
+            <div className="flex items-center ml-auto">
+              {" "}
+              {/* Keep these items on the right */}
+              {validityDate && (
+                <Link href={"/pricing"}>
+                  <div className="mr-4 text-sm text-primary hidden sm:block">
+                    {" "}
+                    {/* Hide on very small screens */}
+                    <Clock size={16} weight="duotone" className="inline mr-1" />
+                    Your trial ends in{" "}
+                    {Math.ceil(
+                      (new Date(validityDate).getTime() -
+                        new Date().getTime()) /
+                        (1000 * 60 * 60 * 24)
+                    )}{" "}
+                    days!
+                  </div>
+                </Link>
+              )}
+              <UserButton
+                appearance={{
+                  elements: {
+                    userButtonTrigger__open: "rounded-md",
+                    userButtonPopoverActionButton__manageAccount: "hidden",
+                    userButtonPopoverCard: "shadow-sm border border-input",
+                    userButtonPopoverFooter: "hidden",
+                  },
+                }}
+              >
+                <UserButton.MenuItems>
+                  <UserButton.Action
+                    label="Settings"
+                    labelIcon={<GearSix size={15} weight="fill" />}
+                    onClick={() => router.push("/settings")}
+                  />
+                </UserButton.MenuItems>
+                {/* <UserButton.MenuItems>
+                  <UserButton.Action
+                    label="Manage Subscription"
+                    labelIcon={<CreditCard size={15} weight="fill" />}
+                    onClick={() =>
+                      router.push(
+                        env.NEXT_PUBLIC_NODE_ENV === "development"
+                          ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
+                          : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
+                      )
+                    }
+                  />
+                </UserButton.MenuItems> */}
+              </UserButton>
+            </div>
           </header>
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 overflow-y-auto w-full">{children}</main>
         </div>
       </div>
     </div>

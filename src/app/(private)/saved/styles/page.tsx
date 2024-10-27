@@ -11,7 +11,12 @@ import {
   saveContentStyle,
   deleteContentStyle,
 } from "@/actions/style";
-import { AlignJustify, ArrowUpRight, UserSearch } from "lucide-react";
+import {
+  AlignJustify,
+  ArrowUpRight,
+  PlusCircle,
+  UserSearch,
+} from "lucide-react";
 import { toast } from "sonner";
 import { getCreator, Creator } from "@/actions/creator";
 import Image from "next/image";
@@ -23,10 +28,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Loader2, Trash } from "lucide-react";
-import { LinkSimpleHorizontal, Plus } from "@phosphor-icons/react";
+import {
+  Empty,
+  Link,
+  LinkSimpleHorizontal,
+  PaperclipHorizontal,
+} from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { getUser } from "@/actions/user";
+import { usePostStore } from "@/store/post";
+import SubscriptionCard from "@/components/global/subscription-card";
 
 export default function SavedStylesPage() {
   const [creatorStyles, setCreatorStyles] = useState<ContentStyle[]>([]);
@@ -35,6 +48,7 @@ export default function SavedStylesPage() {
   const [creators, setCreators] = useState<{ [key: string]: Creator }>({});
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { setShowFeatureGate, showFeatureGate } = usePostStore();
 
   useEffect(() => {
     fetchStyles();
@@ -70,9 +84,24 @@ export default function SavedStylesPage() {
     setCreators((prevCreators) => ({ ...prevCreators, ...newCreators }));
   };
 
-  const handleCopyCreatorStyle = async () => {
+  const handleCopyCreatorStyle = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsLoading(true);
     try {
+      const user = await getUser();
+      const result = await getContentStyles(false);
+      let listsLength;
+      if (result.success) {
+        listsLength = result.data.length || 0;
+      }
+
+      if (user.specialAccess && listsLength == 1) {
+        setShowFeatureGate(true);
+        setIsLoading(false);
+        setIsCreatorDialogOpen(false); // Close the dialog
+        return; // Cancel the request
+      }
+
       const response = await fetch("/api/content/style", {
         method: "POST",
         headers: {
@@ -88,9 +117,10 @@ export default function SavedStylesPage() {
       const data: any = await response.json();
       if (data.success) {
         toast.success("Creator voice saved successfully.");
+        setIsCreatorDialogOpen(false);
         fetchStyles();
       } else {
-        toast.error(data.error || "Failed to copy creator style.");
+        toast.error(data.error);
       }
     } catch (error) {
       console.error("Error copying creator style:", error);
@@ -100,106 +130,279 @@ export default function SavedStylesPage() {
       setLinkedInUrl("");
     }
   };
+  const [isCreatorDialogOpen, setIsCreatorDialogOpen] = useState(false);
+  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
 
-  const handleDeleteStyle = async (styleId: string) => {
-    try {
-      const result = await deleteContentStyle(styleId);
-      if (result.success) {
-        toast.success("Style deleted successfully.");
-        fetchStyles();
-      } else {
-        toast.error(result.error || "Failed to delete style.");
-      }
-    } catch (error) {
-      console.error("Error deleting style:", error);
-      toast.error("An error occurred while deleting the style.");
-    }
-  };
-
-  const renderCreatorStyleList = (styles: ContentStyle[]) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {styles.map((style) => (
-        <div
-          key={style.id}
-          className="border transition-all hover:shadow-sm space-y-1 hover:-translate-y-1 rounded-md border-input p-4 cursor-pointer"
+  const renderCreatorStyleList = (styles: ContentStyle[]) =>
+    styles.length === 0 ? (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
+        <div className="mb-2">
+          <Empty className="w-12 h-12 text-primary" />
+        </div>
+        <h2 className="text-lg font-semibold tracking-tight">
+          No creator styles
+        </h2>
+        <p className="text-muted-foreground text-sm mb-4">
+          Add a creator style to get started. Copy writing styles from LinkedIn
+          profiles.
+        </p>
+        <Button
+          variant={"outline"}
+          onClick={() => setIsCreatorDialogOpen(true)}
         >
-          <p className="text-xs text-muted-foreground">
-            Updated • {style.updatedAt.toLocaleString()}
-          </p>
-          <div className="flex items-start mt-2">
-            {style.creatorId && creators[style.creatorId] && (
-              <div className="mr-2 flex-shrink-0">
-                <Image
-                  src={creators[style.creatorId]?.profileImageUrl || ""}
-                  alt={creators[style.creatorId]?.fullName || ""}
-                  width={50}
-                  height={50}
-                  className="rounded-full"
-                />
+          <Plus size={15} className="mr-1" />
+          Add Creator Style
+        </Button>
+        <Dialog
+          open={isCreatorDialogOpen}
+          onOpenChange={setIsCreatorDialogOpen}
+        >
+          <DialogContent>
+            <DialogHeader className="flex flex-row space-x-2">
+              <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
+                <UserSearch className="inline" size={20} />
               </div>
-            )}
-
-            <div>
-              <h3 className="text-base font-semibold tracking-tight">
-                <span
-                  onClick={() =>
-                    style.creatorId &&
-                    creators[style.creatorId]?.profileUrl &&
-                    window.open(creators[style.creatorId].profileUrl, "_blank")
-                  }
-                  className="p-0 h-auto cursor-pointer text-foreground flex items-center group"
-                >
-                  {style.creatorId && creators[style.creatorId]
-                    ? creators[style.creatorId].fullName
-                    : "Custom Style"}
-                  {style.creatorId && creators[style.creatorId]?.profileUrl && (
-                    <ArrowUpRight
-                      size={20}
-                      className="opacity-0 group-hover:opacity-100 transition-all group-hover:translate-y-[-2px] group-hover:translate-x-[2px]"
-                    />
-                  )}
-                </span>
-              </h3>
-              {style.creatorId && creators[style.creatorId] && (
-                <p className="text-sm text-muted-foreground">
-                  {creators[style.creatorId].headline || ""}
-                </p>
-              )}
+              <div className="flex flex-col">
+                <DialogTitle className="text-lg font-semibold tracking-tight">
+                  New Creator Style
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  Fill in the URL below to emulate the creator's writing style.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+            <div className="flex flex-col space-y-2">
+              <Label>URL</Label>
+              <Input
+                type="text"
+                placeholder="https://www.linkedin.com/in/johndoe/"
+                value={linkedInUrl}
+                onChange={(e) => setLinkedInUrl(e.target.value)}
+              />
+              <Button onClick={handleCopyCreatorStyle} loading={isLoading}>
+                {isLoading ? "Copying" : "Copy"}
+              </Button>
             </div>
-          </div>
-          <div className="flex flex-row justify-end items-center">
-            <p className="text-xs text-muted-foreground">
-              {style.examples.length} example(s)
-            </p>
-          </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    ) : (
+      <>
+        <div className="mb-4">
+          <Dialog
+            open={isCreatorDialogOpen}
+            onOpenChange={setIsCreatorDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button>
+                <Plus size={15} className="mr-1" />
+                Add Creator Style
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader className="flex flex-row space-x-2">
+                <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
+                  <UserSearch className="inline" size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <DialogTitle className="text-lg font-semibold tracking-tight">
+                    New Creator Style
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    Fill in the URL below to emulate the creator's writing
+                    style.
+                  </DialogDescription>
+                </div>
+              </DialogHeader>
+              <div className="flex flex-col space-y-2">
+                <Label>LinkedIn URL</Label>
+                <Input
+                  type="text"
+                  placeholder="https://www.linkedin.com/in/johndoe/"
+                  value={linkedInUrl}
+                  onChange={(e) => setLinkedInUrl(e.target.value)}
+                />
+                <Button onClick={handleCopyCreatorStyle} loading={isLoading}>
+                  {isLoading ? "Copying" : "Copy"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
-      ))}
-    </div>
-  );
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {styles.map((style) => (
+            <div
+              key={style.id}
+              className="border transition-all hover:shadow-sm space-y-1 hover:-translate-y-1 rounded-md border-input p-4 cursor-pointer"
+              onClick={() => router.push(`/saved/styles/${style.id}`)}
+            >
+              <p className="text-xs text-muted-foreground">
+                Updated • {new Date(style.updatedAt).toLocaleString()}
+              </p>
+              <div className="flex items-start mt-2">
+                {style.creatorId && creators[style.creatorId] && (
+                  <div className="mr-2 flex-shrink-0">
+                    <Image
+                      src={creators[style.creatorId]?.profileImageUrl || ""}
+                      alt={creators[style.creatorId]?.fullName || ""}
+                      width={50}
+                      height={50}
+                      className="rounded-full"
+                    />
+                  </div>
+                )}
 
-  const renderCustomStyleList = (styles: ContentStyle[]) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {styles.map((style) => (
-        <div
-          key={style.id}
-          className="border transition-all hover:shadow-sm space-y-1 hover:-translate-y-1 rounded-md border-input p-4  cursor-pointer"
-          onClick={() => router.push(`/saved/styles/${style.id}`)}
-        >
-          <p className="text-xs text-muted-foreground">
-            Updated • {style.updatedAt.toLocaleString()}
-          </p>
-          <h2 className="text-base font-semibold tracking-tight">
-            {style.name}
-          </h2>
-          <div className="flex flex-row justify-end items-center">
-            <p className="text-xs text-muted-foreground">
-              {style.examples.length} example(s)
-            </p>
-          </div>
+                <div>
+                  <h3 className="text-base font-semibold tracking-tight">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (
+                          style.creatorId &&
+                          creators[style.creatorId]?.profileUrl
+                        ) {
+                          window.open(
+                            creators[style.creatorId].profileUrl,
+                            "_blank"
+                          );
+                        }
+                      }}
+                      className="p-0 h-auto cursor-pointer text-foreground flex items-center group"
+                    >
+                      {style.creatorId && creators[style.creatorId]
+                        ? creators[style.creatorId].fullName
+                        : "Creator Style"}
+                    </span>
+                  </h3>
+                  {style.creatorId && creators[style.creatorId] && (
+                    <p className="text-sm text-muted-foreground">
+                      {creators[style.creatorId].headline || ""}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-row justify-end items-center">
+                <p className="text-xs text-muted-foreground">
+                  {style.examples.length} example(s)
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
-  );
+      </>
+    );
+
+  const renderCustomStyleList = (styles: ContentStyle[]) =>
+    styles.length === 0 ? (
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
+        <div className="mb-2">
+          <Empty className="w-12 h-12 text-primary" />
+        </div>
+        <h2 className="text-lg font-semibold tracking-tight">
+          No custom styles
+        </h2>
+        <p className="text-muted-foreground text-sm mb-4">
+          Create one to get started. Add posts to curate the writing style.
+        </p>
+        <Button variant={"outline"} onClick={() => setIsCustomDialogOpen(true)}>
+          <Plus size={15} className="mr-1" />
+          Create a Custom Style
+        </Button>
+        <Dialog open={isCustomDialogOpen} onOpenChange={setIsCustomDialogOpen}>
+          <DialogContent>
+            <DialogHeader className="flex flex-row space-x-2">
+              <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
+                <AlignJustify className="inline" size={20} />
+              </div>
+              <div className="flex flex-col">
+                <DialogTitle className="text-lg font-semibold tracking-tight">
+                  New Custom Style
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  Fill in the details below to create a new custom style.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+            <div className="flex flex-col space-y-4">
+              <Label>Name</Label>
+              <Input
+                type="text"
+                placeholder="Enter style name"
+                value={newStyleName}
+                onChange={(e) => setNewStyleName(e.target.value)}
+              />
+              <Button onClick={handleCreateCustomStyle} loading={isCreating}>
+                {isCreating ? "Creating" : "Create"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    ) : (
+      <>
+        <div className="flex justify-between items-center mb-4">
+          <Dialog
+            open={isCustomDialogOpen}
+            onOpenChange={setIsCustomDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Plus className="mr-1" />
+                New Custom Style
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader className="flex flex-row space-x-2">
+                <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
+                  <AlignJustify className="inline" size={20} />
+                </div>
+                <div className="flex flex-col">
+                  <DialogTitle className="text-lg font-semibold tracking-tight">
+                    New Custom Style
+                  </DialogTitle>
+                  <DialogDescription className="text-sm text-muted-foreground">
+                    Fill in the details below to create a new custom style.
+                  </DialogDescription>
+                </div>
+              </DialogHeader>
+              <div className="flex flex-col space-y-4">
+                <Label>Name</Label>
+                <Input
+                  type="text"
+                  placeholder="Enter style name"
+                  value={newStyleName}
+                  onChange={(e) => setNewStyleName(e.target.value)}
+                />
+                <Button onClick={handleCreateCustomStyle} loading={isCreating}>
+                  {isCreating ? "Creating" : "Create"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {styles.map((style) => (
+            <div
+              key={style.id}
+              className="border transition-all hover:shadow-sm space-y-1 hover:-translate-y-1 rounded-md border-input p-4  cursor-pointer"
+              onClick={() => router.push(`/saved/styles/${style.id}`)}
+            >
+              <p className="text-xs text-muted-foreground">
+                Updated • {style.updatedAt.toLocaleString()}
+              </p>
+              <h2 className="text-base font-semibold tracking-tight">
+                {style.name}
+              </h2>
+              <div className="flex flex-row justify-end items-center">
+                <p className="text-xs text-muted-foreground">
+                  {style.examples.length} example(s)
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </>
+    );
 
   const [newStyleName, setNewStyleName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -210,6 +413,7 @@ export default function SavedStylesPage() {
       return;
     }
 
+    setIsCustomDialogOpen(false);
     setIsCreating(true);
     try {
       const id = uuid();
@@ -232,86 +436,22 @@ export default function SavedStylesPage() {
 
   return (
     <main className="p-8">
+      {showFeatureGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <SubscriptionCard />
+        </div>
+      )}
       <div className="mb-8 text-left">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Writing Styles
         </h1>
+
         <p className="mx-auto text-sm text-muted-foreground">
-          Manage your styles here.
+          You can either copy a creator's voice by putting in a link or create a
+          custom style.
         </p>
       </div>
-      <div className="mb-6">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>
-              <LinkSimpleHorizontal size={15} className="mr-1" />
-              Creator
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader className="flex flex-row space-x-2">
-              <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
-                <UserSearch className="inline" size={20} />
-              </div>
-              <div className="flex flex-col">
-                <DialogTitle className="text-lg font-semibold tracking-tight">
-                  New Creator Style
-                </DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground">
-                  Fill in the details below to schedule the post.
-                </DialogDescription>
-              </div>
-            </DialogHeader>
-            <div className="flex flex-col space-y-2">
-              <Label>URL</Label>
-              <Input
-                type="text"
-                placeholder="https://www.linkedin.com/in/johndoe/"
-                value={linkedInUrl}
-                onChange={(e) => setLinkedInUrl(e.target.value)}
-              />
-              <Button onClick={handleCopyCreatorStyle} loading={isLoading}>
-                {isLoading ? "Copying" : "Copy"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="ml-2" variant="outline">
-              <Plus weight="bold" className="mr-1" />
-              Custom
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader className="flex flex-row space-x-2">
-              <div className="flex items-center justify-center border border-input rounded-lg p-3 h-fit mt-2 shadow-sm">
-                <AlignJustify className="inline" size={20} />
-              </div>
-              <div className="flex flex-col">
-                <DialogTitle className="text-lg font-semibold tracking-tight">
-                  New Custom Style
-                </DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground">
-                  Fill in the details below to schedule the post.
-                </DialogDescription>
-              </div>
-            </DialogHeader>
-            <div className="flex flex-col space-y-4">
-              <Label>Name</Label>
-              <Input
-                type="text"
-                placeholder="Enter style name"
-                value={newStyleName}
-                onChange={(e) => setNewStyleName(e.target.value)}
-              />
-              <Button onClick={handleCreateCustomStyle} loading={isCreating}>
-                {isCreating ? "Creating" : "Create"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+
       <Tabs defaultValue="creator" className="w-full">
         <TabsList>
           <TabsTrigger value="creator">Creator Styles</TabsTrigger>

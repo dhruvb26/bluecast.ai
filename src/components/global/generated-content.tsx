@@ -1,11 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { HardDrive, DownloadSimple, PencilSimple } from "@phosphor-icons/react";
+import {
+  HardDrive,
+  DownloadSimple,
+  PencilSimple,
+  ArrowRight,
+} from "@phosphor-icons/react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +21,7 @@ import { saveDraft } from "@/actions/draft";
 import { Edit, Save, Copy, ArrowUpRight } from "lucide-react";
 import { v4 as uuid } from "uuid";
 import { useRouter } from "next/navigation";
+import { BarLoader } from "react-spinners";
 
 const parseContent = (text: string) => {
   const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
@@ -135,7 +140,7 @@ export function GeneratedContent() {
               </div>
               {!isStreamComplete && isLoading && (
                 <div className="flex h-full w-full items-center justify-center">
-                  <Loader2 className="ml-1 inline-block h-12 w-12 animate-spin text-primary" />
+                  <BarLoader color="#2563eb" height={3} width={150} />
                 </div>
               )}
             </div>
@@ -147,8 +152,20 @@ export function GeneratedContent() {
 
   if (error) {
     return (
-      <div className="flex h-[90vh] items-center justify-center rounded-lg border border-input p-6">
-        <p className="text-sm text-red-500">{error}</p>
+      <div className="flex h-[90vh] flex-col items-center justify-center rounded-lg border border-input p-6">
+        <p className="text-sm text-red-500">{error.message}</p>
+        {/* {error.cause === "blog" && (
+          <p className="text-sm mt-2">
+            <span
+              onClick={() => router.push("/blog-tips")}
+              className="cursor-pointer text-primary hover:underline"
+            >
+              Click here for the PDF{" "}
+              <ArrowRight size={12} className="inline text-foreground" />{" "}
+              LinkedIn template.
+            </span>
+          </p>
+        )} */}
       </div>
     );
   }

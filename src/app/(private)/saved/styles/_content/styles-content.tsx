@@ -11,24 +11,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import CustomLoader from "@/components/global/custom-loader";
-import {
-  Trash,
-  Save,
-  PenSquare,
-  ArrowRight,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { Plus } from "@phosphor-icons/react";
+import { Trash, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { PostsDialog } from "@/components/global/posts-dialog";
-import { parseContent } from "@/utils/editor-utils";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { BarLoader } from "react-spinners";
+import { Empty, PlusCircle } from "@phosphor-icons/react";
+import { AlertDescription } from "@/components/ui/alert";
 
 export default function StylesContent() {
   const router = useRouter();
@@ -142,22 +135,25 @@ export default function StylesContent() {
   };
 
   if (isLoading) {
-    return <CustomLoader size={32} />;
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <BarLoader color="#2563eb" height={3} width={300} />
+      </div>
+    );
   }
-
-  return (
-    <main className="p-8">
-      <div className="mb-8 text-left">
-        <div className="flex flex-row space-x-2 items-center justify-between">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
-            {styleName}
-          </h1>
-          <div className="flex space-x-2">
-            <PostsDialog onSelect={handleAddExample} />
+  if (examples.length === 0) {
+    return (
+      <main className="p-8">
+        <div className="mb-8 text-left">
+          <div className="flex flex-row space-x-2 items-center justify-between">
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">
+              {styleName}
+            </h1>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
+                    className="h-9"
                     onClick={handleDeleteStyle}
                     variant={"outline"}
                     size={"sm"}
@@ -171,14 +167,72 @@ export default function StylesContent() {
               </Tooltip>
             </TooltipProvider>
           </div>
+          <p className="mx-auto text-sm text-muted-foreground">
+            Please add up to 10 examples to achieve the desired results.
+          </p>
         </div>
-        <p className="mx-auto text-sm text-muted-foreground">
-          Manage your writing style here. Add at least 10 examples to get the
-          desired results.
-        </p>
+        <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
+          <div className="mb-2">
+            <Empty className="w-12 h-12 text-primary" />
+          </div>
+          <h2 className="text-lg font-semibold tracking-tight">
+            No examples yet
+          </h2>
+          <p className="text-muted-foreground text-sm mb-4">
+            Add your first example to get started.
+          </p>
+          <PostsDialog triggerText="Add Example" onSelect={handleAddExample} />
+        </div>
+      </main>
+    );
+  }
+  return (
+    <main className="p-4 sm:p-8">
+      <div className="text-left">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-start sm:items-center justify-between">
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              {styleName}
+            </h1>
+            <p className=" text-sm text-muted-foreground">
+              Please add up to 10 examples to achieve the desired results.
+            </p>
+          </div>
+          <div className="flex space-x-2">
+            <PostsDialog
+              triggerText="Add Example"
+              onSelect={handleAddExample}
+            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    className="h-9"
+                    onClick={handleDeleteStyle}
+                    variant={"outline"}
+                    size={"sm"}
+                  >
+                    <Trash size={15} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Delete Style</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
       </div>
-
-      <div className="relative overflow-visible">
+      <div className="mt-4 rounded-md text-indigo-500 p-4 text-left text-sm bg-indigo-50 border border-indigo-200">
+        <span>
+          <span className="font-semibold">NOTE: </span>
+          Curate high-quality post examples for optimal results. Remember, the
+          quality of your examples directly impacts the generated posts. Don't
+          hesitate to remove any examples that don't meet your standards or fit
+          your desired style.
+        </span>
+      </div>
+      <div className="relative overflow-hidden mt-2">
         <div
           className="flex transition-transform duration-300 ease-in-out"
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
@@ -186,49 +240,33 @@ export default function StylesContent() {
           {Array.from({ length: Math.ceil(examples.length / 3) }, (_, i) => (
             <div
               key={i}
-              className="w-full flex-shrink-0 grid grid-cols-3 gap-4 px-4"
+              className="w-full flex-shrink-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 z-50"
             >
               {examples.slice(i * 3, i * 3 + 3).map((example, index) => (
                 <div key={index} className="mb-4">
                   <div className="flex space-x-2 justify-end py-2">
+                    <Button
+                      onClick={() => handleDeleteExample(index)}
+                      variant={"outline"}
+                      size={"sm"}
+                    >
+                      <Trash size={15} />
+                    </Button>
+
                     {changedExamples.has(index) && (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              onClick={() => handleSaveExample(index)}
-                              size="sm"
-                            >
-                              <Save size={15} />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Save</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Button
+                        variant={"outline"}
+                        onClick={() => handleSaveExample(index)}
+                        size="sm"
+                      >
+                        <Save size={15} />
+                      </Button>
                     )}
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            onClick={() => handleDeleteExample(index)}
-                            variant={"outline"}
-                            size={"sm"}
-                          >
-                            <Trash size={15} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Delete</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                   </div>
                   <Textarea
                     value={example}
                     onChange={(e) => handleExampleChange(index, e.target.value)}
-                    className="min-h-[500px] items-start transition-all"
+                    className="min-h-[300px] sm:min-h-[400px] lg:min-h-[500px] items-start transition-all"
                     rows={4}
                   />
                 </div>

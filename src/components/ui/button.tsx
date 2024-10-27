@@ -1,7 +1,7 @@
 import React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
-import CustomLoader from "@/components/global/custom-loader";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
@@ -63,13 +63,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={loading || props.disabled}
         {...props}
       >
-        {loading && (
-          <CustomLoader
-            className="mr-2"
-            size={16}
-            color={variant === "outline" ? "currentColor" : "white"}
-          />
-        )}
+        {loading && <Loader2 size={16} className="animate-spin mr-1" />}
         {children}
       </Comp>
     );

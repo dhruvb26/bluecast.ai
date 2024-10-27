@@ -1,12 +1,18 @@
 "use client";
 
 import { Suspense } from "react";
-import CustomLoader from "@/components/global/custom-loader";
+import { BarLoader } from "react-spinners";
 import StylesContent from "../_content/styles-content";
 
 export default function FormatPage() {
   return (
-    <Suspense fallback={<CustomLoader size={32} />}>
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-full">
+          <BarLoader color="#2563eb" height={3} width={300} />
+        </div>
+      }
+    >
       <StylesContent />
     </Suspense>
   );

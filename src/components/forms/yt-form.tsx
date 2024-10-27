@@ -15,7 +15,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import CustomLoader from "../global/custom-loader";
 import { usePostStore } from "@/store/post";
 import {
   PostFormatField,
@@ -90,7 +89,7 @@ export function YouTubeForm() {
   };
 
   const onSubmit = (data: z.infer<typeof RepurposeFormSchema>) => {
-    storeHandleSubmit("repurpose/youtube", data);
+    storeHandleSubmit("repurpose/yt", data);
   };
 
   const handleSelectStyle = (styleId: string) => {

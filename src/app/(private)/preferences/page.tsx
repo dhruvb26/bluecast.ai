@@ -33,6 +33,7 @@ import {
 } from "react-icons/fa";
 import { Check } from "@phosphor-icons/react";
 import { completeOnboarding, getUser } from "@/actions/user";
+import { ForYouForm } from "@/components/forms/for-you-form";
 
 const formSchema = z.object({
   role: z.string({
@@ -47,6 +48,9 @@ const formSchema = z.object({
 });
 
 const roles = [
+  "B2B Founder",
+  "B2B Creator",
+  "B2B Marketer",
   "Entrepreneur",
   "Professional",
   "Job Seeker",
@@ -77,7 +81,7 @@ const topicSuggestions = [
   "Innovation",
 ];
 
-export default function OnboardingPage() {
+export default function PreferencesPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [topicInput, setTopicInput] = useState("");
@@ -222,11 +226,19 @@ export default function OnboardingPage() {
       setIsSubmitting(false);
     }
   }
+  const [formChanged, setFormChanged] = useState(false);
+
+  useEffect(() => {
+    const subscription = form.watch(() => {
+      setFormChanged(true);
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   return (
     <main className="p-8">
       <div className="mb-8 text-left">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Set Account Preferences
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -247,8 +259,11 @@ export default function OnboardingPage() {
               <FormItem>
                 <FormLabel>What best describes your role?</FormLabel>
                 <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setFormChanged(true);
+                  }}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -282,7 +297,10 @@ export default function OnboardingPage() {
                         field.value === option.value ? "default" : "outline"
                       }
                       className="flex items-center gap-2 rounded-md"
-                      onClick={() => form.setValue("heardFrom", option.value)}
+                      onClick={() => {
+                        form.setValue("heardFrom", option.value);
+                        setFormChanged(true);
+                      }}
                     >
                       {option.icon && <option.icon />}
                       {option.label}
@@ -321,7 +339,10 @@ export default function OnboardingPage() {
                                   ? "bg-accent text-accent-foreground"
                                   : "hover:bg-accent hover:text-accent-foreground"
                               }`}
-                              onClick={() => addTopic(suggestion)}
+                              onClick={() => {
+                                addTopic(suggestion);
+                                setFormChanged(true);
+                              }}
                             >
                               <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
                                 {form
@@ -354,7 +375,10 @@ export default function OnboardingPage() {
                           {topic}
                           <button
                             type="button"
-                            onClick={() => removeTopic(topic)}
+                            onClick={() => {
+                              removeTopic(topic);
+                              setFormChanged(true);
+                            }}
                             className="ml-1 text-blue-600 hover:text-blue-800"
                           >
                             ×
@@ -369,13 +393,11 @@ export default function OnboardingPage() {
             )}
           />
           <div className="flex flex-col items-start justify-center space-y-3">
-            <Button type="submit" loading={isSubmitting}>
-              {isSubmitting
-                ? "Saving"
-                : form.getValues("role")
-                ? "Update"
-                : "Save"}
-            </Button>
+            {formChanged && (
+              <Button type="submit" loading={isSubmitting}>
+                {isSubmitting ? "Saving" : "Update"}
+              </Button>
+            )}
           </div>
         </form>
       </Form>

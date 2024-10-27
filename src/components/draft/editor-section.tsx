@@ -14,15 +14,9 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { Slate, Editable, ReactEditor, useSlate } from "slate-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import {
-  TbFishHook,
-  TbPencilCog,
-  TbPencilPlus,
-  TbTextGrammar,
-} from "react-icons/tb";
-import { PiTextIndent, PiTextOutdent } from "react-icons/pi";
+import { Range } from "slate";
+import { TbFishHook, TbPencilCog, TbPencilPlus } from "react-icons/tb";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { HiOutlineCursorClick } from "react-icons/hi";
 import { Separator } from "@/components/ui/separator";
@@ -31,8 +25,6 @@ import ScheduleDialog from "@/components/scheduler/schedule-dialog";
 import { toast } from "sonner";
 import EmojiPicker, { SkinTonePickerLocation } from "emoji-picker-react";
 import {
-  Brain,
-  PaperPlaneRight,
   Smiley,
   Sparkle,
   TextB,
@@ -46,10 +38,20 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import FileAttachmentButton from "@/components/buttons/file-attachment- button";
-import { Loader2, Send } from "lucide-react";
+import {
+  CircleCheckBig,
+  IndentDecrease,
+  IndentIncrease,
+  Send,
+} from "lucide-react";
 import { HistoryEditor } from "slate-history";
-import { deserializeContent, serializeContent } from "@/utils/editor-utils";
-import { Input } from "@/components/ui/input";
+import { deserializeContent } from "@/utils/editor-utils";
+import { Loader2 } from "lucide-react";
+import { getLinkedInId } from "@/actions/user";
+import LinkedInConnect from "../global/connect-linkedin";
+import { usePostStore } from "@/store/post";
+
+import { useRouter } from "next/navigation";
 
 export type ParagraphElement = {
   type: "paragraph";
@@ -180,14 +182,6 @@ function EditorSection({
     const { leaf, attributes, children } = props;
     const text = leaf.text;
 
-    // Check if the text is a special character
-    // const isSpecialChar = /[(){}&*^%$#@!]/.test(text);
-
-    // if (isSpecialChar) {
-    //   // Return the special character without any formatting
-    //   return <span {...attributes}>{children}</span>;
-    // }
-
     return (
       <span
         {...attributes}
@@ -259,6 +253,7 @@ function EditorSection({
   const [isPublishing, setIsPublishing] = useState(false);
   const [isRewriting, setIsRewriting] = useState(false);
   const [customPrompt, setCustomPrompt] = useState("");
+  const [selectedText, setSelectedText] = useState("");
 
   const customStyles = {
     "--epr-emoji-size": "24px",
@@ -269,17 +264,34 @@ function EditorSection({
     "--epr-category-label-bg-color": "#ffffff",
     "--epr-text-color": "#101828",
     "--epr-category-icon-active-color": "#ffffff",
-    "--epr-search-input-bg-color": "#dbeafe",
-    "--epr-search-input-text-color": "#1d4ed8",
-    "--epr-search-input-placeholder-color": "#2563eb",
     "--epr-category-navigation-button-size": "0px",
     "--epr-preview-height": "50px",
   } as React.CSSProperties;
 
   const { user } = useUser();
-
+  const { showLinkedInConnect, setShowLinkedInConnect } = usePostStore();
+  const router = useRouter();
   const handlePublish = async () => {
+    handleSave();
     setIsPublishing(true);
+
+    try {
+      const linkedInAccount = await getLinkedInId();
+      if (!linkedInAccount || linkedInAccount.length === 0) {
+        setIsPublishing(false);
+        setShowLinkedInConnect(true);
+        return;
+      }
+    } catch (error) {
+      console.error("Error getting LinkedIn ID:", error);
+      toast.error(
+        "Failed to retrieve LinkedIn account information. Please try again."
+      );
+
+      setIsPublishing(false);
+      setShowLinkedInConnect(true);
+      return <LinkedInConnect />;
+    }
 
     try {
       const publishData: any = {
@@ -301,24 +313,29 @@ function EditorSection({
 
       const result: any = await response.json();
 
-      const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
+      if (result.status === "progress") {
+        toast.success("Your post is being processed.", { duration: 5000 });
+        router.push("/saved/posts?tab=progress");
+      } else {
+        const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
 
-      toast.success(
-        <span>
-          Post published successfully.{" "}
-          <a
-            href={link}
-            className="font-semibold text-green-900"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Click here
-          </a>
-        </span>
-      );
+        toast.success(
+          <span>
+            Post published successfully.{" "}
+            <a
+              href={link}
+              className="font-semibold text-green-900"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Click here
+            </a>
+          </span>
+        );
+      }
     } catch (error: any) {
       if (error.name === "AbortError") {
-        toast.info("Publishing cancelled");
+        toast.error("Publishing cancelled");
       } else {
         console.error("Error publishing post:", error);
         toast.error(
@@ -367,16 +384,19 @@ function EditorSection({
   );
   const handleRewrite = useCallback(
     async (option: string) => {
-      const { selection } = editor;
-      if (!selection && option !== "hook" && option !== "cta") {
+      let textToRewrite = selectedText;
+
+      if (
+        !textToRewrite &&
+        option !== "hook" &&
+        option !== "cta" &&
+        option !== "continue"
+      ) {
         toast.error("Please select some text to rewrite.");
         return;
       }
 
       setIsRewriting(true);
-
-      const selectedText = selection ? Editor.string(editor, selection) : "";
-      const fullContent = extractContent(value);
 
       try {
         const response = await fetch("/api/ai/rewrite", {
@@ -385,8 +405,8 @@ function EditorSection({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            selectedText,
-            fullContent,
+            selectedText: textToRewrite,
+            fullContent: extractContent(value),
             option,
             customPrompt,
           }),
@@ -402,13 +422,34 @@ function EditorSection({
           throw new Error("Rewritten text is empty");
         }
 
-        if (selection) {
-          // Replace the selected text with the rewritten text
-          Transforms.select(editor, selection);
+        const { selection } = editor;
+        if (option === "hook") {
+          // Prepend the hook at the beginning of the document
+          Transforms.insertNodes(
+            editor,
+            [
+              { type: "paragraph", children: [{ text: rewrittenText }] },
+              { type: "paragraph", children: [{ text: "" }] },
+            ],
+            { at: [0] }
+          );
+        } else if (option === "cta") {
+          // Append the CTA at the end of the document
+          Transforms.insertNodes(
+            editor,
+            [
+              { type: "paragraph", children: [{ text: "" }] },
+              { type: "paragraph", children: [{ text: rewrittenText }] },
+            ],
+            { at: Editor.end(editor, []) }
+          );
+        } else if (selection && !Range.isCollapsed(selection)) {
+          // For other options, replace the selected text
           Transforms.delete(editor);
           Transforms.insertText(editor, rewrittenText);
         } else {
-          // Insert the new content at the current cursor position
+          // If there's no current selection, insert at the end
+          Transforms.select(editor, Editor.end(editor, []));
           Transforms.insertText(editor, rewrittenText);
         }
 
@@ -423,36 +464,40 @@ function EditorSection({
         setCustomPrompt("");
       }
     },
-    [editor, value, customPrompt]
+    [editor, value, customPrompt, selectedText]
   );
 
   const handleOptionClick = (option: string) => {
     handleRewrite(option);
   };
 
-  const handleDocumentUploaded = useCallback(
-    async (fileType: string) => {
-      if (fileType === "pdf" || fileType === "document") {
-        toast.success(`Document uploaded successfully.`);
-        window.location.reload();
-      } else if (fileType === "video") {
-        toast.success(`Video uploaded successfully.`);
-        window.location.reload();
-      } else {
-        toast.success(`Image uploaded successfully.`);
-        window.location.reload();
-      }
-      setFileType(fileType);
-    },
+  const handleDocumentUploaded = async (fileType: string) => {
+    handleSave();
+    if (fileType === "pdf" || fileType === "document") {
+      toast.success(`Document uploaded successfully.`);
+      window.location.reload();
+    } else if (fileType === "video") {
+      toast.success(`Video uploaded successfully.`);
+      window.location.reload();
+    } else {
+      toast.success(`Image uploaded successfully.`);
+      window.location.reload();
+    }
+    setFileType(fileType);
+  };
 
-    [id, setFileType]
-  );
+  [id, setFileType];
 
   return (
     <>
+      {showLinkedInConnect && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <LinkedInConnect />
+        </div>
+      )}
       <div className="relative">
-        <div className="text-left mb-2 px-4 pt-4">
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <div className="text-left px-4 pt-8">
+          <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Write Post
           </h1>
           <p className="text-sm  text-muted-foreground ">
@@ -460,8 +505,20 @@ function EditorSection({
           </p>
         </div>
 
-        <Slate editor={editor} initialValue={value} onChange={handleChange}>
-          <div className="m-2 flex space-x-2">
+        <Slate
+          editor={editor}
+          initialValue={value}
+          onChange={(newValue) => {
+            handleChange(newValue);
+            const { selection } = editor;
+            if (selection && !Range.isCollapsed(selection)) {
+              setSelectedText(Editor.string(editor, selection));
+            } else {
+              setSelectedText("");
+            }
+          }}
+        >
+          <div className="m-2 flex space-x-1">
             <ToolbarButton format="bold" icon={<TextB className="h-4 w-4" />} />
             <ToolbarButton
               format="italic"
@@ -478,6 +535,7 @@ function EditorSection({
               postId={id}
               onFileUploaded={handleDocumentUploaded}
             />
+
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -502,8 +560,19 @@ function EditorSection({
                   variant="ghost"
                   className="rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
                   disabled={isRewriting}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    const { selection } = editor;
+                    if (selection && !Range.isCollapsed(selection)) {
+                      setSelectedText(Editor.string(editor, selection));
+                    }
+                  }}
                 >
-                  <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
+                  {isRewriting ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
+                  )}
                   AI
                 </Button>
               </PopoverTrigger>
@@ -511,94 +580,76 @@ function EditorSection({
                 side="right"
                 className="w-56 rounded p-1"
                 style={{ position: "absolute" }}
+                onOpenAutoFocus={(e) => e.preventDefault()}
               >
-                <ScrollArea className="h-[250px]">
-                  <div className="flex flex-col rounded">
-                    <div className="flex flex-row space-x-1 p-1">
-                      <Input
-                        type="text"
-                        value={customPrompt}
-                        onChange={(e) => setCustomPrompt(e.target.value)}
-                        placeholder="Custom Instructions"
-                        className="h-8 w-full rounded border border-gray-300 px-2 py-1 text-xs"
-                      />
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-8 items-center justify-center rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                        onClick={() => handleOptionClick("custom")}
-                        disabled={!customPrompt.trim()}
-                      >
-                        <PaperPlaneRight className="h-5 w-5 text-blue-600" />
-                      </Button>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("continue")}
-                    >
-                      <TbPencilPlus className="mr-2 h-5 w-5 stroke-2 text-blue-600" />
-                      Continue writing
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("improve")}
-                    >
-                      <TbPencilCog className="mr-2 h-5 w-5 text-blue-600" />
-                      Improve writing
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("fixGrammar")}
-                    >
-                      <TbTextGrammar className="mr-2 h-5 w-5 text-blue-600" />
-                      Fix grammar
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("makeShorter")}
-                    >
-                      <PiTextOutdent className="mr-2 h-5 w-5 text-blue-600" />
-                      Make shorter
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8  justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("makeLonger")}
-                    >
-                      <PiTextIndent className="mr-2 h-5 w-5 text-blue-600" />
-                      Make longer
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("simplify")}
-                    >
-                      <HiOutlineSparkles className="mr-2 h-5 w-5 text-blue-600" />
-                      Simplify text
-                    </Button>
+                {/* <ScrollArea className="h-[250px]"> */}
+                <div className="flex flex-col rounded">
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("continue")}
+                  >
+                    <TbPencilPlus className="mr-2 h-5 w-5 stroke-1.25 text-blue-600" />
+                    Continue writing
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("improve")}
+                  >
+                    <TbPencilCog className="mr-2 h-5 w-5 text-blue-600" />
+                    Improve writing
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("fixGrammar")}
+                  >
+                    <CircleCheckBig className="mr-2 h-4 w-4 text-blue-600" />
+                    Fix grammar
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("makeShorter")}
+                  >
+                    <IndentDecrease className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
+                    Make shorter
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8  justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("makeLonger")}
+                  >
+                    <IndentIncrease className="mr-2 h-5 w-5 text-blue-600 stroke-2" />
+                    Make longer
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("simplify")}
+                  >
+                    <HiOutlineSparkles className="mr-2 h-5 w-5 text-blue-600" />
+                    Simplify text
+                  </Button>
 
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("hook")}
-                    >
-                      <TbFishHook className="mr-2 h-5 w-5 text-blue-600" />
-                      Add a hook
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="h-8 justify-start rounded text-sm font-normal text-black hover:bg-brand-gray-50 hover:text-blue-600"
-                      onClick={() => handleOptionClick("cta")}
-                    >
-                      <HiOutlineCursorClick className="mr-2 h-5 w-5 text-blue-600" />
-                      Add a CTA
-                    </Button>
-                  </div>
-                </ScrollArea>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("hook")}
+                  >
+                    <TbFishHook className="mr-2 h-5 w-5 text-blue-600" />
+                    Add a hook
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="h-8 justify-start rounded text-sm font-normal"
+                    onClick={() => handleOptionClick("cta")}
+                  >
+                    <HiOutlineCursorClick className="mr-2 h-5 w-5 text-blue-600" />
+                    Add a CTA
+                  </Button>
+                </div>
               </PopoverContent>
             </Popover>
           </div>
@@ -624,7 +675,7 @@ function EditorSection({
             />
           </div>
         </Slate>
-        <div className="mt-2 flex w-full justify-between text-xs text-gray-500 px-4">
+        <div className="mt-2 mb-10 flex w-full justify-between text-xs text-gray-500 px-4">
           <span>
             {updateAt ? (
               `Last saved at: ${updateAt.toLocaleString()} (${
@@ -647,9 +698,9 @@ function EditorSection({
           <ScheduleDialog id={id} disabled={isPublishing} />
           <Button onClick={handlePublish} disabled={isPublishing}>
             {isPublishing ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Send className="mr-2 h-4 w-4" />
+              <Send className="mr-1 h-4 w-4" />
             )}
             {isPublishing ? "Publishing" : "Publish"}
           </Button>

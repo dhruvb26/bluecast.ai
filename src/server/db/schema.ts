@@ -24,7 +24,12 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `bluecast.ai_${name}`);
 
-export const statusEnum = pgEnum("status", ["saved", "scheduled", "published"]);
+export const statusEnum = pgEnum("status", [
+  "saved",
+  "scheduled",
+  "published",
+  "progress",
+]);
 
 // Content
 export const drafts = createTable("draft", {
@@ -166,6 +171,26 @@ export const postRelations = relations(posts, ({ one }) => ({
   }),
 }));
 
+export const instructions = createTable("instruction", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  userId: varchar("user_id", { length: 256 })
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  instructions: text("instructions").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+});
+
+export const instructionRelations = relations(instructions, ({ one }) => ({
+  user: one(users, { fields: [instructions.userId], references: [users.id] }),
+}));
+
 // Users & Accounts
 export const users = createTable("user", {
   id: varchar("id", { length: 255 }).primaryKey(),
@@ -181,9 +206,11 @@ export const users = createTable("user", {
   stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
   trialEndsAt: timestamp("trial_ends_at"),
   onboardingComplete: boolean("onboarding_complete").default(false),
+  forYouGeneratedPosts: integer("for_you_generated_posts").default(0).notNull(),
   generatedWords: integer("generated_words").default(0).notNull(),
+  generatedPosts: integer("generated_posts").default(0).notNull(),
   onboardingData: jsonb("onboarding_data"),
-  specialAccess: boolean("special_access").default(false),
+  specialAccess: boolean("special_access").default(true),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -191,6 +218,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   contentStyles: many(contentStyles),
   postFormats: many(postFormats),
   drafts: many(drafts),
+  forYouAnswers: many(forYouAnswers),
+  generatedPosts: many(generatedPosts),
+  instructions: many(instructions),
 }));
 
 export const accounts = createTable(
@@ -270,6 +300,45 @@ export const creatorListItemsRelations = relations(
     }),
   })
 );
+
+export const forYouAnswers = createTable("for_you_answer", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  userId: varchar("user_id", { length: 256 })
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  aboutYourself: text("about_yourself").notNull(),
+  targetAudience: text("target_audience").notNull(),
+  formats: jsonb("formats").$type<string[]>().notNull(),
+  personalTouch: text("personal_touch").notNull(),
+  contentStyle: varchar("content_style", { length: 256 }),
+  topics: jsonb("topics").$type<string[]>().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+});
+
+export const forYouAnswersRelations = relations(forYouAnswers, ({ one }) => ({
+  user: one(users, { fields: [forYouAnswers.userId], references: [users.id] }),
+}));
+
+export const generatedPosts = createTable("generated_post", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  userId: varchar("user_id", { length: 256 })
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const generatedPostsRelations = relations(generatedPosts, ({ one }) => ({
+  user: one(users, { fields: [generatedPosts.userId], references: [users.id] }),
+}));
 
 // Auth schemas
 export const sessions = createTable("session", {

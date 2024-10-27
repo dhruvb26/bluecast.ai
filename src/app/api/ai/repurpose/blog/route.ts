@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
-import { extract } from "@extractus/article-extractor";
 import { RepurposeRequestBody } from "@/types";
 import { anthropic } from "@/server/model";
+import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
+import { linkedInPostPrompt } from "@/utils/prompt-template";
+
+export const maxDuration = 120;
 
 export async function POST(req: Request) {
   try {
@@ -12,30 +16,51 @@ export async function POST(req: Request) {
 
     // Check if the user has access
     if (!hasAccess) {
-      return NextResponse.json({ error: "Not authorized" }, { status: 401 });
+      return NextResponse.json({ error: "Not authorized!" }, { status: 401 });
     }
 
     const body: RepurposeRequestBody = await req.json();
-    const {
-      url,
-      instructions,
-      formatTemplate,
-      engagementQuestion,
-      CTA,
-      contentStyle,
-    } = body;
+    const { url, instructions, formatTemplate, contentStyle } = body;
 
-    const data = await extract(url);
+    let textContent: string | null = null;
 
-    if (!data || !data.content) {
+    try {
+      const response = await fetch(
+        `https://bluecast-be-playwright-image.onrender.com/extract-text?url=${encodeURIComponent(
+          url
+        )}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: any = await response.json();
+
+      if (data.status === "success") {
+        textContent = data.text;
+      } else {
+        throw new Error("Failed to extract content from the URL");
+      }
+    } catch (error) {
+      console.error("Error fetching content:", error);
       throw new Error("Failed to extract content from the URL");
     }
 
-    // Clean up the extracted content
-    const cleanContent = data.content
-      .replace(/<\/?[^>]+(>|$)/g, "") // Remove HTML tags
-      .replace(/\n+/g, "\n") // Replace multiple newlines with a single newline
-      .trim(); // Remove leading and trailing whitespace
+    if (!textContent) {
+      throw new Error("Failed to extract content from the URL");
+    }
+
+    const cleanContent = textContent;
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+        examples = joinExamples(examples);
+      }
+    }
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -44,51 +69,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: `You are tasked with creating an informative LinkedIn post based on a blog article. Your goal is to understand the context of the article and generate a post that captures its key points and value.
-
-                    First, carefully read and analyze the following article content:
-
-                    <article_content>
-                    ${cleanContent}
-                    </article_content>
-
-                    As you analyze the content, pay attention to:
-                    1. The main topic or theme of the article
-                    2. Key points or arguments presented
-                    3. Any notable quotes or statistics
-                    4. The overall message or takeaway
-
-                    Based on your analysis, create a LinkedIn post that:
-                    1. Summarizes the main idea of the article
-                    2. Highlights 2-3 key points or insights
-                    3. Is concise and engaging, suitable for a professional audience on LinkedIn
-                    4. Contains about 200-250 words
-
-                    If custom instructions are provided, incorporate them into your post creation process:
-                    <custom_instructions>
-                    ${instructions}
-                    </custom_instructions>
-
-                    If a format template is provided, use it to structure your post:
-                    <format_template>
-                    ${formatTemplate}
-                    </format_template>
-
-                    If a call-to-action (CTA) is provided, include it in your post:
-                    <cta>
-                    ${CTA}
-                    </cta>
-
-                    If engagement questions are provided, incorporate them into your post:
-                    <engagement_questions>
-                    ${engagementQuestion}
-                    </engagement_questions>
-
-                    If no custom instructions, format template, CTA, or engagement questions are provided, use your best judgment to create an informative and engaging LinkedIn post.
-
-                    Use relevant emoticons unless specifically instructed not to in the custom instructions. Do not include hashtags unless explicitly mentioned in the custom instructions.
-
-                    Important: Generate and output only the content of the LinkedIn post directly. Do not include any XML tags, metadata, or additional commentary. The post should be ready to be shared on LinkedIn as-is.`,
+          content: linkedInPostPrompt
+            .replace("{examples}", examples || "")
+            .replace("<content>{content}</content>", cleanContent)
+            .replace("{formatTemplate}", formatTemplate)
+            .replace("{instructions}", instructions),
         },
       ],
     });
@@ -113,10 +98,8 @@ export async function POST(req: Request) {
             wordCount += wordsInChunk;
           }
         }
-        controller.close();
-
-        // Call the setGeneratedWords action with the total word count
         await setGeneratedWords(wordCount);
+        controller.close();
       },
     });
 

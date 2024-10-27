@@ -13,7 +13,7 @@ import { getDrafts, Draft } from "@/actions/draft";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import CustomLoader from "@/components/global/custom-loader";
+import { Loader2 } from "lucide-react";
 import { PlusIcon, TrashIcon, FileTextIcon, Trash } from "lucide-react";
 import {
   Dialog,
@@ -155,7 +155,7 @@ export default function FormatContent() {
   };
 
   if (isLoading) {
-    return <CustomLoader size={32} />;
+    return <Loader2 size={32} className="animate-spin" />;
   }
 
   if (!format) {

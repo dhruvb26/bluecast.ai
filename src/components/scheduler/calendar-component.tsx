@@ -7,6 +7,12 @@ import { Button } from "../ui/button";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 import { Separator } from "../ui/separator";
 import { SchedulePostDialog } from "./schedule-post-dialog";
+import { usePostStore } from "@/store/post";
+import dynamic from "next/dynamic";
+
+const LinkedInConnect = dynamic(() => import("../global/connect-linkedin"), {
+  ssr: false,
+});
 
 interface CalendarProps {
   drafts: Draft[];
@@ -85,7 +91,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
     const year = date.getFullYear();
 
     return (
-      <span className="text-xl font-semibold items-center flex tracking-tight">
+      <span className="text-lg font-semibold items-center flex tracking-tight">
         {month} {year}
       </span>
     );
@@ -141,9 +147,10 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
         : getWeekDates(currentDate, currentView === "1week" ? 1 : 2);
     const today = new Date().toDateString();
     const now = new Date();
+    const currentMonth = currentDate.getMonth();
 
     const timeChunks = Array.from(
-      { length: 8 },
+      { length: 9 },
       (_, i) => `${(i * 3).toString().padStart(2, "0")}:00`
     );
 
@@ -155,7 +162,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
             {timeChunks.map((time, i) => (
               <div
                 key={i}
-                className="h-[calc((100vh-100px)/8)] flex items-end justify-end pr-2 pb-1"
+                className="h-[calc((100vh-100px)/9)] flex items-end justify-end pr-2 pb-5"
               >
                 <span className="text-xs text-gray-400">{time}</span>
               </div>
@@ -165,20 +172,28 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
           <div className="flex-grow overflow-y-auto">
             <div
               className={`grid ${
-                currentView === "month" ? "grid-cols-7" : "grid-cols-7"
-              } gap-px bg-gray-100 h-[calc(8*(100vh-100px)/8)]`}
+                currentView === "month"
+                  ? "grid-cols-7"
+                  : "md:grid-cols-7 grid-cols-1"
+              } gap-px bg-gray-100`}
             >
               {dates.map((date, index) => (
                 <div
                   key={index}
                   className={`flex flex-col ${
-                    date.toDateString() === today ? "bg-gray-25" : "bg-white"
+                    date.toDateString() === today
+                      ? "bg-gray-25"
+                      : date.getMonth() !== currentMonth
+                      ? "bg-gray-50"
+                      : "bg-white"
                   }`}
                 >
                   <div
                     className={`sticky top-0 z-10 flex-shrink-0 h-14 items-center justify-center ${
                       date.toDateString() === today
-                        ? "border-blue-600 border-b p-4"
+                        ? "border-blue-600 border-b p-4 bg-white"
+                        : date.getMonth() !== currentMonth
+                        ? "bg-gray-50 p-4 border-b border-input"
                         : "bg-white p-4 border-b border-input"
                     }`}
                   >
@@ -187,6 +202,8 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                         className={`text-sm font-normal ${
                           date.toDateString() === today
                             ? "text-blue-600"
+                            : date.getMonth() !== currentMonth
+                            ? "text-gray-400"
                             : "text-muted-foreground"
                         }`}
                       >
@@ -194,7 +211,11 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                       </div>
                       <div
                         className={`text-sm ${
-                          date.toDateString() === today ? "text-blue-600" : ""
+                          date.toDateString() === today
+                            ? "text-blue-600"
+                            : date.getMonth() !== currentMonth
+                            ? "text-gray-400"
+                            : ""
                         }`}
                       >
                         {formatDayOfMonth(date)}
@@ -205,7 +226,7 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                     {timeChunks.map((_, i) => (
                       <div
                         key={i}
-                        className="h-[calc((100vh-100px)/8)] border-b border-gray-200"
+                        className="h-[calc((100vh-100px)/9)] border-b border-gray-200"
                       />
                     ))}
                     {getDraftsForDate(date).map((draft) => {
@@ -224,15 +245,13 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
                           style={{
                             position: "absolute",
                             top: `${topPercentage}%`,
-                            left: "2px",
-                            right: "2px",
                           }}
                         />
                       );
                     })}
                     {date.toDateString() === today && (
                       <div
-                        className="absolute left-0 right-0 h-0.5 bg-blue-400 z-40"
+                        className="absolute left-0 right-0 h-0.5 bg-blue-600"
                         style={{
                           top: `${
                             ((now.getHours() * 60 + now.getMinutes()) /
@@ -252,58 +271,74 @@ const Calendar: React.FC<CalendarProps> = ({ drafts }) => {
     );
   };
 
+  const { showLinkedInConnect } = usePostStore();
+
   return (
-    <div className="calendar-container min-h-screen pb-4">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex flex-col space-y-2 p-4">
-          <div className="flex flex-row space-x-2">
-            {formatMonthYearWeek(currentDate)}
-            <Button variant={"outline"} onClick={goToToday} className="text-sm">
-              Today
-            </Button>
-            <div className="flex flex-row items-center">
+    <>
+      {showLinkedInConnect && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <LinkedInConnect />
+        </div>
+      )}
+      <div className="calendar-container min-h-screen pb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <div className="flex flex-col space-y-2 p-4">
+            <div className="flex flex-row items-center space-x-2">
+              {formatMonthYearWeek(currentDate)}
               <Button
-                size={"icon"}
-                variant={"ghost"}
-                onClick={goToPrevious}
-                className="rounded-full"
+                variant={"outline"}
+                onClick={goToToday}
+                className="text-sm"
               >
-                <ChevronLeft size={20} />
+                Today
               </Button>
+              <div className="flex flex-row items-center">
+                <Button
+                  size={"icon"}
+                  variant={"ghost"}
+                  onClick={goToPrevious}
+                  className="rounded-full"
+                >
+                  <ChevronLeft size={20} />
+                </Button>
 
-              <Button
-                size={"icon"}
-                variant={"ghost"}
-                onClick={goToNext}
-                className="rounded-full"
-              >
-                <ChevronRight size={20} />
-              </Button>
+                <Button
+                  size={"icon"}
+                  variant={"ghost"}
+                  onClick={goToNext}
+                  className="rounded-full"
+                >
+                  <ChevronRight size={20} />
+                </Button>
+              </div>
             </div>
+            <>{formatDates(currentDate)}</>
           </div>
-          <>{formatDates(currentDate)}</>
-        </div>
 
-        <div className="flex items-center space-x-4">
-          <SchedulePostDialog />
-          <Separator orientation="vertical" className="h-10" />
-          <Tabs
-            className="mr-6"
-            value={currentView}
-            onValueChange={(value) =>
-              setCurrentView(value as "1week" | "2weeks" | "month")
-            }
-          >
-            <TabsList className="grid grid-cols-3  text-sm">
-              <TabsTrigger value="1week">1 Week</TabsTrigger>
-              <TabsTrigger value="2weeks">2 Weeks</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex items-center space-x-4 px-6">
+            <SchedulePostDialog />
+            <Separator
+              orientation="vertical"
+              className="h-10 hidden sm:block"
+            />
+            <Tabs
+              className="mr-6 hidden sm:block"
+              value={currentView}
+              onValueChange={(value) =>
+                setCurrentView(value as "1week" | "2weeks" | "month")
+              }
+            >
+              <TabsList className="grid grid-cols-3 text-sm">
+                <TabsTrigger value="1week">1 Week</TabsTrigger>
+                <TabsTrigger value="2weeks">2 Weeks</TabsTrigger>
+                <TabsTrigger value="month">Month</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
+        {renderCalendarView()}
       </div>
-      {renderCalendarView()}
-    </div>
+    </>
   );
 };
 

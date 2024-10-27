@@ -14,20 +14,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import CustomLoader from "@/components/global/custom-loader";
+
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Card,
-  CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import { PenIcon, CalendarIcon, RocketIcon } from "lucide-react";
+import {
+  CalendarIcon,
+  RocketIcon,
+  BadgeInfoIcon,
+  PenSquare,
+} from "lucide-react";
 import { BarLoader } from "react-spinners";
 
-type TabType = "saved" | "scheduled" | "published";
+type TabType = "saved" | "scheduled" | "published" | "progress";
 
 const SavedDraftsContent = () => {
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -89,7 +93,7 @@ const SavedDraftsContent = () => {
     if (isLoading) {
       return (
         <div className="flex justify-center items-center h-[400px]">
-          <BarLoader color="#1d51d7" height={3} width={300} />
+          <BarLoader color="#2563eb" height={3} width={300} />
         </div>
       );
     }
@@ -117,22 +121,21 @@ const SavedDraftsContent = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-xl font-semibold tracking-tight mb-1">Drafts</h1>
+      <h1 className="text-lg font-semibold tracking-tight">Drafts</h1>
       <p className="text-muted-foreground mb-6 text-sm">
         Manage your content creation journey here.
       </p>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-3 mb-8">
+        <TabsList className="grid grid-cols-4 mb-8">
           <TabsTrigger value="saved">Saved</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled</TabsTrigger>
           <TabsTrigger value="published">Published</TabsTrigger>
+          <TabsTrigger value="progress">In Progress</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab}>{renderContent()}</TabsContent>
       </Tabs>
-
-      {/* {!isLoading && drafts.length > 0 && <CTACard />} */}
 
       <AlertDialog
         open={!!draftToDelete}
@@ -163,11 +166,17 @@ const SavedDraftsContent = () => {
 function EmptyState({ type }: { type: TabType }) {
   const content = {
     saved: {
-      icon: <PenIcon className="w-12 h-12 mb-4 text-primary" />,
+      icon: <PenSquare className="w-12 h-12 mb-4 text-primary" />,
       title: "No saved drafts yet",
       description:
-        "Start your writing journey. Save your ideas and come back to them later.",
-      action: "Create Draft",
+        "Start your writing journey. Save your drafts and come back to them later. Explore our templates to get started.",
+      actions: [
+        {
+          label: "Explore Templates",
+          href: "/create/posts",
+        },
+      ],
+      action: "",
     },
     scheduled: {
       icon: <CalendarIcon className="w-12 h-12 mb-4 text-primary" />,
@@ -175,6 +184,7 @@ function EmptyState({ type }: { type: TabType }) {
       description:
         "Plan ahead. Schedule your posts for consistent content delivery.",
       action: "Schedule Post",
+      actions: [],
     },
     published: {
       icon: <RocketIcon className="w-12 h-12 mb-4 text-primary" />,
@@ -182,10 +192,20 @@ function EmptyState({ type }: { type: TabType }) {
       description:
         "Share your voice with the world. Publish your first post today.",
       action: "Publish Post",
+      actions: [],
+    },
+    progress: {
+      icon: <BadgeInfoIcon className="w-12 h-12 mb-4 text-primary" />,
+      title: "No posts in progress yet",
+      description:
+        "Posts with video attachments take time to upload, so they show up here while they're being processed.",
+      action: "Publish Post",
+      actions: [],
     },
   };
 
-  const { icon, title, description, action } = content[type];
+  const { icon, title, description, actions, action } =
+    content[type as TabType];
 
   return (
     <Card className="text-center p-8 border-none">
@@ -195,18 +215,40 @@ function EmptyState({ type }: { type: TabType }) {
           {title}
         </CardTitle>
         <CardDescription className="mb-6">{description}</CardDescription>
-        <Button
-          onClick={() => {
-            if (type === "saved") {
-              window.location.href = "/create/posts";
-            }
-          }}
-        >
-          {action}
-        </Button>
+        {type === "saved" ? (
+          <div className="flex space-x-4">
+            {actions.map((action: any, index: number) => (
+              <Button
+                key={index}
+                onClick={() => {
+                  window.location.href = action.href;
+                }}
+                className={
+                  index === 1
+                    ? "w-full mb-2 rounded-lg bg-gradient-to-r to-brand-blue-secondary  from-brand-blue-primary  hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-md transition-all duration-300 flex items-center justify-center"
+                    : ""
+                }
+                variant={index === 0 ? "outline" : "default"}
+              >
+                {action.icon}
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        ) : type !== "progress" && type !== "published" ? (
+          <Button
+            variant={"outline"}
+            onClick={() => {
+              if (type === "scheduled") {
+                window.location.href = "/schedule";
+              }
+            }}
+          >
+            {content[type].action}
+          </Button>
+        ) : null}
       </CardContent>
     </Card>
   );
 }
-
 export default SavedDraftsContent;

@@ -29,41 +29,53 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-            You are tasked with rewriting or adding content to a selected portion of text while maintaining the context of the full content. Your goal is to improve and enhance the selected text or add new content while ensuring it fits seamlessly within the overall content.
+  You are tasked with rewriting, adding content, or continuing the text based on the full content provided. Your goal is to improve and enhance the selected text, add new content, or continue the text while ensuring it fits seamlessly within the overall content.
 
-            Here is the full content for context:
-            <full_content>
-            ${fullContent}
-            </full_content>
+  Here is the full content:
+  <full_content>
+  ${fullContent}
+  </full_content>
 
-            Here is the selected text to be rewritten or the insertion point for new content:
-            <selected_text>
-            ${selectedText}
-            </selected_text>
+  ${
+    option !== "continue"
+      ? `
+  Here is the selected text to be rewritten or the insertion point for new content:
+  <selected_text>
+  ${selectedText}
+  </selected_text>
+  `
+      : ""
+  }
 
-            Rewriting option: ${option}
+  Rewriting option: ${option}
 
-            ${option === "custom" ? `Custom prompt: ${customPrompt}` : ""}
+  Please ${
+    option === "continue"
+      ? "continue the text"
+      : "rewrite the selected text or add new content"
+  } based on the given option, keeping the following in mind:
+  1. Maintain the core message, key points, and tone of the full content
+  2. Ensure the ${
+    option === "continue" ? "continued" : "rewritten or new"
+  } text fits well within the context of the full content
+  3. Follow the specific instructions based on the chosen option:
+     ${
+       option === "continue"
+         ? "- continue writing: Add a logical continuation to the full content, maintaining the current structure and tone"
+         : `- simplify text: Reduce complexity while preserving meaning
+     - fix grammar: Correct any grammatical errors
+     - make shorter: Condense the content without losing essential information
+     - make longer: Expand on the content with relevant details or examples
+     - improve writing: Enhance clarity, engagement, and professionalism
+     - add a hook: Write an engaging opening that captures the reader's attention. should not be more than 25 words.
+     - add a cta: Write a compelling call-to-action that encourages specific action not more than 25 words.`
+     }
+  4. If user asks for bolded or italic text, use unicode text instead of markdown format
 
-            Please rewrite the selected text or add new content based on the given option${
-              option === "custom" ? " and custom prompt" : ""
-            }, keeping the following in mind:
-            1. Maintain the core message and key points of the selected text (if rewriting)
-            2. Ensure the rewritten or new text fits well within the context of the full content
-            3. Improve clarity, engagement, and professionalism
-            4. Adjust the length according to the option (e.g., make longer, make shorter)
-            5. Simplify the language if the option requests it
-            6. If user asks for bolded or italic text use unicode text instead of markdown format
-            7. If the option is "hook", write an engaging hook that captures the reader's attention and relates to the full content
-            8. If the option is "cta", write a compelling call-to-action that encourages the reader to take a specific action based on the full content
-            ${
-              option === "custom"
-                ? "9. Follow the instructions in the custom prompt"
-                : ""
-            }
-
-            Provide the rewritten or new text within <rewritten_text> tags. Do not include any additional comments or explanations.
-          `,
+  Provide the ${
+    option === "continue" ? "continued" : "rewritten or new"
+  } text within <rewritten_text> tags. Do not include any additional comments or explanations.
+`,
         },
       ],
     });

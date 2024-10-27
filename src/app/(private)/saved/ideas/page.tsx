@@ -2,22 +2,15 @@
 import React, { useState, useEffect } from "react";
 import { getIdeas, deleteIdea, Idea } from "@/actions/idea";
 import { toast } from "sonner";
-import Link from "next/link";
 import {
   TooltipProvider,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import {
-  ArrowUpRight,
-  Empty,
-  PaperPlaneTilt,
-  Plus,
-  ShareFat,
-  TrashSimple,
-} from "@phosphor-icons/react";
-import { Delete, Edit, Loader2, Trash } from "lucide-react";
+import { Empty } from "@phosphor-icons/react";
+import { Plus } from "lucide-react";
+import { Edit, Trash } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { BarLoader } from "react-spinners";
@@ -65,7 +58,7 @@ const SavedIdeasPage = () => {
   return (
     <main className="p-8">
       <div className="mb-2 text-left">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Saved Ideas
         </h1>
         <p className="mx-auto text-sm text-muted-foreground">
@@ -76,15 +69,18 @@ const SavedIdeasPage = () => {
       <div className="mt-4">
         {isLoading ? (
           <div className="flex h-[30vw] items-center justify-center">
-            <BarLoader color="#1d51d7" height={3} width={300} />
+            <BarLoader
+              cssOverride={{ borderRadius: "0.5rem" }}
+              color="#2563eb"
+              height={3}
+              width={300}
+            />
           </div>
         ) : error ? (
           <p className="text-red-500">{error}</p>
         ) : ideas.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[400px] p-4 text-center">
-            <div className="mb-2">
-              <Empty className="w-12 h-12 text-primary" />
-            </div>
+            <Empty className="w-12 h-12 text-primary" />
             <h2 className="text-lg font-semibold tracking-tight">
               No saved ideas.
             </h2>
@@ -95,7 +91,8 @@ const SavedIdeasPage = () => {
               variant={"outline"}
               onClick={() => router.push("/create/ideas")}
             >
-              Generate
+              <Plus className="mr-1" size={16} />
+              Generate Ideas
             </Button>
           </div>
         ) : (

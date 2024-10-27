@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { env } from "@/env";
 import { checkAccess, setGeneratedWords } from "@/actions/user";
 import { anthropic } from "@/server/model";
+import { getContentStyle } from "@/actions/style";
+import { joinExamples } from "@/utils/functions";
 
 interface RequestBody {
   storyType: string;
@@ -37,7 +39,17 @@ export async function POST(req: Request) {
       lesson,
       formatTemplate,
       instructions,
+      contentStyle,
     } = body;
+
+    let examples;
+    if (contentStyle) {
+      const response = await getContentStyle(contentStyle);
+      if (response.success) {
+        examples = response.data.examples;
+        examples = joinExamples(examples);
+      }
+    }
 
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -47,46 +59,50 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-          You are tasked with writing a compelling story post for LinkedIn. Your goal is to create an engaging narrative that resonates with professional audiences while conveying a meaningful message or lesson. Follow these instructions carefully to craft your post:
+          You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
 
-          1. Begin by reviewing the input variables provided:
+          1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
+          2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
+
+          First, analyze the following examples from the content creator (if given any):
+
+          <creator_examples>
+          {${examples}}
+          </creator_examples>
+
+          Examine these examples carefully to:
+          a) Identify a common format or structure used across the posts
+            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
+            c) Determine the overall tone and writing style of the creator
+            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
+
+          Now, generate a LinkedIn post based on the following story elements:
+
           <story_type>{${storyType}}</story_type>
           <story_content>{${storyContent}}</story_content>
           <outcome>{${outcome}}</outcome>
           <feeling>{${feeling}}</feeling>
           <lesson>{${lesson}}</lesson>
 
-          2. Check if a specific format template or custom instructions have been provided:
-          <format_template>{${formatTemplate}}</format_template>
-          <custom_instructions>{${instructions}}</custom_instructions>
+          Consider the following post format (note that the creator's style takes precedence over this):
+          <post_format>
+          {${formatTemplate}}
+          </post_format>
 
-          If a format template or custom instructions are provided, you must strictly adhere to them throughout the writing process. These take precedence over the general guidelines that follow.
+          Adhere to any custom instructions given:
+          <custom_instructions>
+          {${instructions}}
+          </custom_instructions>
 
-          3. If no specific template or custom instructions are given, structure your story post as follows:
-            a. Hook: Start with an attention-grabbing opening line or question related to the story type.
-            b. Context: Briefly set the scene or provide necessary background information.
-            c. Main content: Develop the story using the provided story content, focusing on key events or challenges.
-            d. Outcome: Describe the result or resolution, incorporating the given outcome.
-            e. Emotional impact: Express the feeling associated with the experience.
-            f. Lesson or takeaway: Conclude with the main lesson learned or insight gained.
-
-          4. Writing style and tone:
-            - Keep the language professional yet conversational.
-            - Use short paragraphs and sentences for easy readability on LinkedIn.
-            - Incorporate relevant hashtags where appropriate.
-            - Aim for a word count between 150-300 words, unless specified otherwise in the custom instructions.
-
-          5. Before finalizing your post, review it to ensure:
-            - The story flows logically and engagingly.
-            - The main points (story content, outcome, feeling, and lesson) are clearly conveyed.
-            - The post aligns with LinkedIn's professional context.
-            - Any format template or custom instructions have been followed precisely.
-
-          6. Present your final LinkedIn story post directly, without any surrounding tags.
-
-          7. If user asks for bolded or italic text use unicode text instead of markdown format.
-
-          Remember, your goal is to create a post that is both authentic and inspiring, encouraging engagement from LinkedIn users. Craft your story in a way that professionals can relate to and find value in.`,
+          When writing the post:
+          1. Prioritize the format and tone identified from the creator's examples.
+          2. Incorporate all the given story elements seamlessly into the narrative.
+          3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
+          4. Adhere to any custom instructions given.
+          5. Ensure the post is between 1000-1200 characters long.
+          6. Create a compelling narrative that engages the reader and conveys the lesson learned.
+          
+          Do not include any explanations or comments outside of these tags.`,
         },
       ],
     });
@@ -110,10 +126,8 @@ export async function POST(req: Request) {
             wordCount += wordsInChunk;
           }
         }
-        controller.close();
-
-        // Call the setGeneratedWords action with the total word count
         await setGeneratedWords(wordCount);
+        controller.close();
       },
     });
 
