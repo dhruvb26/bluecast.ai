@@ -71,22 +71,52 @@ export default function ForYouPage() {
       });
       if (!response.ok) {
         if (response.status === 403) {
-          setShowFeatureGate(true);
-          throw new Error("You have reached the maximum number of refreshes.");
+          const errorResponse: any = await response.json();
+          if (
+            errorResponse.error ===
+            "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+          ) {
+            setShowFeatureGate(true);
+            throw new Error(
+              "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+            );
+          } else if (
+            errorResponse.error ===
+            "You have reached the maximum number of refreshes. Limit resets every month."
+          ) {
+            throw new Error(
+              "You have reached the maximum number of refreshes. Limit resets every month."
+            );
+          }
         }
         throw new Error("Failed to generate content");
       }
-      const data = await response.json();
       toast.success("Posts generated successfully!");
       const postsData = (await getForYouPosts()) as Post[];
       setPosts(postsData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating content:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate content. Please try again."
-      );
+      if (
+        error.message ===
+        "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+      ) {
+        toast.error(
+          "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+        );
+      } else if (
+        error.message ===
+        "You have reached the maximum number of refreshes. Limit resets every month."
+      ) {
+        toast.error(
+          "You have reached the maximum number of refreshes. Limit resets every month."
+        );
+      } else {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to generate content. Please try again."
+        );
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -134,6 +164,11 @@ export default function ForYouPage() {
 
   return (
     <main className="p-8">
+      {showFeatureGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <SubscriptionCard />
+        </div>
+      )}
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-foreground">

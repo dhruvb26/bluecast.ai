@@ -38,14 +38,26 @@ export async function POST(
     const userInfo = await getUser();
 
     if (
-      userInfo.forYouGeneratedPosts >= 2 &&
       !userInfo.stripeSubscriptionId &&
-      !userInfo.stripeCustomerId
+      !userInfo.stripeCustomerId &&
+      userInfo.forYouGeneratedPosts >= 5
     ) {
       return NextResponse.json(
         {
           success: false,
-          error: "You have reached the maximum number of refreshes.",
+          error:
+            "You have reached the maximum number of refreshes. Upgrade to get more refreshes.",
+        },
+        { status: 403 }
+      );
+    }
+
+    if (userInfo.forYouGeneratedPosts >= 20) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "You have reached the maximum number of refreshes. Limit resets every month.",
         },
         { status: 403 }
       );
@@ -78,7 +90,7 @@ export async function POST(
       }
     }
 
-    const postPrompt = `You are a copywriter with 25 years of experience. You are tasked with creating 6 distinct LinkedIn posts based on the following information:
+    const postPrompt = `You are a copywriter with 25 years of experience. You are tasked with creating 5 distinct LinkedIn posts based on the following information:
 
     <examples>
     ${examples}
@@ -112,7 +124,7 @@ export async function POST(
     </personal_touch>
     This is the user's personal writing style. Incorporate it into your posts. NOTE: This takes priority over the examples.
 
-    Write 6 full LinkedIn posts following these guidelines:
+    Write 5 full LinkedIn posts following these guidelines:
 
     a. Each post should be between 1200 and 1500 characters long.
     b. Start writing each post directly without including a starting idea (one-liner) or hook. The posts should not have a title or subtitle.
@@ -148,12 +160,10 @@ export async function POST(
 
     await saveForYouPosts(posts);
 
-    await setGeneratedWords(postContents.length * 1500);
-
     const userId = userInfo.id;
     await db
       .update(users)
-      .set({ forYouGeneratedPosts: sql`${users.forYouGeneratedPosts} + 1` })
+      .set({ forYouGeneratedPosts: sql`${users.forYouGeneratedPosts} + 5` })
       .where(eq(users.id, userId));
 
     return NextResponse.json({ success: true, data: posts }, { status: 200 });
