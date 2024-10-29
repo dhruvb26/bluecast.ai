@@ -147,8 +147,6 @@ export async function POST(
       messages: [{ role: "user", content: postPrompt }],
     });
 
-    console.log(postResponse);
-
     const postResult = postResponse.content[0] as any;
 
     let postContents: string[] = [];

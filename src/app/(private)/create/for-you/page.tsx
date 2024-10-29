@@ -19,6 +19,7 @@ import { RefreshCcw } from "lucide-react";
 import { usePostStore } from "@/store/post";
 import SubscriptionCard from "@/components/global/subscription-card";
 import Refresh2 from "@/components/icons/refresh-2";
+import ProgressBar from "@/components/for-you/progress-bar";
 interface Post {
   id: string;
   content: string;
@@ -169,7 +170,7 @@ export default function ForYouPage() {
           <SubscriptionCard />
         </div>
       )}
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-4 flex justify-between items-center">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Posts For You
@@ -180,6 +181,7 @@ export default function ForYouPage() {
             refreshing.
           </p>
         </div>
+
         <div className="flex gap-2">
           {posts.length > 0 && (
             <Button
@@ -196,6 +198,7 @@ export default function ForYouPage() {
           </Link>
         </div>
       </div>
+      <ProgressBar />
       {posts.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
