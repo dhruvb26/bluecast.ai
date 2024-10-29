@@ -50,6 +50,9 @@ export function ContentStyleSelector({
   const handleStyleChange = (value: string) => {
     if (value === "custom") {
       router.push("/saved/styles");
+    } else if (value === undefined) {
+      setSelectedStyleId(null);
+      onSelectStyle("");
     } else {
       setSelectedStyleId(value);
       onSelectStyle(value);
@@ -77,6 +80,9 @@ export function ContentStyleSelector({
             </div>
           ) : (
             <>
+              <SelectItem className="text-sm" value="default">
+                Select a writing style
+              </SelectItem>
               {styles.map((style) => (
                 <SelectItem className="text-sm" key={style.id} value={style.id}>
                   {style.name}

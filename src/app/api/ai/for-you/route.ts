@@ -94,7 +94,7 @@ export async function POST(
     <examples>
     ${examples || ""}
     </examples>
-    Study these examples carefully to understand the tone, formatting, and styling of successful LinkedIn posts. Don't pull any information from them.
+    Study these examples carefully to understand the tone, formatting, and styling of the posts. Don't pull any information from them.
     - Mimic the tone, voice, and writing style precisely
     - Reproduce any unique patterns in content presentation
     - DO NOT use any specific information or content from these examples
@@ -105,13 +105,13 @@ export async function POST(
     Understand the user's preferred formats and use them to guide the content. 
     - Use this format only if it doesn't conflict with the user's style.
     - If the number of formats is less than 5, generate respective number of posts following the format and remaining posts should be formatted according to the examples above if any. 
-    - If the number of formats is more than 5, generate 5 posts following the formats.
+    - If the number of formats is more than 5, generate 5 posts following the first five formats.
 
     <topics>
     ${topics || ""}
     </topics>
     These are the topics to cover in the posts.
-    - If user has given you a list of topics, use them.
+    - If user has given you a list of topics, use them. Never use them as a starting liner or hook of the post.
     - If user has not given you a list of topics, generate 5 topics based on the user's answers below.
 
     <user_info>
@@ -129,10 +129,13 @@ export async function POST(
     </personal_touch>
     This is the user's personal writing style. Incorporate it into your posts. 
     - NOTE: This takes PRIORITY over the examples provided above.
+    - Strictly follow the user's personal touch and any specific instructions provided.
 
     Write 5 full LinkedIn posts following these guidelines:
 
-    a. Each post should be between 1200 and 1500 characters long.
+    a. 2 posts should be between 1200 and 1500 characters long.
+    b. 2 posts should be between 500 and 1000 characters long.
+    c. 1 post should be between 200 and 500 characters long.
     b. Start writing each post directly without including a starting idea (one-liner) or hook. The posts should not have a title or subtitle.
     c. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
     d. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
