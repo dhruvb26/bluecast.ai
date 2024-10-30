@@ -113,8 +113,8 @@ export async function POST(
     </examples>
     This is what you should use as context to understand the tone, formatting, and styling of the posts. Don't pull any information from them.
     - Mimic the tone, voice, and writing style precisely. Pay attention to formatting, punctuation, and other stylistic elements. 
-    NOTE: This DOES NOT take priority over the user's personal touch.
     - DO NOT use any specific information or content from these examples
+    - Closely follow the examples in terms of spacing, punctuation, formatting, number of paragraphs, number of sentences, etc.
 
     <formats>
     ${formats || ""}
@@ -138,10 +138,10 @@ export async function POST(
     2. 2 posts should be between 500 and 1000 characters long.
     3. 2 posts should be less than 400 characters long.
     4. Make sure to abide by the character limits STRICTLY for each post.
-    5. NEVER start a post starting with a one-liner, a single line idea or a hook that's a single line. The posts should NOT have a title or subtitle either.
-    6. Make sure to follow the user given formats accordingly. 
-    7. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
-    8. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
+    5. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
+    6. NEVER start a post starting with a one-liner, a single line idea or a hook that's a single line. The posts should NOT have a title or subtitle either.
+    7. Make sure to follow the user given formats accordingly. 
+    8. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
     9. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing preference over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
 
     Respond with 5 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post. Do not include any explanations, comments, or additional formatting.`;
