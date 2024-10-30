@@ -139,7 +139,7 @@ const ForYouCard: React.FC<ForYouCardProps> = ({ post }) => {
 
         <div className="px-4">
           <ContentViewer
-            disabled={true}
+            disabled={false}
             postId={post.id}
             value={[{ type: "paragraph", children: [{ text: post.content }] }]}
           />

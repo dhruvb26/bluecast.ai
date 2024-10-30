@@ -46,7 +46,7 @@ const ProgressBar = () => {
                 <CircleInfo className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-[250px] h-fit">
-                <p className="text-sm">
+                <p className="text-xs">
                   {!user?.stripeSubscriptionId && !user?.priceId ? (
                     <span>
                       You have no refreshes on this trial.{" "}

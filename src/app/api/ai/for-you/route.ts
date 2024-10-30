@@ -91,30 +91,7 @@ export async function POST(
 
     const postPrompt = `You are a copywriter with 25 years of experience. You are tasked with creating 5 distinct LinkedIn posts based on the following information:
 
-    <examples>
-    ${examples || ""}
-    </examples>
-    Study these examples carefully to understand the tone, formatting, and styling of the posts. Don't pull any information from them.
-    - Mimic the tone, voice, and writing style precisely
-    - Reproduce any unique patterns in content presentation
-    - DO NOT use any specific information or content from these examples
-
-    <formats>
-    ${formats || ""}
-    </formats>
-    Understand the user's preferred formats and use them to guide the content. 
-    - Use this format only if it doesn't conflict with the user's style.
-    - If the number of formats is less than 5, generate respective number of posts following the format and remaining posts should be formatted according to the examples above if any. 
-    - If the number of formats is more than 5, generate 5 posts following the first five formats.
-
-    <topics>
-    ${topics || ""}
-    </topics>
-    These are the topics to cover in the posts.
-    - If user has given you a list of topics, use them. Never use them as a starting liner or hook of the post.
-    - If user has not given you a list of topics, generate 5 topics based on the user's answers below.
-
-    <user_info>
+     <user_info>
     ${aboutYourself || ""}
     </user_info>
     Analyze what the user's role might be on LinkedIn. Write posts from the perspective of the user's role.
@@ -127,20 +104,45 @@ export async function POST(
     <personal_touch>
     ${personalTouch || ""}
     </personal_touch>
-    This is the user's personal writing style. Incorporate it into your posts. 
-    - NOTE: This takes PRIORITY over the examples provided above.
-    - Strictly follow the user's personal touch and any specific instructions provided.
+    This is the user's personal writing style. Strictly incorporate this into your posts.
+    - Follow the user's personal touch and any specific instructions provided. 
+    - For example: if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points. If user says he writes in a very casual tone, do not write posts in a very formal tone.
+
+    <examples>
+    ${examples || ""}
+    </examples>
+    This is what you should use as context to understand the tone, formatting, and styling of the posts. Don't pull any information from them.
+    - Mimic the tone, voice, and writing style precisely. Pay attention to formatting, punctuation, and other stylistic elements. 
+    NOTE: This DOES NOT take priority over the user's personal touch.
+    - DO NOT use any specific information or content from these examples
+
+    <formats>
+    ${formats || ""}
+    </formats>
+    Understand the user's preferred formats and use them to guide the content. 
+    - If the number of formats is less than 5, generate respective number of posts following the format and remaining posts should be formatted according to the given examples if there are any. 
+    - If the number of formats is more than 5, generate 5 posts following the first five formats.
+    - For examples the formats could be: Hot take, Story, Question, Quote, Interview, Takeaways, Things to know, Things to do, etc.
+
+    <topics>
+    ${topics || ""}
+    </topics>
+    These are the topics to cover in the posts. Carefully consider them.
+    - NEVER use them as a starting liner or hook of the post.
+    - Incorporate them into the posts in a natural way. 
+    - For example: if the user says he wants to write about "AI in marketing", don't start the post with "AI in marketing". Instead write a post about AI in marketing in a natural way.
 
     Write 5 LinkedIn posts following these guidelines:
 
-    1. 2 posts should be between 1200 and 1500 characters long.
+    1. 1 post should be above 1200 characters long.
     2. 2 posts should be between 500 and 1000 characters long.
-    3. 1 post should be between 200 and 500 characters long.
-    4. NEVER start a post starting with a one-liner, a single line idea or a hook that's a single line. The posts should NOT have a title or subtitle either.
-    5. Make sure to follow the user given formats accordingly. 
-    6. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
-    7. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
-    8. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing preference over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
+    3. 2 posts should be less than 400 characters long.
+    4. Make sure to abide by the character limits STRICTLY for each post.
+    5. NEVER start a post starting with a one-liner, a single line idea or a hook that's a single line. The posts should NOT have a title or subtitle either.
+    6. Make sure to follow the user given formats accordingly. 
+    7. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
+    8. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
+    9. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing preference over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
 
     Respond with 5 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post. Do not include any explanations, comments, or additional formatting.`;
 

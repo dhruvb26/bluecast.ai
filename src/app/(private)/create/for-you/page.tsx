@@ -216,10 +216,10 @@ export default function ForYouPage() {
                     Refresh
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="left" className="max-w-[250px]">
-                  <p className="text-sm">
+                <TooltipContent side="top" className="max-w-[250px]">
+                  <p className="text-xs">
                     {maxRefreshes === 1 ? (
-                      <span>
+                      <span className="text-xs">
                         You have {maxRefreshes - refreshesUsed} refresh left on
                         this trial.{" "}
                         <a

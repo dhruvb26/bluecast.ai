@@ -141,6 +141,7 @@ export async function POST(req: Request) {
             await db
               .update(users)
               .set({
+                forYouGeneratedPosts: 0,
                 stripeCustomerId: customerId,
                 priceId: priceId,
                 trialEndsAt: null,

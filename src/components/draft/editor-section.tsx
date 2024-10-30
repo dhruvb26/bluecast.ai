@@ -559,7 +559,7 @@ function EditorSection({
                 <Button
                   variant="ghost"
                   className="rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
-                  disabled={isRewriting}
+                  loading={isRewriting}
                   onMouseDown={(e) => {
                     e.preventDefault();
                     const { selection } = editor;
@@ -568,11 +568,6 @@ function EditorSection({
                     }
                   }}
                 >
-                  {isRewriting ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
-                  )}
                   AI
                 </Button>
               </PopoverTrigger>
