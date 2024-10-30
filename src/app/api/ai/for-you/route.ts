@@ -131,22 +131,23 @@ export async function POST(
     - NOTE: This takes PRIORITY over the examples provided above.
     - Strictly follow the user's personal touch and any specific instructions provided.
 
-    Write 5 full LinkedIn posts following these guidelines:
+    Write 5 LinkedIn posts following these guidelines:
 
-    a. 2 posts should be between 1200 and 1500 characters long.
-    b. 2 posts should be between 500 and 1000 characters long.
-    c. 1 post should be between 200 and 500 characters long.
-    b. Start writing each post directly without including a starting idea (one-liner) or hook. The posts should not have a title or subtitle.
-    c. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
-    d. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
-    e. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing preference over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
+    1. 2 posts should be between 1200 and 1500 characters long.
+    2. 2 posts should be between 500 and 1000 characters long.
+    3. 1 post should be between 200 and 500 characters long.
+    4. NEVER start a post starting with a one-liner, a single line idea or a hook that's a single line. The posts should NOT have a title or subtitle either.
+    5. Make sure to follow the user given formats accordingly. 
+    6. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
+    7. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
+    8. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing preference over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
 
     Respond with 5 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post. Do not include any explanations, comments, or additional formatting.`;
 
     const postResponse = await anthropic.messages.create({
       model: env.MODEL,
       max_tokens: 8192,
-      temperature: 0.5,
+      temperature: 0.8,
       messages: [{ role: "user", content: postPrompt }],
     });
 

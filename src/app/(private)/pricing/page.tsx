@@ -104,7 +104,7 @@ const PricingPage = () => {
               {isAnnual ? "Annual" : "Monthly"} Launch Plan
               {isAnnual && (
                 <Badge className="ml-2 space-x-1 bg-indigo-50 font-normal text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500">
-                  Save {20}%
+                  Save {44}%
                 </Badge>
               )}
             </h1>

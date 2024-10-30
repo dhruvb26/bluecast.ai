@@ -6,7 +6,7 @@ import ForYouCard from "@/components/for-you/for-you-card";
 import Link from "next/link";
 import { ForYouForm } from "@/components/forms/for-you-form";
 import { BarLoader } from "react-spinners";
-import { getForYouAnswers, getForYouPosts } from "@/actions/user";
+import { getForYouAnswers, getForYouPosts, getUser } from "@/actions/user";
 import { toast } from "sonner";
 import {
   ArrowsCounterClockwise,
@@ -20,6 +20,13 @@ import { usePostStore } from "@/store/post";
 import SubscriptionCard from "@/components/global/subscription-card";
 import Refresh2 from "@/components/icons/refresh-2";
 import ProgressBar from "@/components/for-you/progress-bar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 interface Post {
   id: string;
   content: string;
@@ -38,6 +45,8 @@ export default function ForYouPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const { setShowFeatureGate, showFeatureGate } = usePostStore();
+  const [refreshesUsed, setRefreshesUsed] = useState(0);
+  const [maxRefreshes, setMaxRefreshes] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,6 +57,16 @@ export default function ForYouPage() {
         if (answersData) {
           const postsData = (await getForYouPosts()) as Post[];
           setPosts(postsData);
+        }
+
+        const user = await getUser();
+        const refreshes = Math.floor(user.forYouGeneratedPosts / 5);
+        setRefreshesUsed(refreshes);
+
+        if (!user.stripeSubscriptionId && !user.priceId) {
+          setMaxRefreshes(1);
+        } else {
+          setMaxRefreshes(4);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -95,6 +114,7 @@ export default function ForYouPage() {
       toast.success("Posts generated successfully!");
       const postsData = (await getForYouPosts()) as Post[];
       setPosts(postsData);
+      setRefreshesUsed((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error generating content:", error);
       if (
@@ -184,14 +204,41 @@ export default function ForYouPage() {
 
         <div className="flex gap-2">
           {posts.length > 0 && (
-            <Button
-              variant={"outline"}
-              onClick={handleGenerateContent}
-              disabled={isGenerating}
-            >
-              <Refresh2 className="w-4 h-4 mr-1" />
-              Refresh
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    onClick={handleGenerateContent}
+                    disabled={isGenerating}
+                  >
+                    <Refresh2 className="w-4 h-4 mr-1" />
+                    Refresh
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-[250px]">
+                  <p className="text-sm">
+                    {maxRefreshes === 1 ? (
+                      <span>
+                        You have {maxRefreshes - refreshesUsed} refresh left on
+                        this trial.{" "}
+                        <a
+                          href="/pricing"
+                          className="text-blue-600 underline hover:text-blue-700"
+                        >
+                          Upgrade
+                        </a>{" "}
+                        to get 4 refreshes per month!
+                      </span>
+                    ) : (
+                      `You have ${
+                        maxRefreshes - refreshesUsed
+                      } refreshes left this month.`
+                    )}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           <Link href="/create/for-you/preferences">
             <Button>Update Preferences</Button>
