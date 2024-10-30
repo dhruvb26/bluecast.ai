@@ -36,31 +36,32 @@ export async function POST(
 
     const userInfo = await getUser();
 
-    // if (
-    //   !userInfo.stripeSubscriptionId &&
-    //   !userInfo.stripeCustomerId &&
-    //   userInfo.forYouGeneratedPosts >= 5
-    // ) {
-    //   return NextResponse.json(
-    //     {
-    //       success: false,
-    //       error:
-    //         "You have reached the maximum number of refreshes. Upgrade to get more refreshes.",
-    //     },
-    //     { status: 403 }
-    //   );
-    // }
+    if (
+      !userInfo.stripeSubscriptionId &&
+      !userInfo.stripeCustomerId &&
+      userInfo.forYouGeneratedPosts >= 5
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "You have reached the maximum number of refreshes. Upgrade to get more refreshes.",
+        },
+        { status: 403 }
+      );
+    }
 
-    // if (userInfo.forYouGeneratedPosts >= 20) {
-    //   return NextResponse.json(
-    //     {
-    //       success: false,
-    //       error:
-    //         "You have reached the maximum number of refreshes. Limit resets every month.",
-    //     },
-    //     { status: 403 }
-    //   );
-    // }
+    if (userInfo.forYouGeneratedPosts >= 20) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "You have reached the maximum number of refreshes. Limit resets every month.",
+        },
+        { status: 403 }
+      );
+    }
+
     const previousPosts = await db.query.generatedPosts.findMany({
       where: eq(generatedPosts.userId, userInfo.id),
     });
@@ -169,9 +170,11 @@ export async function POST(
     </examples>
     Use these examples to understand the tone, formatting, and styling. Don't pull any information from them.
     - Identify and replicate the exact structure, formatting, and stylistic elements
+    - Identify any consistent hooks or patterns in the examples. Make sure to incorporate them into your posts.
     - Mimic the tone, voice, and writing style precisely
     - Reproduce any unique patterns in content presentation
     - DO NOT use any specific information or content from these examples
+
 
     Guidelines for the 5 posts:
     1. 2 post should be above 1200 characters
@@ -179,9 +182,10 @@ export async function POST(
     3. 1 post should be less than 400 characters. For this particular post, have line breaks after one or two sentences.
     4. STRICTLY follow character limits
     5. Incorporate in the format guidelines as much as possible without compromising on the content.
-    6. No one-liners, hooks, titles or subtitles at the start
+    6. No one-liners, titles or subtitles at the start
     7. No emojis/hashtags unless specified in personal touch
     8. Prioritize user's writing preferences over examples if conflicts arise
+    9. Check for any consistent hooks or patterns in the examples and incorporate them into your posts.
 
     Respond with 5 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post.`;
 
