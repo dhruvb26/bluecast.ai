@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { PenSquare } from "lucide-react";
-import { HourglassSimpleHigh } from "@phosphor-icons/react";
+import { HourglassSimpleHigh, Sparkle } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { saveDraft } from "@/actions/draft";
@@ -62,14 +62,7 @@ export function NavCreate({
         <Tooltip>
           <TooltipTrigger asChild>
             <SidebarMenuButton asChild>
-              <a
-                href={item.url}
-                className={`flex items-center ${
-                  "comingSoon" in item && item.comingSoon
-                    ? "pointer-events-none"
-                    : ""
-                }`}
-              >
+              <a href={item.url} className={`flex items-center`}>
                 {isActive ? item.activeIcon : item.inactiveIcon}
                 {!isCollapsed && (
                   <span
@@ -82,11 +75,8 @@ export function NavCreate({
                 )}
                 {"comingSoon" in item && item.comingSoon && !isCollapsed && (
                   <Badge className="ml-1 opacity-80 font-normal text-xs hover:bg-indigo-100 text-indigo-600 hover:text-indigo-600 bg-indigo-100">
-                    <HourglassSimpleHigh
-                      weight="fill"
-                      className="inline w-3 h-3"
-                    />
-                    Soon
+                    <Sparkle weight="duotone" className="inline w-3 h-3" />
+                    New
                   </Badge>
                 )}
               </a>
