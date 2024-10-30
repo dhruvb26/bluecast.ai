@@ -36,31 +36,31 @@ export async function POST(
 
     const userInfo = await getUser();
 
-    if (
-      !userInfo.stripeSubscriptionId &&
-      !userInfo.stripeCustomerId &&
-      userInfo.forYouGeneratedPosts >= 5
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "You have reached the maximum number of refreshes. Upgrade to get more refreshes.",
-        },
-        { status: 403 }
-      );
-    }
+    // if (
+    //   !userInfo.stripeSubscriptionId &&
+    //   !userInfo.stripeCustomerId &&
+    //   userInfo.forYouGeneratedPosts >= 5
+    // ) {
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       error:
+    //         "You have reached the maximum number of refreshes. Upgrade to get more refreshes.",
+    //     },
+    //     { status: 403 }
+    //   );
+    // }
 
-    if (userInfo.forYouGeneratedPosts >= 20) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "You have reached the maximum number of refreshes. Limit resets every month.",
-        },
-        { status: 403 }
-      );
-    }
+    // if (userInfo.forYouGeneratedPosts >= 20) {
+    //   return NextResponse.json(
+    //     {
+    //       success: false,
+    //       error:
+    //         "You have reached the maximum number of refreshes. Limit resets every month.",
+    //     },
+    //     { status: 403 }
+    //   );
+    // }
 
     const answers = await getForYouAnswers();
 
