@@ -169,6 +169,13 @@
       "when": 1729819345243,
       "tag": "0023_clean_wolfsbane",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1730276757428,
+      "tag": "0024_fearless_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

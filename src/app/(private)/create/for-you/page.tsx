@@ -146,7 +146,12 @@ export default function ForYouPage() {
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <BarLoader color="#2563eb" height={3} width={300} />
+        <BarLoader
+          color="#2563eb"
+          height={3}
+          width={300}
+          className="rounded-full"
+        />
       </div>
     );
   }

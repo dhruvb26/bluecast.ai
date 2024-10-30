@@ -326,6 +326,7 @@ export const generatedPosts = createTable("generated_post", {
   userId: varchar("user_id", { length: 256 })
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  topic: text("topic"),
   content: text("content").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)

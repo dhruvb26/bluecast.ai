@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_generated_post" ADD COLUMN "topic" text;

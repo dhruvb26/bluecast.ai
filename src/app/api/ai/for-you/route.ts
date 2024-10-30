@@ -12,7 +12,7 @@ import { joinExamples } from "@/utils/functions";
 import { anthropic } from "@/server/model";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/server/db";
-import { users } from "@/server/db/schema";
+import { generatedPosts, users } from "@/server/db/schema";
 import { eq, sql } from "drizzle-orm";
 export const maxDuration = 120;
 
@@ -61,6 +61,10 @@ export async function POST(
     //     { status: 403 }
     //   );
     // }
+    const previousPosts = await db.query.generatedPosts.findMany({
+      where: eq(generatedPosts.userId, userInfo.id),
+    });
+    const previousTopics = previousPosts?.map((post) => post.topic) || [];
 
     const answers = await getForYouAnswers();
 
@@ -89,62 +93,97 @@ export async function POST(
       }
     }
 
-    const postPrompt = `You are a copywriter with 25 years of experience. You are tasked with creating 5 distinct LinkedIn posts based on the following information:
+    const previousTopicsContext =
+      previousTopics.length > 0
+        ? `
+    <previous_topics>
+    ${previousTopics.join("\n")}
+    </previous_topics>
+    
+    Please generate topics that are sufficiently different from these previous topics.`
+        : "";
 
-     <user_info>
+    const topicsPrompt = `Generate 5 distinct topics/ideas for LinkedIn posts based on the following information:
+
+    <user_background>
     ${aboutYourself || ""}
-    </user_info>
-    Analyze what the user's role might be on LinkedIn. Write posts from the perspective of the user's role.
-
+    </user_background>
+    
     <target_audience>
     ${targetAudience || ""}
     </target_audience>
-    Consider how to cater to this audience. Write posts from the perspective of the user's role.
 
+    <topics_of_interest>
+    ${topics || ""}
+    </topics_of_interest>
+    ${previousTopicsContext}
+
+    Instructions:
+    1. Generate 5 specific topics that align with the user's background and target audience
+    2. Each topic should be detailed enough to write a full LinkedIn post about
+    3. Focus on topics that would drive engagement and provide value to the target audience
+    4. Topics should be specific and actionable, not broad or generic
+    5. Do not write the actual post content, just the topic/idea
+    6. Make sure to generate 5 unique topics that are different from the previous topics
+
+    Format your response as 5 topics/ideas separated by three dashes (---), with no additional explanations or formatting.`;
+
+    const topicsResponse = await anthropic.messages.create({
+      model: env.MODEL,
+      max_tokens: 1000,
+      temperature: 1,
+      messages: [{ role: "user", content: topicsPrompt }],
+    });
+
+    const topicsResult = topicsResponse.content[0] as any;
+    let generatedTopics: string[] = [];
+
+    if ("text" in topicsResult) {
+      generatedTopics = topicsResult.text
+        .split("---")
+        .map((topic: string) => topic.trim());
+    }
+
+    console.log("generatedTopics", generatedTopics);
+
+    const postPrompt = `Write 5 distinct LinkedIn posts based on the following topics and style guidelines:
+
+    <topics_to_cover>
+    ${generatedTopics.join("\n")}
+    </topics_to_cover>
+    
     <personal_touch>
     ${personalTouch || ""}
     </personal_touch>
     This is the user's personal writing style. Strictly incorporate this into your posts.
-    - Follow the user's personal touch and any specific instructions provided. 
-    - For example: if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points. If user says he writes in a very casual tone, do not write posts in a very formal tone.
+    - Follow the user's personal touch and any specific instructions provided.
+    - For example: if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
+
+    <preferred_formats>
+    ${formats || ""}
+    </preferred_formats>
+    Adapt the posts to these preferred content formats (e.g. stories, hot takes, questions, quotes, interviews, takeaways, etc.)
 
     <examples>
     ${examples || ""}
     </examples>
-    This is what you should use as context to understand the tone, formatting, and styling of the posts. Don't pull any information from them.
-    - Mimic the tone, voice, and writing style precisely. Pay attention to formatting, punctuation, and other stylistic elements. 
+    Use these examples to understand the tone, formatting, and styling. Don't pull any information from them.
+    - Identify and replicate the exact structure, formatting, and stylistic elements
+    - Mimic the tone, voice, and writing style precisely
+    - Reproduce any unique patterns in content presentation
     - DO NOT use any specific information or content from these examples
-    - Closely follow the examples in terms of spacing, punctuation, formatting, number of paragraphs, number of sentences, etc.
 
-    <formats>
-    ${formats || ""}
-    </formats>
-    Understand the user's preferred formats and use them to guide the content. 
-    - If the number of formats is less than 5, generate respective number of posts following the format and remaining posts should be formatted according to the given examples if there are any. 
-    - If the number of formats is more than 5, generate 5 posts following the first five formats.
-    - For examples the formats could be: Hot take, Story, Question, Quote, Interview, Takeaways, Things to know, Things to do, etc.
+    Guidelines for the 5 posts:
+    1. 2 post should be above 1200 characters
+    2. 2 posts should be between 500-1000 characters
+    3. 1 post should be less than 400 characters. For this particular post, have line breaks after one or two sentences.
+    4. STRICTLY follow character limits
+    5. Incorporate in the format guidelines as much as possible without compromising on the content.
+    6. No one-liners, hooks, titles or subtitles at the start
+    7. No emojis/hashtags unless specified in personal touch
+    8. Prioritize user's writing preferences over examples if conflicts arise
 
-    <topics>
-    ${topics || ""}
-    </topics>
-    These are the topics to cover in the posts. Carefully consider them.
-    - NEVER use them as a starting liner or hook of the post.
-    - Incorporate them into the posts in a natural way. 
-    - For example: if the user says he wants to write about "AI in marketing", don't start the post with "AI in marketing". Instead write a post about AI in marketing in a natural way.
-
-    Write 5 LinkedIn posts following these guidelines:
-
-    1. 1 post should be above 1200 characters long.
-    2. 2 posts should be between 500 and 1000 characters long.
-    3. 2 posts should be less than 400 characters long.
-    4. Make sure to abide by the character limits STRICTLY for each post.
-    5. Emulate the tone, formatting, and styling of the analyzed examples. However, do not draw any specific information or content from these examples - they are solely for guiding the writing style.
-    6. NEVER start a post starting with a one-liner, a single line idea or a hook that's a single line. The posts should NOT have a title or subtitle either.
-    7. Make sure to follow the user given formats accordingly. 
-    8. Do not include emojis or hashtags unless specifically mentioned by user's personal touch.
-    9. If conflicts arise in the tone, formatting, or styling prioritize the user's personal writing preference over the examples. For example, if the user wants to use emojis, do so or if they don't want to use bullet points, but the example uses them, do not use bullet points.
-
-    Respond with 5 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post. Do not include any explanations, comments, or additional formatting.`;
+    Respond with 5 LinkedIn post contents only, separated by three dashes (---). Include appropriate new lines and spacing within each post.`;
 
     const postResponse = await anthropic.messages.create({
       model: env.MODEL,
@@ -163,9 +202,10 @@ export async function POST(
         .map((post: any) => post.trim());
     }
 
-    const posts: LinkedInPost[] = postContents.map((content) => ({
+    const posts: LinkedInPost[] = postContents.map((content, index) => ({
       id: uuidv4(),
       content,
+      topic: generatedTopics[index],
     }));
 
     await saveForYouPosts(posts);
