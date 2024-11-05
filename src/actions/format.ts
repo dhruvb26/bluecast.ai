@@ -50,11 +50,11 @@ export async function savePostFormat(
 
     let newPostFormat;
     if (existingFormat) {
-      // If format exists, append the new template
+      // If format exists, prepend the new template
       newPostFormat = await db
         .update(postFormats)
         .set({
-          templates: [...existingFormat.templates, template],
+          templates: [template, ...existingFormat.templates],
           updatedAt: new Date(),
         })
         .where(eq(postFormats.id, existingFormat.id))
@@ -65,7 +65,7 @@ export async function savePostFormat(
         .insert(postFormats)
         .values({
           id,
-          userId: isPublic ? null : userId,
+          userId: null,
           templates: [template],
           category,
           createdAt: new Date(),

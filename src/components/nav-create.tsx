@@ -41,18 +41,7 @@ export function NavCreate({
   const pathname = usePathname();
   const router = useRouter();
 
-  const menuItems = [
-    {
-      name: "Dashboard",
-      url: "/dashboard",
-      activeIcon: <House className="text-blue-600" />,
-      inactiveIcon: <HouseOutline />,
-    },
-  ];
-
-  const renderMenuItem = (
-    item: (typeof menuItems)[0] | (typeof projects)[0]
-  ) => {
+  const renderMenuItem = (item: (typeof projects)[0]) => {
     const isActive = pathname === item.url;
     return (
       <SidebarMenuItem
@@ -105,7 +94,7 @@ export function NavCreate({
           <TooltipTrigger asChild>
             <Button
               className={cn(
-                "w-full mb-4 rounded-md bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-none hover:shadow-sm transition-all duration-300 flex items-center justify-center",
+                "w-full rounded-md bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-none hover:shadow-sm transition-all duration-300 flex items-center justify-center",
                 isCollapsed ? "px-2" : "px-5"
               )}
               onClick={handleCreateDraft}
@@ -120,7 +109,7 @@ export function NavCreate({
             </TooltipContent>
           )}
         </Tooltip>
-        <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu>
+        {/* <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu> */}
       </SidebarGroup>
       <SidebarGroup>
         {!isCollapsed && (

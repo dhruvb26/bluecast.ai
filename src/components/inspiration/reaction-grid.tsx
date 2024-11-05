@@ -44,7 +44,7 @@ const ReactionGrid: React.FC<ReactionGridProps> = ({
               src={image.src}
               width={16}
               height={16}
-              className={`z-${30 - index * 10}`}
+              className={`z-30`}
             />
           ))}
         </div>

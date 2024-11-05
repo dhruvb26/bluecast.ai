@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import PostCard from "@/components/inspiration/post-card";
 import { getCreatorLists } from "@/actions/list";
-import { getPostsByCreatorId, Post } from "@/actions/post";
+import { getPostsByCreatorId } from "@/actions/post";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -36,8 +36,10 @@ export default function Home() {
             ...publicListsResult.data,
             ...privateListsResult.data,
           ];
+          allLists.sort((a, b) => a.name.localeCompare(b.name));
+
           setLists(allLists);
-          setActiveTab(allLists[0]?.id || null);
+          setActiveTab(allLists[0]?.id || null); // Set the first list as the active tab
 
           const postsData: { [key: string]: any[] } = {};
           const pageData: { [key: string]: number } = {};
@@ -146,11 +148,13 @@ export default function Home() {
       ) : (
         <Tabs value={activeTab || ""} onValueChange={setActiveTab}>
           <TabsList className="mb-6 grid grid-cols-4 sm:grid-cols-7 w-full">
-            {lists.map((list) => (
-              <TabsTrigger key={list.id} value={list.id}>
-                {list.name}
-              </TabsTrigger>
-            ))}
+            {lists
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((list) => (
+                <TabsTrigger key={list.id} value={list.id}>
+                  {list.name}
+                </TabsTrigger>
+              ))}
           </TabsList>
           {lists.map((list) => (
             <TabsContent key={list.id} value={list.id}>

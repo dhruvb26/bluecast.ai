@@ -92,7 +92,18 @@ export async function GET(req: NextRequest): Promise<Response> {
             numReposts: post.num_reposts,
             postUrl: post.post_url,
             reshared: post.reshared,
-            text: post.text,
+            text: post.text
+              ? Buffer.from(post.text, "utf-8")
+                  .toString("utf-8")
+                  .replace(
+                    /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFD\uFFFE\uFFFF]/g,
+                    ""
+                  ) // Remove invalid UTF-8 characters
+                  .replace(
+                    /[\u00A0-\u9999<>&]/g,
+                    (i: string) => `&#${i.charCodeAt(0)};`
+                  )
+              : null,
             time: post.time,
             urn: post.urn,
             creatorId: creator.id,

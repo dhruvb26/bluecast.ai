@@ -1,9 +1,16 @@
-"use client";
-import Image from "next/image";
 import AvatarCircles from "@/components/magicui/avatar-circles";
 import { SignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "LinkedIn Growth Made Easy | Bluecast Sign Up",
+  description:
+    "Sign up for Bluecast to enhance your LinkedIn presence with AI-powered tools. Sign up now to streamline your LinkedIn strategy and grow your network effortlessly.",
+  keywords:
+    "LinkedIn, AI tools, Bluecast, sign up, professional growth, network",
+};
 
 export default function SignUpPage() {
   const avatarUrls = [
@@ -17,9 +24,9 @@ export default function SignUpPage() {
     <div className="flex min-h-screen flex-col md:flex-row">
       <div className="flex w-full flex-col md:flex-row">
         <div className="flex flex-1 flex-col justify-center bg-brand-blue-secondary px-4 py-8 md:px-8 md:py-12">
-          <h2 className="mb-4 text-3xl md:text-5xl text-center md:text-left font-bold tracking-tight text-white">
+          <h1 className="mb-4 text-3xl md:text-5xl text-center md:text-left font-bold tracking-tight text-white">
             Boost your LinkedIn presence with AI
-          </h2>
+          </h1>
           <p className="mb-8 text-sm md:text-base md:text-left text-center font-normal text-blue-200">
             Bluecast's AI-powered tools streamline your LinkedIn strategy,
             helping you create impactful posts in minutes, not hours. Boost your

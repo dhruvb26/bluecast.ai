@@ -8,7 +8,7 @@ You are a highly skilled LinkedIn content writer. I'm going to penalize you if y
 - Identify and replicate the exact structure, formatting, and stylistic elements
 - Mimic the tone, voice, and writing style precisely
 - Reproduce any unique patterns in content presentation
-- DO NOT use any specific information or content from these examples
+- DO NOT use any specific information or content from these examples in any capacity
 
 2. Consider the post format, but prioritize the creator's style:
 [POST_FORMAT]
