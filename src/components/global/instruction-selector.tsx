@@ -12,6 +12,7 @@ import {
   listInstructions,
   updateInstruction,
   deleteInstruction,
+  type Instruction,
 } from "@/actions/instruction";
 import { toast } from "sonner";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
@@ -25,13 +26,6 @@ import {
 } from "@/components/ui/tooltip";
 import { BarLoader } from "react-spinners";
 import { Empty } from "@phosphor-icons/react";
-
-export interface Instruction {
-  id: string;
-  name: string;
-  instructions: string;
-  createdAt: Date;
-}
 
 export function InstructionSelector({
   onSelectInstruction,
@@ -59,7 +53,11 @@ export function InstructionSelector({
     setIsLoading(true);
     try {
       const result = await listInstructions();
-      setInstructions(result);
+      if (result.success) {
+        setInstructions(result.data);
+      } else {
+        toast.error(result.error);
+      }
     } catch (error) {
       toast.error("Failed to fetch instructions");
     } finally {
@@ -77,14 +75,18 @@ export function InstructionSelector({
   const handleSaveInstruction = async () => {
     if (selectedInstruction && editedInstructions) {
       try {
-        await updateInstruction(
+        const result = await updateInstruction(
           selectedInstruction.id,
           selectedInstruction.name,
           editedInstructions
         );
-        toast.success("Instruction updated successfully.");
-        fetchInstructions();
-        setHasChanges(false);
+        if (result.success) {
+          toast.success("Instruction updated successfully.");
+          fetchInstructions();
+          setHasChanges(false);
+        } else {
+          toast.error(result.error);
+        }
       } catch (error) {
         toast.error("Failed to update instruction.");
       }
@@ -98,12 +100,16 @@ export function InstructionSelector({
   const handleDeleteInstruction = async () => {
     if (selectedInstruction) {
       try {
-        await deleteInstruction(selectedInstruction.id);
-        toast.success("Instruction deleted successfully.");
-        setSelectedInstruction(null);
-        setEditedInstructions("");
-        fetchInstructions();
-        setHasChanges(false);
+        const result = await deleteInstruction(selectedInstruction.id);
+        if (result.success) {
+          toast.success("Instruction deleted successfully.");
+          setSelectedInstruction(null);
+          setEditedInstructions("");
+          fetchInstructions();
+          setHasChanges(false);
+        } else {
+          toast.error(result.error);
+        }
       } catch (error) {
         toast.error("Failed to delete instruction.");
       }
@@ -170,7 +176,9 @@ export function InstructionSelector({
                       Last updated:{" "}
                       {new Date(instruction.createdAt).toLocaleString()}
                     </div>
-                    <p className="text-sm">{instruction.instructions}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {instruction.instructions}
+                    </p>
                   </div>
                 ))
               )}

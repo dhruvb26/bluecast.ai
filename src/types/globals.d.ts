@@ -5,6 +5,7 @@ declare global {
     metadata: {
       onboardingComplete?: boolean;
       hasAccess?: boolean;
+      activeWorkspaceId?: string;
     };
   }
 }

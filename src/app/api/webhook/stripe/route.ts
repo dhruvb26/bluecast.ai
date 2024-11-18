@@ -27,8 +27,8 @@ const plans = [
         : "https://buy.stripe.com/6oEdTh6VV2QH0kU9AB",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1Q32GdRrqqSKPUNWN1sG48XI"
-        : "price_1Q1VQ4RrqqSKPUNWMMbGj3yh",
+        ? "price_1QMOWRRrqqSKPUNWRV27Uiv7"
+        : "price_1QMcQPRrqqSKPUNWXMw3yYy8",
     price: 200,
     duration: "/year",
   },

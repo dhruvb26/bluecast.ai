@@ -60,8 +60,6 @@ export const ourFileRouter = {
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      await updateUserImage(metadata.userId, file.url);
-
       return { uploadedBy: metadata.userId, uploadedUrl: file.url };
     }),
 } satisfies FileRouter;

@@ -1,8 +1,8 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/server/db";
-import { accounts, forYouAnswers, users } from "@/server/db/schema";
+import { accounts, forYouAnswers, users, workspaces } from "@/server/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -35,22 +35,31 @@ export type User = {
 export async function getLinkedInId() {
   try {
     const user = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!user) {
       throw new Error("No user found.");
     }
 
+    const conditions = [eq(accounts.userId, user.id)];
+
+    if (workspaceId) {
+      conditions.push(eq(accounts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(accounts.workspaceId));
+    }
+
     const linkedInAccount = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.userId, user.id))
+      .where(and(...conditions))
       .limit(1);
 
-    if (!linkedInAccount) {
-      throw new Error("No LinkedIn account found for the user.");
-    }
-
-    return linkedInAccount;
+    // Return null if no account is found instead of throwing an error
+    return linkedInAccount.length > 0 ? linkedInAccount : null;
   } catch (error) {
     console.error("Error in getLinkedInId:", error);
     throw error;
@@ -84,6 +93,10 @@ export async function getUser() {
 export async function checkAccess() {
   try {
     const userClerk = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userClerk) {
       throw new Error("No user found.");
@@ -108,7 +121,25 @@ export async function checkAccess() {
     if (user[0].specialAccess) {
       return user[0].generatedPosts < 10;
     } else if (user[0].hasAccess) {
-      return user[0].generatedWords < 50000;
+      if (workspaceId) {
+        // Check workspace usage limit
+        const workspace = await db
+          .select({ usage: workspaces.usage })
+          .from(workspaces)
+          .where(eq(workspaces.id, workspaceId))
+          .limit(1);
+
+        return workspace[0]?.usage < 75000;
+      } else {
+        // Check personal usage limit based on whether user has any workspaces
+        const userWorkspaces = await db
+          .select()
+          .from(workspaces)
+          .where(eq(workspaces.userId, userId));
+
+        const wordLimit = userWorkspaces.length > 0 ? 75000 : 50000;
+        return user[0].generatedWords < wordLimit;
+      }
     }
 
     return false;
@@ -147,6 +178,10 @@ export async function checkValidity() {
 export async function setGeneratedWords(words: number) {
   try {
     const userClerk = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userClerk) {
       throw new Error("No user found.");
@@ -175,16 +210,26 @@ export async function setGeneratedWords(words: number) {
           })
           .where(eq(users.id, userId));
 
-        usePostStore.getState().setWordsGenerated(1); // Update the store
+        usePostStore.getState().setWordsGenerated(1);
       } else {
-        await db
-          .update(users)
-          .set({
-            generatedWords: sql`${users.generatedWords} + ${words}`,
-          })
-          .where(eq(users.id, userId));
+        // Handle workspace-specific or personal usage
+        if (workspaceId) {
+          await db
+            .update(workspaces)
+            .set({
+              usage: sql`${workspaces.usage} + ${words}`,
+            })
+            .where(eq(workspaces.id, workspaceId));
+        } else {
+          await db
+            .update(users)
+            .set({
+              generatedWords: sql`${users.generatedWords} + ${words}`,
+            })
+            .where(eq(users.id, userId));
+        }
 
-        usePostStore.getState().setWordsGenerated(words); // Update the store
+        usePostStore.getState().setWordsGenerated(words);
       }
     }
   } catch (error) {
@@ -301,24 +346,49 @@ export async function completeOnboarding(onboardingData: any) {
 }
 
 export async function updateUserImage(userId: string, fileUrl: string) {
+  console.log("Starting updateUserImage for userId:", userId);
+  console.log("File URL:", fileUrl);
+
   if (!userId) {
+    console.error("No userId provided");
     throw new Error("Unauthorized");
   }
 
   try {
+    // Get current workspace ID from session claims
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+    console.log("Current workspace ID:", workspaceId);
+
     // Fetch the image from the fileUrl
+    console.log("Fetching image from URL");
     const response = await fetch(fileUrl);
     const blob = await response.blob();
+    console.log("Image blob size:", blob.size);
 
     // Create a File object from the blob
     const file = new File([blob], "profile-picture.png", { type: "image/png" });
+    console.log("Created File object");
 
-    // Update Clerk user profile image
-    await clerkClient.users.updateUserProfileImage(userId, { file });
+    if (!workspaceId) {
+      console.log("Updating personal user profile");
+      await db
+        .update(users)
+        .set({ image: fileUrl })
+        .where(eq(users.id, userId));
+      console.log("Personal profile update complete");
+    } else {
+      console.log("Updating workspace profile");
+      await db
+        .update(workspaces)
+        .set({ linkedInImageUrl: fileUrl })
+        .where(eq(workspaces.id, workspaceId));
+      console.log("Workspace profile update complete");
+    }
 
-    // Update the image URL in your database
-    await db.update(users).set({ image: fileUrl }).where(eq(users.id, userId));
-
+    console.log("Profile image update successful");
     return { message: "Profile image updated successfully" };
   } catch (error) {
     console.error("Error updating user image:", error);
@@ -336,6 +406,10 @@ export async function saveForYouAnswers(
 ) {
   try {
     const userClerk = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userClerk) {
       throw new Error("No user found.");
@@ -344,8 +418,16 @@ export async function saveForYouAnswers(
     const userId = userClerk.id;
 
     // Check if the user already has a for_you_answer entry
+    const conditions = [eq(forYouAnswers.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(forYouAnswers.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(forYouAnswers.workspaceId));
+    }
+
     const existingAnswer = await db.query.forYouAnswers.findFirst({
-      where: eq(forYouAnswers.userId, userId),
+      where: and(...conditions),
     });
 
     const topicsToSave = Array.isArray(topics) ? topics : [];
@@ -364,12 +446,13 @@ export async function saveForYouAnswers(
           formats: formatsToSave,
           updatedAt: new Date(),
         })
-        .where(eq(forYouAnswers.userId, userId));
+        .where(and(...conditions));
     } else {
       // Create new entry
       await db.insert(forYouAnswers).values({
         id: crypto.randomUUID(),
         userId,
+        workspaceId,
         aboutYourself,
         targetAudience,
         personalTouch,
@@ -389,6 +472,10 @@ export async function saveForYouAnswers(
 export async function getForYouAnswers() {
   try {
     const userClerk = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userClerk) {
       throw new Error("No user found.");
@@ -396,8 +483,16 @@ export async function getForYouAnswers() {
 
     const userId = userClerk.id;
 
+    const conditions = [eq(forYouAnswers.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(forYouAnswers.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(forYouAnswers.workspaceId));
+    }
+
     const answers = await db.query.forYouAnswers.findFirst({
-      where: eq(forYouAnswers.userId, userId),
+      where: and(...conditions),
     });
 
     if (!answers) {
@@ -421,6 +516,10 @@ export async function getForYouAnswers() {
 export async function getForYouPosts() {
   try {
     const userClerk = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userClerk) {
       throw new Error("No user found.");
@@ -428,8 +527,16 @@ export async function getForYouPosts() {
 
     const userId = userClerk.id;
 
+    const conditions = [eq(generatedPosts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(generatedPosts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(generatedPosts.workspaceId));
+    }
+
     const posts = await db.query.generatedPosts.findMany({
-      where: eq(generatedPosts.userId, userId),
+      where: and(...conditions),
       with: {
         user: {
           columns: {
@@ -460,6 +567,10 @@ export async function getForYouPosts() {
 export async function saveForYouPosts(posts: LinkedInPost[]) {
   try {
     const userClerk = await currentUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userClerk) {
       throw new Error("No user found.");
@@ -467,13 +578,22 @@ export async function saveForYouPosts(posts: LinkedInPost[]) {
 
     const userId = userClerk.id;
 
+    const conditions = [eq(generatedPosts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(generatedPosts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(generatedPosts.workspaceId));
+    }
+
     // Delete existing posts for the user
-    await db.delete(generatedPosts).where(eq(generatedPosts.userId, userId));
+    await db.delete(generatedPosts).where(and(...conditions));
 
     // Insert new posts (up to 6)
     const newPosts = posts.slice(0, 6).map((post) => ({
       id: uuidv4(),
       userId,
+      workspaceId,
       content: post.content,
     }));
 
@@ -482,6 +602,34 @@ export async function saveForYouPosts(posts: LinkedInPost[]) {
     return { message: "For You posts saved successfully" };
   } catch (error) {
     console.error("Error saving For You posts:", error);
+    throw error;
+  }
+}
+
+export async function getActiveWorkspace() {
+  try {
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    if (!workspaceId) {
+      return null;
+    }
+
+    const workspace = await db.query.workspaces.findFirst({
+      where: eq(workspaces.id, workspaceId),
+      columns: {
+        id: true,
+        linkedInName: true,
+        linkedInHeadline: true,
+        linkedInImageUrl: true,
+      },
+    });
+
+    return workspace;
+  } catch (error) {
+    console.error("Error fetching active workspace:", error);
     throw error;
   }
 }

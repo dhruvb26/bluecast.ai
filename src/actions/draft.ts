@@ -1,11 +1,12 @@
 "use server";
 
-import { eq, and } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
 import { getUser } from "./user";
 import { drafts } from "@/server/db/schema";
 import { ServerActionResponse } from "@/types";
 import { Descendant } from "slate";
+import { auth } from "@clerk/nextjs/server";
 
 export type Draft = {
   id: string;
@@ -21,6 +22,7 @@ export type Draft = {
   timeZone?: string;
   documentUrn?: string;
   downloadUrl?: string;
+  workspaceId?: string;
 };
 
 type DraftColumn = keyof typeof drafts._.columns;
@@ -31,11 +33,23 @@ export async function getDraft(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
 
     const draft = await db
       .select()
       .from(drafts)
-      .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)))
+      .where(and(...conditions))
       .limit(1);
 
     if (draft.length === 0) {
@@ -53,53 +67,36 @@ export async function getDraft(
 }
 
 export async function getDrafts(
-  status?: string
+  status?: "saved" | "scheduled" | "published" | "progress"
 ): Promise<ServerActionResponse<Draft[]>> {
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userId) {
       return { success: false, error: "User not authenticated" };
     }
 
-    let query;
+    const conditions = [eq(drafts.userId, userId)];
 
-    switch (status) {
-      case "saved":
-        query = db
-          .select()
-          .from(drafts)
-          .where(and(eq(drafts.userId, userId), eq(drafts.status, "saved")));
-        break;
-      case "scheduled":
-        query = db
-          .select()
-          .from(drafts)
-          .where(
-            and(eq(drafts.userId, userId), eq(drafts.status, "scheduled"))
-          );
-        break;
-      case "published":
-        query = db
-          .select()
-          .from(drafts)
-          .where(
-            and(eq(drafts.userId, userId), eq(drafts.status, "published"))
-          );
-        break;
-      case "progress":
-        query = db
-          .select()
-          .from(drafts)
-          .where(and(eq(drafts.userId, userId), eq(drafts.status, "progress")));
-        break;
-      default:
-        query = db.select().from(drafts).where(eq(drafts.userId, userId));
-        break;
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
     }
 
-    const userDrafts = await query;
+    if (status) {
+      conditions.push(eq(drafts.status, status));
+    }
+
+    const userDrafts = await db
+      .select()
+      .from(drafts)
+      .where(and(...conditions));
 
     return { success: true, data: userDrafts as Draft[] };
   } catch (error) {
@@ -117,10 +114,20 @@ export async function deleteDraft(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
-    const result = await db
-      .delete(drafts)
-      .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)));
+    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
+
+    const result = await db.delete(drafts).where(and(...conditions));
 
     return { success: true, data: undefined };
   } catch (error) {
@@ -131,6 +138,7 @@ export async function deleteDraft(
     };
   }
 }
+
 export async function updateDraftField<K extends keyof Draft>(
   draftId: string,
   field: K,
@@ -139,11 +147,23 @@ export async function updateDraftField<K extends keyof Draft>(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
 
     const result = await db
       .update(drafts)
       .set({ [field]: value, updatedAt: new Date() })
-      .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)));
+      .where(and(...conditions));
 
     return { success: true, data: undefined };
   } catch (error) {
@@ -162,12 +182,24 @@ export async function getDraftField<K extends keyof Draft>(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
 
     const result = await db
       //@ts-ignore
       .select({ [field]: drafts[field] })
       .from(drafts)
-      .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)))
+      .where(and(...conditions))
       .limit(1);
 
     if (result.length === 0) {
@@ -195,11 +227,23 @@ export async function removeDraftField<K extends keyof Draft>(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
 
     const result = await db
       .update(drafts)
       .set({ [field]: null, updatedAt: new Date() })
-      .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)));
+      .where(and(...conditions));
 
     if (result.length === 0) {
       return {
@@ -226,6 +270,10 @@ export async function saveDraft(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     let serializedContent: string;
     if (typeof content === "string") {
@@ -244,10 +292,18 @@ export async function saveDraft(
       serializedContent = JSON.stringify(content);
     }
 
+    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
+
     const existingDraft = await db
       .select()
       .from(drafts)
-      .where(and(eq(drafts.id, draftId), eq(drafts.userId, userId)))
+      .where(and(...conditions))
       .limit(1);
 
     if (existingDraft.length > 0) {
@@ -257,7 +313,7 @@ export async function saveDraft(
           content: serializedContent,
           updatedAt: new Date(),
         })
-        .where(eq(drafts.id, draftId))
+        .where(and(...conditions))
         .returning();
 
       if (updateResult.length === 0) {
@@ -277,6 +333,7 @@ export async function saveDraft(
           id: draftId,
           status: "saved",
           userId: userId,
+          workspaceId: workspaceId,
           content: serializedContent,
           createdAt: new Date(),
           updatedAt: new Date(),

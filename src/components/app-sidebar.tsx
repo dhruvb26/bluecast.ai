@@ -35,20 +35,12 @@ import MsgBubbleUser from "./icons/msg-bubble-user";
 import Rocket from "./icons/rocket";
 import RocketOutline from "./icons/rocket-outline";
 import { StackSimple } from "@phosphor-icons/react";
-import Image from "next/image";
+import { getWorkspaces } from "@/actions/workspace";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "Default",
-      logo: (
-        <StackSimple weight="duotone" className="text-muted-foreground mr-2" />
-      ),
       plan: "",
     },
   ],
@@ -138,27 +130,55 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [workspaces, setWorkspaces] = useState<
+    { id: string | null; name: string; plan: string }[]
+  >([
+    {
+      id: null,
+      name: "Default",
+      plan: "",
+    },
+  ]);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndWorkspaces = async () => {
       try {
         const userData = await getUser();
         setUser(userData);
+
+        const workspacesResponse = await getWorkspaces();
+        if (workspacesResponse.success && workspacesResponse.data) {
+          const defaultWorkspace = {
+            id: null,
+            name: "Default",
+            plan: getPlanType(userData.priceId),
+          };
+
+          const formattedWorkspaces = workspacesResponse.data.map(
+            (workspace) => ({
+              id: workspace.id,
+              name: workspace.name,
+              plan: getPlanType(userData.priceId),
+            })
+          );
+
+          setWorkspaces([defaultWorkspace, ...formattedWorkspaces]);
+        }
+
         setIsLoaded(true);
-        data.teams[0].plan = getPlanType(userData.priceId);
       } catch (error) {
-        console.error("Error fetching user:", error);
+        console.error("Error fetching user or workspaces:", error);
         setIsLoaded(true);
       }
     };
 
-    fetchUser();
+    fetchUserAndWorkspaces();
   }, []);
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} loading={!isLoaded} />
+        <TeamSwitcher user={user} teams={workspaces} loading={!isLoaded} />
       </SidebarHeader>
       <SidebarContent className="gap-0">
         <NavCreate projects={data.create} />

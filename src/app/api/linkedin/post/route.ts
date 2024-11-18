@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { accounts, drafts, users } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
 import { env } from "@/env";
 import { updateDraftField } from "@/actions/draft";
 import { waitUntil } from "@vercel/functions";
+import { auth } from "@clerk/nextjs/server";
 
 type Node = {
   type: string;
@@ -283,6 +284,10 @@ function extractText(content: Node | Node[]): string {
 export async function POST(request: Request) {
   try {
     const { postId, userId } = (await request.json()) as any;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     const draft = await db
       .select()
@@ -345,7 +350,7 @@ export async function POST(request: Request) {
             await updateDraftField(postId, "documentUrn", videoUrn);
 
             // Continue with the rest of the posting process
-            await continuePostingProcess(draft[0], userId);
+            await continuePostingProcess(draft[0], userId, workspaceId);
           } catch (error) {
             console.error("Error in video upload process:", error);
             // await updateDraftField(postId, "status", "failed");
@@ -357,14 +362,18 @@ export async function POST(request: Request) {
     }
 
     // If no video upload is needed, continue with the normal posting process
-    return await continuePostingProcess(draft[0], userId);
+    return await continuePostingProcess(draft[0], userId, workspaceId);
   } catch (error) {
     console.error("Failed to post:", error);
     return NextResponse.json({ error: "Failed to post" }, { status: 500 });
   }
 }
 
-async function continuePostingProcess(draft: any, userId: string) {
+async function continuePostingProcess(
+  draft: any,
+  userId: string,
+  workspaceId: string | undefined
+) {
   const content = draft.content;
   const documentUrn = draft.documentUrn;
   const documentTitle = draft.documentTitle || "";
@@ -395,11 +404,27 @@ async function continuePostingProcess(draft: any, userId: string) {
     );
   }
 
+  // Get account based on userId and workspaceId
+  const conditions = [eq(accounts.userId, userId)];
+  if (workspaceId) {
+    conditions.push(eq(accounts.workspaceId, workspaceId));
+  } else {
+    conditions.push(isNull(accounts.workspaceId));
+  }
+
   const account = await db
     .select()
     .from(accounts)
-    .where(eq(accounts.userId, userId))
+    .where(and(...conditions))
     .limit(1);
+
+  if (!account || account.length === 0) {
+    return NextResponse.json(
+      { error: "No LinkedIn account found" },
+      { status: 400 }
+    );
+  }
+
   const accessToken = account[0].access_token;
 
   if (!linkedInId || !accessToken) {

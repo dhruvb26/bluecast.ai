@@ -20,8 +20,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { BarLoader } from "react-spinners";
-import { Empty, PlusCircle } from "@phosphor-icons/react";
-import { AlertDescription } from "@/components/ui/alert";
+import { Empty } from "@phosphor-icons/react";
 
 export default function StylesContent() {
   const router = useRouter();

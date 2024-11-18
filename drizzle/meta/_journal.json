@@ -176,6 +176,76 @@
       "when": 1730276757428,
       "tag": "0024_fearless_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1731447274386,
+      "tag": "0025_awesome_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1731453615213,
+      "tag": "0026_superb_the_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1731454046612,
+      "tag": "0027_gray_morph",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1731455086356,
+      "tag": "0028_quiet_hannibal_king",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1731455400862,
+      "tag": "0029_thick_the_hood",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1731457979971,
+      "tag": "0030_puzzling_viper",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1731475087639,
+      "tag": "0031_opposite_wither",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1731650506955,
+      "tag": "0032_supreme_unicorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1731915661844,
+      "tag": "0033_chunky_wonder_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1731915734422,
+      "tag": "0034_tiny_ultimates",
+      "breakpoints": true
     }
   ]
 }

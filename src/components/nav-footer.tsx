@@ -66,7 +66,7 @@ export function NavFooter({
 
       <SidebarMenu>
         <SidebarMenuItem>
-          <Tooltip>
+          {/* <Tooltip>
             <TooltipTrigger asChild>
               <SidebarMenuButton asChild>
                 <Link
@@ -112,7 +112,7 @@ export function NavFooter({
                 </p>
               </div>
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
         </SidebarMenuItem>
         {footerItems.map(renderMenuItem)}
       </SidebarMenu>

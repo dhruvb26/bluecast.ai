@@ -3,14 +3,16 @@
 import { db } from "@/server/db";
 import { creatorLists, creatorListItems, creators } from "@/server/db/schema";
 import { getUser } from "./user";
-import { eq, isNull } from "drizzle-orm";
+import { eq, isNull, and } from "drizzle-orm";
 import { v4 as uuid } from "uuid";
 import { ServerActionResponse } from "@/types";
+import { auth } from "@clerk/nextjs/server";
 
 export type CreatorList = {
   id: string;
   name: string;
   userId: string | null;
+  workspaceId?: string;
   createdAt: Date;
   updatedAt: Date;
   items: {
@@ -32,6 +34,11 @@ export async function getCreatorLists(
 ): Promise<ServerActionResponse<CreatorList[]>> {
   try {
     const user = await getUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
     if (!user.id) {
       return { success: false, error: "User not authenticated" };
     }
@@ -49,8 +56,16 @@ export async function getCreatorLists(
         },
       });
     } else {
+      const conditions = [eq(creatorLists.userId, user.id)];
+
+      if (workspaceId) {
+        conditions.push(eq(creatorLists.workspaceId, workspaceId));
+      } else {
+        conditions.push(isNull(creatorLists.workspaceId));
+      }
+
       lists = await db.query.creatorLists.findMany({
-        where: eq(creatorLists.userId, user.id),
+        where: and(...conditions),
         with: {
           items: {
             with: {
@@ -75,6 +90,11 @@ export async function saveCreatorList(
 ): Promise<ServerActionResponse<CreatorList>> {
   try {
     const user = await getUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
     if (!user.id) {
       return { success: false, error: "User not authenticated" };
     }
@@ -84,6 +104,7 @@ export async function saveCreatorList(
       id: listId,
       name,
       userId: isPublic ? null : user.id,
+      workspaceId: isPublic ? null : workspaceId,
     });
 
     for (const creatorId of creatorIds) {
@@ -117,13 +138,29 @@ export async function deleteCreatorList(
 ): Promise<ServerActionResponse<void>> {
   try {
     const user = await getUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
     if (!user.id) {
       return { success: false, error: "User not authenticated" };
     }
 
+    const conditions = [
+      eq(creatorLists.id, listId),
+      eq(creatorLists.userId, user.id),
+    ];
+
+    if (workspaceId) {
+      conditions.push(eq(creatorLists.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(creatorLists.workspaceId));
+    }
+
     const deletedList = await db
       .delete(creatorLists)
-      .where(eq(creatorLists.id, listId))
+      .where(and(...conditions))
       .returning();
 
     if (deletedList.length === 0) {
@@ -146,16 +183,32 @@ export async function removeCreatorFromList(
 ): Promise<ServerActionResponse<void>> {
   try {
     const user = await getUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
     if (!user.id) {
       return { success: false, error: "User not authenticated" };
     }
 
+    const conditions = [
+      eq(creatorLists.id, listId),
+      eq(creatorLists.userId, user.id),
+    ];
+
+    if (workspaceId) {
+      conditions.push(eq(creatorLists.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(creatorLists.workspaceId));
+    }
+
     // Check if the list belongs to the user
     const list = await db.query.creatorLists.findFirst({
-      where: eq(creatorLists.id, listId),
+      where: and(...conditions),
     });
 
-    if (!list || list.userId !== user.id) {
+    if (!list) {
       return { success: false, error: "List not found or unauthorized" };
     }
 

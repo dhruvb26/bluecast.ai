@@ -6,6 +6,7 @@ import { RouteHandlerResponse } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/user";
 import { eq, isNull } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(
   req: Request
@@ -13,6 +14,10 @@ export async function POST(
   try {
     const user = await getUser();
     const { url, listName } = (await req.json()) as any;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     const isPublic = false;
 
@@ -29,7 +34,10 @@ export async function POST(
           eq(creatorLists.name, listName),
           isPublic
             ? isNull(creatorLists.userId)
-            : eq(creatorLists.userId, user.id)
+            : eq(creatorLists.userId, user.id),
+          workspaceId
+            ? eq(creatorLists.workspaceId, workspaceId)
+            : isNull(creatorLists.workspaceId)
         ),
     });
 
@@ -40,6 +48,7 @@ export async function POST(
         id: creatorListId,
         name: listName,
         userId: isPublic ? null : user.id,
+        workspaceId: isPublic ? null : workspaceId,
       });
     } else {
       creatorListId = creatorList.id;

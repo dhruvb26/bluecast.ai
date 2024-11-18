@@ -3,9 +3,10 @@ import { getLinkedInId, checkAccess, getUser } from "@/actions/user";
 import { RouteHandlerResponse } from "@/types";
 import { updateDraftField } from "@/actions/draft";
 import { env } from "@/env";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request): Promise<
   NextResponse<
@@ -17,22 +18,35 @@ export async function POST(req: Request): Promise<
 > {
   try {
     await checkAccess();
-    // const linkedInId = await getLinkedInId();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     const user = await getUser();
     const userId = user.id;
 
+    // Get account based on userId and workspaceId
+    const conditions = [eq(accounts.userId, userId)];
+    if (workspaceId) {
+      conditions.push(eq(accounts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(accounts.workspaceId));
+    }
+
     const account = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.userId, userId))
+      .where(and(...conditions))
       .limit(1);
+
+    if (!account || account.length === 0) {
+      throw new Error("No LinkedIn account found");
+    }
+
     const accessToken = account[0].access_token;
-    const linkedInId = await db
-      .select({ providerAccountId: accounts.providerAccountId })
-      .from(accounts)
-      .where(eq(accounts.userId, userId))
-      .limit(1);
+    const linkedInId = account[0].providerAccountId;
+
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/documents?action=initializeUpload",
       {
@@ -45,7 +59,7 @@ export async function POST(req: Request): Promise<
         },
         body: JSON.stringify({
           initializeUploadRequest: {
-            owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
+            owner: `urn:li:person:${linkedInId}`,
           },
         }),
       }

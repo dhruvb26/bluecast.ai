@@ -2,8 +2,8 @@
 
 import { db } from "@/server/db";
 import { posts } from "@/server/db/schema";
-import { asc, eq, desc, sql } from "drizzle-orm";
-import { checkAccess } from "./user";
+import { asc, eq, desc } from "drizzle-orm";
+
 import { parseRelativeTime } from "@/utils/date";
 export type Post = {
   id: string;

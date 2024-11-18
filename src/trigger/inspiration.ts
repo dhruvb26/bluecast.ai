@@ -37,109 +37,145 @@ export const updateInspiration = schedules.task({
           env.RAPIDAPI_HOST
         );
 
-        if (profileData) {
-          logger.log(`Successfully fetched profile for ${creator.profileUrl}`);
-          const data = profileData.data;
-          try {
-            await db
-              .insert(creators)
-              .values({
-                id: data.profile_id,
+        if (!profileData) {
+          logger.error(
+            `Failed to fetch profile data for ${creator.profileUrl}`
+          );
+          continue;
+        }
+
+        logger.log(`Successfully fetched profile for ${creator.profileUrl}`);
+        const data = profileData.data;
+
+        try {
+          await db
+            .insert(creators)
+            .values({
+              id: data.profile_id,
+              profileUrl: data.linkedin_url,
+              fullName: data.full_name,
+              profileImageUrl: data.profile_image_url,
+              headline: data.headline,
+              urn: data.urn,
+            })
+            .onConflictDoUpdate({
+              target: [creators.id],
+              set: {
                 profileUrl: data.linkedin_url,
                 fullName: data.full_name,
                 profileImageUrl: data.profile_image_url,
                 headline: data.headline,
                 urn: data.urn,
-              })
-              .onConflictDoUpdate({
-                target: [creators.id],
-                set: {
-                  profileUrl: data.linkedin_url,
-                  fullName: data.full_name,
-                  profileImageUrl: data.profile_image_url,
-                  headline: data.headline,
-                  urn: data.urn,
-                },
-              });
-            logger.log(
-              `Successfully updated profile in DB for ${creator.profileUrl}`
-            );
-          } catch (error: any) {
-            logger.error(
-              `Error updating profile in DB for ${creator.profileUrl}:`,
-              error
-            );
-          }
-        } else {
-          logger.error(
-            `Failed to fetch profile for ${creator.profileUrl} after retries`
+              },
+            });
+          logger.log(
+            `Successfully updated profile in DB for ${creator.profileUrl}`
           );
+        } catch (error: any) {
+          logger.error(
+            `Error updating profile in DB for ${creator.profileUrl}:`,
+            error
+          );
+          continue;
         }
 
         // Update posts
         logger.log(`Fetching posts for ${creator.profileUrl}`);
-        const postsData = await fetchWithRetry(
-          `https://${
+        let allPosts: any[] = [];
+        let start = 0;
+
+        while (true) {
+          const postsData = await fetchWithRetry(
+            `https://${
+              env.RAPIDAPI_HOST
+            }/get-profile-posts?linkedin_url=${encodeURIComponent(
+              creator.profileUrl!
+            )}&start=${start}`,
+            env.RAPIDAPI_KEY,
             env.RAPIDAPI_HOST
-          }/get-profile-posts?linkedin_url=${encodeURIComponent(
-            creator.profileUrl!
-          )}`,
-          env.RAPIDAPI_KEY,
-          env.RAPIDAPI_HOST
+          );
+
+          if (!postsData) {
+            logger.error(`Failed to fetch posts for ${creator.profileUrl}`);
+            break;
+          }
+
+          // Filter out posts with Unicode issues
+          const validPosts = postsData.data.filter((post: any) => {
+            return post.text && !/[^\x00-\x7F]/.test(post.text);
+          });
+
+          allPosts = [...allPosts, ...validPosts];
+
+          // If we got less than 50 valid posts and start is 0, try with start=50
+          if (validPosts.length < 50 && start === 0) {
+            start = 50;
+            continue;
+          }
+          break;
+        }
+
+        logger.log(
+          `Successfully fetched ${allPosts.length} posts for ${creator.profileUrl}`
         );
 
-        if (postsData) {
-          logger.log(
-            `Successfully fetched ${postsData.data.length} posts for ${creator.profileUrl}`
-          );
-          const formattedPosts = postsData.data
-            .map((post: any) => {
-              try {
-                return {
-                  id: post.urn,
-                  images: post.images,
-                  document: post.document,
-                  video: post.video,
-                  numAppreciations: post.num_appreciations,
-                  numComments: post.num_comments,
-                  numEmpathy: post.num_empathy,
-                  numInterests: post.num_interests,
-                  numLikes: post.num_likes,
-                  numReposts: post.num_reposts,
-                  postUrl: post.post_url,
-                  reshared: post.reshared,
-                  text: post.text
-                    ? Buffer.from(post.text, "utf-8")
-                        .toString("utf-8")
-                        .replace(
-                          /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFD\uFFFE\uFFFF]/g,
-                          ""
-                        ) // Remove invalid UTF-8 characters
-                        .replace(
-                          /[\u00A0-\u9999<>&]/g,
-                          (i: string) => `&#${i.charCodeAt(0)};`
-                        )
-                    : null,
-                  time: post.time,
-                  urn: post.urn,
-                  creatorId: creator.id,
-                };
-              } catch (error: any) {
-                logger.error(
-                  `Error formatting post for ${creator.profileUrl}, post URN ${post.urn}:`,
-                  error
+        // Track seen texts to filter duplicates
+        const seenTexts = new Set<string>();
+        const formattedPosts = allPosts
+          .map((post: any) => {
+            try {
+              // Skip duplicate posts based on text
+              if (seenTexts.has(post.text)) {
+                logger.log(
+                  `Skipping duplicate post with text: ${post.text.substring(
+                    0,
+                    50
+                  )}...`
                 );
                 return null;
               }
-            })
-            .filter(Boolean);
+              seenTexts.add(post.text);
 
-          // Use a transaction to delete old posts and insert new ones
-          try {
-            await db.transaction(async (tx) => {
-              await tx.delete(posts).where(eq(posts.creatorId, creator.id));
-              for (const post of formattedPosts) {
-                await tx
+              return {
+                id: post.urn,
+                images: post.images,
+                document: post.document,
+                video: post.video,
+                numAppreciations: post.num_appreciations,
+                numComments: post.num_comments,
+                numEmpathy: post.num_empathy,
+                numInterests: post.num_interests,
+                numLikes: post.num_likes,
+                numReposts: post.num_reposts,
+                postUrl: post.post_url,
+                reshared: post.reshared,
+                text: post.text,
+                time: post.time,
+                urn: post.urn,
+                creatorId: creator.id,
+              };
+            } catch (error: any) {
+              logger.error(
+                `Error formatting post for ${creator.profileUrl}, post URN ${post.urn}:`,
+                error
+              );
+              return null;
+            }
+          })
+          .filter(Boolean);
+
+        try {
+          logger.log(`Updating ${formattedPosts.length} posts in database`);
+          // First delete all existing posts for this creator
+          await db.delete(posts).where(eq(posts.creatorId, creator.id));
+          logger.log("Deleted existing posts");
+
+          // Then insert the new posts if we have any
+          if (formattedPosts.length > 0) {
+            for (const post of formattedPosts) {
+              if (post) {
+                // Add null check
+                await db
                   .insert(posts)
                   .values(post)
                   .onConflictDoUpdate({
@@ -147,19 +183,14 @@ export const updateInspiration = schedules.task({
                     set: post,
                   });
               }
-            });
-            logger.log(
-              `Successfully updated ${formattedPosts.length} posts in DB for ${creator.profileUrl}`
-            );
-          } catch (error: any) {
-            logger.error(
-              `Error updating posts in DB for ${creator.profileUrl}:`,
-              error
-            );
+            }
+            logger.log(`Inserted ${formattedPosts.length} new posts`);
           }
-        } else {
+          logger.log("Successfully updated posts in database");
+        } catch (error: any) {
           logger.error(
-            `Failed to fetch posts for ${creator.profileUrl} after retries`
+            `Error updating posts in DB for ${creator.profileUrl}:`,
+            error
           );
         }
       }
@@ -174,49 +205,47 @@ export const updateInspiration = schedules.task({
       );
       await updateCreators(batch);
     }
-
-    async function fetchWithRetry(
-      url: string,
-      apiKey: string,
-      apiHost: string,
-      retries = 3
-    ): Promise<any | null> {
-      for (let i = 0; i < retries; i++) {
-        try {
-          logger.log(`Attempt ${i + 1} of ${retries} for URL: ${url}`);
-          const response = await fetch(url, {
-            method: "GET",
-            headers: {
-              "x-rapidapi-key": apiKey,
-              "x-rapidapi-host": apiHost,
-            },
-          });
-
-          if (response.ok) {
-            logger.log(`Successfully fetched data from ${url}`);
-            return await response.json();
-          }
-
-          if (response.status === 429) {
-            logger.log(`Rate limited on ${url}, waiting before retry...`);
-            // Rate limited, wait before retrying
-            await wait.for({ seconds: 60 / RATE_LIMIT });
-            continue;
-          }
-
-          // Other error, don't retry
-          logger.error(
-            `Failed to fetch data from ${url}: ${response.status} ${response.statusText}`
-          );
-          return null;
-        } catch (error: any) {
-          logger.error(`Error fetching data from ${url}:`, error);
-          if (i === retries - 1) return null;
-          logger.log(`Waiting before retry ${i + 2}...`);
-          await wait.for({ seconds: 60 / RATE_LIMIT });
-        }
-      }
-      return null;
-    }
   },
 });
+
+async function fetchWithRetry(
+  url: string,
+  apiKey: string,
+  apiHost: string,
+  retries = 3
+): Promise<any | null> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      logger.log(`Attempt ${i + 1} of ${retries} for URL: ${url}`);
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "x-rapidapi-key": apiKey,
+          "x-rapidapi-host": apiHost,
+        },
+      });
+
+      if (response.ok) {
+        logger.log(`Successfully fetched data from ${url}`);
+        return await response.json();
+      }
+
+      if (response.status === 429) {
+        logger.log(`Rate limited on ${url}, waiting before retry...`);
+        await wait.for({ seconds: 60 / RATE_LIMIT });
+        continue;
+      }
+
+      logger.error(
+        `Failed to fetch data from ${url}: ${response.status} ${response.statusText}`
+      );
+      return null;
+    } catch (error: any) {
+      logger.error(`Error fetching data from ${url}:`, error);
+      if (i === retries - 1) return null;
+      logger.log(`Waiting before retry ${i + 2}...`);
+      await wait.for({ seconds: 60 / RATE_LIMIT });
+    }
+  }
+  return null;
+}

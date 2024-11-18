@@ -13,7 +13,8 @@ import { anthropic } from "@/server/model";
 import { v4 as uuidv4 } from "uuid";
 import { db } from "@/server/db";
 import { generatedPosts, users } from "@/server/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 export const maxDuration = 120;
 
 export interface LinkedInPost {
@@ -35,6 +36,10 @@ export async function POST(
     }
 
     const userInfo = await getUser();
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (
       !userInfo.stripeSubscriptionId &&
@@ -62,8 +67,16 @@ export async function POST(
       );
     }
 
+    const conditions = [eq(generatedPosts.userId, userInfo.id)];
+
+    if (workspaceId) {
+      conditions.push(eq(generatedPosts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(generatedPosts.workspaceId));
+    }
+
     const previousPosts = await db.query.generatedPosts.findMany({
-      where: eq(generatedPosts.userId, userInfo.id),
+      where: and(...conditions),
     });
     const previousTopics = previousPosts?.map((post) => post.topic) || [];
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { drafts } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { getQueue } from "@/server/bull/queue";
 import { saveJobId, getJobId, deleteJobId } from "@/server/bull/redis";
 import { getUser } from "@/actions/user";
@@ -9,6 +9,7 @@ import { getDraft, updateDraftField } from "@/actions/draft";
 import { type Queue } from "bullmq";
 import { type JobsOptions } from "bullmq";
 import { DateTime } from "luxon";
+import { auth } from "@clerk/nextjs/server";
 
 interface ScheduleData {
   postId: string;
@@ -36,6 +37,10 @@ export async function POST(req: Request) {
       await req.json();
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
     const scheduledDate = DateTime.fromISO(scheduledTime, { zone: timezone });
 
     const getDraftResult = await getDraft(postId);
@@ -64,7 +69,8 @@ export async function POST(req: Request) {
       userId,
       postId,
       name,
-      getDraftResult.data.content
+      getDraftResult.data.content,
+      workspaceId
     );
 
     const jobData: JobData = { userId, postId };
@@ -84,7 +90,9 @@ export async function POST(req: Request) {
       postId,
       name,
       scheduledDate.toISO() as string,
-      timezone
+      timezone,
+      userId,
+      workspaceId
     );
 
     return NextResponse.json({
@@ -129,8 +137,18 @@ async function updateThisDraft(
   postId: string,
   name: string,
   scheduledTime: string,
-  timezone: string
+  timezone: string,
+  userId: string,
+  workspaceId?: string
 ) {
+  const conditions = [eq(drafts.id, postId), eq(drafts.userId, userId)];
+
+  if (workspaceId) {
+    conditions.push(eq(drafts.workspaceId, workspaceId));
+  } else {
+    conditions.push(isNull(drafts.workspaceId));
+  }
+
   await db
     .update(drafts)
     .set({
@@ -140,7 +158,7 @@ async function updateThisDraft(
       timeZone: timezone,
       updatedAt: new Date(),
     })
-    .where(eq(drafts.id, postId));
+    .where(and(...conditions));
 }
 
 async function handleExistingJob(
@@ -161,18 +179,28 @@ async function ensureDraftExists(
   userId: string,
   postId: string,
   name: string,
-  content: string
+  content: string,
+  workspaceId?: string
 ) {
+  const conditions = [eq(drafts.id, postId), eq(drafts.userId, userId)];
+
+  if (workspaceId) {
+    conditions.push(eq(drafts.workspaceId, workspaceId));
+  } else {
+    conditions.push(isNull(drafts.workspaceId));
+  }
+
   const existingDraft = await db
     .select()
     .from(drafts)
-    .where(and(eq(drafts.id, postId), eq(drafts.userId, userId)))
+    .where(and(...conditions))
     .limit(1);
 
   if (existingDraft.length === 0) {
     await db.insert(drafts).values({
       id: postId,
       userId: userId,
+      workspaceId: workspaceId,
       name: name,
       content: content,
       status: "saved",
@@ -186,6 +214,10 @@ export async function DELETE(req: Request) {
   const { postId } = (await req.json()) as any;
   const user = await getUser();
   const userId = user.id;
+  const { sessionClaims } = auth();
+  const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+    | string
+    | undefined;
 
   if (!userId || !postId) {
     return NextResponse.json(
@@ -213,10 +245,19 @@ export async function DELETE(req: Request) {
     }
 
     const result = await updateDraftField(postId, "status", "saved");
+
+    const conditions = [eq(drafts.id, postId), eq(drafts.userId, userId)];
+
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(drafts.workspaceId));
+    }
+
     await db
       .update(drafts)
       .set({ scheduledFor: null, timeZone: null })
-      .where(eq(drafts.id, postId));
+      .where(and(...conditions));
 
     if (result.success) {
       return NextResponse.json({ message: "Post resaved as saved" });

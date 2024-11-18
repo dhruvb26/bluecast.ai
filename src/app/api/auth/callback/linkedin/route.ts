@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/env";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, auth } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
-import { accounts, users } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { accounts, users, workspaces } from "@/server/db/schema";
+import { eq, and, isNull } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const user = await currentUser();
+  const { sessionClaims } = auth();
+  const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+    | string
+    | undefined;
+
   console.log("User: ", user);
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
 
-  // Verify state to prevent CSRF attacks
   if (state !== "foobar") {
     return NextResponse.json({ error: "Invalid state" }, { status: 400 });
   }
@@ -102,17 +106,29 @@ export async function GET(request: NextRequest) {
     }
 
     if (user) {
-      // Update user information in the database
-      await db
-        .update(users)
-        .set({
-          name: fullName,
-          headline: headline,
-          linkedInId: linkedInId,
-          image: profilePictureUrl,
-        })
-        .where(eq(users.id, user.id));
+      if (!workspaceId) {
+        await db
+          .update(users)
+          .set({
+            name: fullName,
+            headline: headline,
+            linkedInId: linkedInId,
+            image: profilePictureUrl,
+          })
+          .where(eq(users.id, user.id));
+      } else {
+        await db
+          .update(workspaces)
+          .set({
+            linkedInName: fullName,
+            linkedInImageUrl: profilePictureUrl,
+            linkedInHeadline: headline,
+          })
+          .where(eq(workspaces.userId, user.id));
+      }
+    }
 
+    if (user) {
       // Check if the account already exists
       const existingAccount = await db
         .select()
@@ -121,7 +137,10 @@ export async function GET(request: NextRequest) {
           and(
             eq(accounts.userId, user.id),
             eq(accounts.provider, "linkedin"),
-            eq(accounts.providerAccountId, linkedInId)
+            eq(accounts.providerAccountId, linkedInId),
+            workspaceId
+              ? eq(accounts.workspaceId, workspaceId)
+              : isNull(accounts.workspaceId)
           )
         )
         .limit(1);
@@ -140,6 +159,7 @@ export async function GET(request: NextRequest) {
           expires_at,
           token_type,
           id_token,
+          workspaceId: workspaceId || null,
         });
       } else {
         // If the account exists, update it
@@ -159,7 +179,10 @@ export async function GET(request: NextRequest) {
             and(
               eq(accounts.userId, user.id),
               eq(accounts.provider, "linkedin"),
-              eq(accounts.providerAccountId, linkedInId)
+              eq(accounts.providerAccountId, linkedInId),
+              workspaceId
+                ? eq(accounts.workspaceId, workspaceId)
+                : isNull(accounts.workspaceId)
             )
           );
       }

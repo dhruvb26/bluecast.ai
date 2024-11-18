@@ -3,7 +3,6 @@ import Link from "next/link";
 import {
   UserCircleCheck,
   ClockCounterClockwise,
-  ArrowUpRight,
 } from "@phosphor-icons/react/dist/ssr";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -19,15 +18,14 @@ import {
 } from "@/components/ui/select";
 import LinkedInSignInButton from "@/components/auth/linkedin-signin-button";
 import { db } from "@/server/db";
-import { accounts } from "@/server/db/schema";
+import { accounts, workspaces } from "@/server/db/schema";
 import { env } from "@/env";
 import { Button } from "@/components/ui/button";
-import DeleteAccountButton from "@/components/auth/delete-account-button";
-import { Money } from "@phosphor-icons/react/dist/ssr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { UploadButton } from "@/utils/uploadthing";
-import { toast } from "sonner";
 import UpdateProfilePictureButton from "@/components/buttons/update-profile-picture-button";
+import { auth } from "@clerk/nextjs/server";
+import { getLinkedInId } from "@/actions/user";
+
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -39,7 +37,21 @@ const SettingsPage = async () => {
     where: eq(accounts.userId, user.id),
   });
 
-  const provider = account?.provider;
+  const { sessionClaims } = auth();
+  const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+    | string
+    | undefined;
+
+  const workspace = workspaceId
+    ? await db.query.workspaces.findFirst({
+        where: eq(workspaces.id, workspaceId),
+      })
+    : null;
+
+  // Get all workspaces for user to determine limit
+  const userWorkspaces = await db.query.workspaces.findMany({
+    where: eq(workspaces.userId, user.id),
+  });
 
   const hasSubscription =
     user.hasAccess &&
@@ -67,6 +79,18 @@ const SettingsPage = async () => {
       <ClockCounterClockwise />
     </Badge>
   );
+
+  // Determine usage and limits based on context
+  const wordLimit = userWorkspaces.length > 0 ? 75000 : 50000;
+  const currentUsage = user.specialAccess
+    ? user.generatedPosts || 0
+    : workspace
+    ? workspace.usage || 0
+    : user.generatedWords || 0;
+  const usageLimit = user.specialAccess ? 10 : wordLimit;
+  const usageText = user.specialAccess
+    ? `${currentUsage} / 10 posts`
+    : `${currentUsage} / ${wordLimit} words`;
 
   return (
     <main className="p-8">
@@ -96,7 +120,14 @@ const SettingsPage = async () => {
               </label>
               <div className="flex items-center space-x-4">
                 <Avatar>
-                  <AvatarImage src={user.image || ""} alt={user.name || ""} />
+                  <AvatarImage
+                    src={
+                      workspace
+                        ? workspace.linkedInImageUrl || ""
+                        : user.image || ""
+                    }
+                    alt={user.name || ""}
+                  />
                   <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
                 <UpdateProfilePictureButton />
@@ -150,8 +181,8 @@ const SettingsPage = async () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Active">
-                    {user.priceId === "price_1Q32GdRrqqSKPUNWN1sG48XI" ||
-                    user.priceId === "price_1Q1VQ4RrqqSKPUNWMMbGj3yh"
+                    {user.priceId === "price_1QMOWRRrqqSKPUNWRV27Uiv7" ||
+                    user.priceId === "price_1QMcQPRrqqSKPUNWXMw3yYy8"
                       ? "Annual Plan"
                       : user.priceId === "price_1Q32F1RrqqSKPUNWkMQXCrVC" ||
                         user.priceId === "price_1Pb0w5RrqqSKPUNWGX1T2G3O"
@@ -175,20 +206,12 @@ const SettingsPage = async () => {
           </div>
           <div className="w-[30%] space-y-4">
             <div className="flex flex-col">
-              <span className="text-xs text-foreground">
-                {user.specialAccess
-                  ? `${user.generatedPosts || 0} / 10 posts`
-                  : `${user.generatedWords || 0} / 50000 words`}
-              </span>
+              <span className="text-xs text-foreground">{usageText}</span>
               <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
                 <div
                   className="h-1.5 rounded-full bg-blue-600 transition-all duration-300 ease-in-out"
                   style={{
-                    width: `${
-                      user.specialAccess
-                        ? ((user.generatedPosts || 0) / 10) * 100
-                        : ((user.generatedWords || 0) / 50000) * 100
-                    }%`,
+                    width: `${(currentUsage / usageLimit) * 100}%`,
                   }}
                 ></div>
               </div>
