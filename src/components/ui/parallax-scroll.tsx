@@ -25,6 +25,7 @@ export const ParallaxScroll = ({
 }: {
   posts: {
     id: string;
+    name: string;
     content: any;
     status: string;
     updatedAt: Date;
@@ -100,15 +101,18 @@ export const ParallaxScroll = ({
       className="mb-6 rounded-md border border-input hover:-translate-y-1 transition-all bg-white p-4 hover:shadow-sm h-[175px] flex flex-col justify-between"
     >
       <div>
-        <div className="mb-3 flex items-center">
-          <div>
-            <p className="text-xs text-muted-foreground">
-              Updated • {post.updatedAt.toLocaleString()}
-            </p>
-          </div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-sm text-foreground">
+              {post.name}
+            </span>{" "}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {post.updatedAt.toLocaleString()}
+          </p>
         </div>
 
-        <div className="mb-4 text-sm text-brand-gray-900 overflow-hidden">
+        <div className="mb-4 text-sm text-muted-foreground overflow-hidden">
           {renderContent(post.content)}
         </div>
       </div>

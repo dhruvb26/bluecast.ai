@@ -248,7 +248,7 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
       </div>
       <div
         ref={containerRef}
-        className={`w-full rounded bg-white shadow ${
+        className={`w-full rounded bg-white shadow transition-all duration-300 ease-in-out ${
           device === "mobile"
             ? "max-w-[320px]"
             : device === "tablet"

@@ -110,6 +110,7 @@ const SavedDraftsContent = () => {
       <ParallaxScroll
         posts={drafts.map((draft) => ({
           id: draft.id,
+          name: draft.name || "Untitled",
           content: draft.content || {},
           status: draft.status,
           updatedAt: new Date(draft.updatedAt),

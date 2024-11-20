@@ -24,6 +24,21 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UpdateProfilePictureButton from "@/components/buttons/update-profile-picture-button";
 import { auth } from "@clerk/nextjs/server";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { updateWorkspace } from "@/actions/workspace";
+import { deleteWorkspace } from "@/actions/workspace";
+import WorkspaceDialog from "@/components/auth/workspace-dialog";
+import DeleteWorkspaceDialog from "@/components/auth/delete-workspace-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -46,6 +61,11 @@ const SettingsPage = async () => {
         where: eq(workspaces.id, workspaceId),
       })
     : null;
+
+  const handleUpdateWorkspace = async (workspaceName: string) => {
+    if (!workspaceId) return;
+    await updateWorkspace(workspaceId, workspaceName);
+  };
 
   // Get all workspaces for user to determine limit
   const userWorkspaces = await db.query.workspaces.findMany({
@@ -93,7 +113,7 @@ const SettingsPage = async () => {
 
   return (
     <main className="p-8">
-      <div className="space-y-12">
+      <div className="space-y-10">
         <div className="text-left">
           <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Account Settings
@@ -112,7 +132,7 @@ const SettingsPage = async () => {
               We have obtained your name and email through your login.
             </p>
           </div>
-          <div className="w-2/3 space-y-4">
+          <div className="w-1/3 space-y-4">
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium">
                 Image
@@ -151,6 +171,33 @@ const SettingsPage = async () => {
                 placeholder="example.com/janesmith"
               />
             </div>
+            <div>
+              <label htmlFor="name" className="mb-1 block text-sm font-medium">
+                Workspace
+              </label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  disabled
+                  type="text"
+                  id="name"
+                  defaultValue={workspace ? workspace.name || "" : ""}
+                  className="text-sm"
+                  placeholder="Default"
+                />
+                {workspaceId && (
+                  <>
+                    <WorkspaceDialog
+                      workspaceId={workspaceId || ""}
+                      currentName={workspace ? workspace.name || "" : ""}
+                    />
+                    <DeleteWorkspaceDialog
+                      workspaceId={workspaceId || ""}
+                      workspaceName={workspace ? workspace.name || "" : ""}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
             {/* <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium">
                 Email
@@ -187,11 +234,17 @@ const SettingsPage = async () => {
                 <SelectContent>
                   <SelectItem value="Active">
                     {user.priceId === "price_1QMOWRRrqqSKPUNWRV27Uiv7" ||
-                    user.priceId === "price_1QMcQPRrqqSKPUNWXMw3yYy8"
-                      ? "Annual Plan"
+                    user.priceId === "price_1QN9MVRrqqSKPUNWHqv3bcMM"
+                      ? "Annual Pro Plan"
                       : user.priceId === "price_1Q32F1RrqqSKPUNWkMQXCrVC" ||
                         user.priceId === "price_1Pb0w5RrqqSKPUNWGX1T2G3O"
-                      ? "Monthly Plan"
+                      ? "Monthly Pro Plan"
+                      : user.priceId === "price_1QMOYXRrqqSKPUNWcFVWJIs4" ||
+                        user.priceId === "price_1QN9NyRrqqSKPUNWWwB1zAXa"
+                      ? "Monthly Grow Plan"
+                      : user.priceId === "price_1QLXONRrqqSKPUNW7s5FxANR" ||
+                        user.priceId === "price_1QN9JoRrqqSKPUNWuTZBJWS1"
+                      ? "Annual Grow Plan"
                       : "Active"}
                   </SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
@@ -230,7 +283,7 @@ const SettingsPage = async () => {
               Pricing
             </h2>
             <p className="text-sm text-muted-foreground">
-              Check out our different plans and what they offer.
+              Check out our different plans and what we offer.
             </p>
           </div>
           <div className="flex w-2/3 items-center justify-start">

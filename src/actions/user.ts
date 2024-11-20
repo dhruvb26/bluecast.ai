@@ -620,6 +620,7 @@ export async function getActiveWorkspace() {
     const workspace = await db.query.workspaces.findFirst({
       where: eq(workspaces.id, workspaceId),
       columns: {
+        name: true,
         id: true,
         linkedInName: true,
         linkedInHeadline: true,

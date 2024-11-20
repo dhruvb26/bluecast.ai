@@ -46,7 +46,7 @@ const ProgressBar = () => {
                 <CircleInfo className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-[250px] h-fit">
-                <p className="text-xs">
+                <p className="text-sm">
                   {!user?.stripeSubscriptionId && !user?.priceId ? (
                     <span>
                       You have no refreshes on this trial.{" "}
@@ -59,7 +59,7 @@ const ProgressBar = () => {
                       to get 4 refreshes per month!
                     </span>
                   ) : (
-                    "You have 4 refreshes available this month. Usage resets at the start of each month."
+                    "You have 4 refreshes available this month. Usage resets at the start of each month. The usage is cumulative across all workspaces."
                   )}
                 </p>
               </TooltipContent>

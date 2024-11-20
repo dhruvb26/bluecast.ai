@@ -28,26 +28,26 @@ export async function createWorkspace(
       return { success: false, error: "User not authenticated" };
     }
 
-    // const monthlyGrowPlan =
-    //   env.NEXT_PUBLIC_NODE_ENV === "development"
-    //     ? "price_1QLXONRrqqSKPUNW7s5FxANR"
-    //     : "price_1QN9JoRrqqSKPUNWuTZBJWS1";
+    const monthlyGrowPlan =
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QLXONRrqqSKPUNW7s5FxANR"
+        : "price_1QN9JoRrqqSKPUNWuTZBJWS1";
 
-    // const annualGrowPlan =
-    //   env.NEXT_PUBLIC_NODE_ENV === "development"
-    //     ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
-    //     : "price_1QN9NyRrqqSKPUNWWwB1zAXa";
+    const annualGrowPlan =
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
+        : "price_1QN9NyRrqqSKPUNWWwB1zAXa";
 
-    // if (
-    //   !user.priceId ||
-    //   !user.stripeSubscriptionId ||
-    //   (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
-    // ) {
-    //   return {
-    //     success: false,
-    //     error: "Upgrade to Grow Plan to create more workspaces.",
-    //   };
-    // }
+    if (
+      !user.priceId ||
+      !user.stripeSubscriptionId ||
+      (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
+    ) {
+      return {
+        success: false,
+        error: "Upgrade to Grow Plan to create more workspaces.",
+      };
+    }
 
     const existingWorkspaces = await db
       .select()
@@ -141,18 +141,28 @@ export async function deleteWorkspace(
   workspaceId: string
 ): Promise<ServerActionResponse<void>> {
   try {
-    const user = await getUser();
-    const userId = user.id;
+    const userResult = await getUser();
 
-    if (!userId) {
+    const userIdResult = userResult.id;
+
+    if (!userIdResult) {
       return { success: false, error: "User not authenticated" };
     }
 
     await db
       .delete(workspaces)
       .where(
-        and(eq(workspaces.id, workspaceId), eq(workspaces.userId, userId))
+        and(eq(workspaces.id, workspaceId), eq(workspaces.userId, userIdResult))
       );
+
+    const { sessionClaims, userId } = auth();
+    if (sessionClaims?.activeWorkspaceId === workspaceId) {
+      await clerkClient().users.updateUserMetadata(userId!, {
+        publicMetadata: {
+          activeWorkspaceId: null,
+        },
+      });
+    }
 
     return { success: true, data: undefined };
   } catch (error) {
@@ -204,26 +214,26 @@ export async function switchWorkspace(workspaceId: string) {
     throw new Error("User not authenticated");
   }
 
-  // const monthlyGrowPlan =
-  //   env.NEXT_PUBLIC_NODE_ENV === "development"
-  //     ? "price_1QLXONRrqqSKPUNW7s5FxANR" // Pro plan dev price
-  //     : "price_1QN9JoRrqqSKPUNWuTZBJWS1"; // Pro plan prod price
+  const monthlyGrowPlan =
+    env.NEXT_PUBLIC_NODE_ENV === "development"
+      ? "price_1QLXONRrqqSKPUNW7s5FxANR" // Pro plan dev price
+      : "price_1QN9JoRrqqSKPUNWuTZBJWS1"; // Pro plan prod price
 
-  // const annualGrowPlan =
-  //   env.NEXT_PUBLIC_NODE_ENV === "development"
-  //     ? "price_1QMOYXRrqqSKPUNWcFVWJIs4" // Grow plan dev price
-  //     : "price_1QN9NyRrqqSKPUNWWwB1zAXa"; // Grow plan prod price
+  const annualGrowPlan =
+    env.NEXT_PUBLIC_NODE_ENV === "development"
+      ? "price_1QMOYXRrqqSKPUNWcFVWJIs4" // Grow plan dev price
+      : "price_1QN9NyRrqqSKPUNWWwB1zAXa"; // Grow plan prod price
 
-  // if (
-  //   !user.priceId ||
-  //   !user.stripeSubscriptionId ||
-  //   (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
-  // ) {
-  //   return {
-  //     success: false,
-  //     error: "Upgrade to Grow Plan to switch workspaces.",
-  //   };
-  // }
+  if (
+    !user.priceId ||
+    !user.stripeSubscriptionId ||
+    (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
+  ) {
+    return {
+      success: false,
+      error: "Upgrade to Grow Plan to switch workspaces.",
+    };
+  }
 
   await clerkClient().users.updateUserMetadata(userId, {
     publicMetadata: {

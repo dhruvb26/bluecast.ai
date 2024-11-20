@@ -32,13 +32,14 @@ export default function EditDraft() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-
+  const [initialName, setInitialName] = useState<string | null>(null);
   useEffect(() => {
     const fetchDraft = async () => {
       setIsLoading(true);
       try {
         const draft = await getDraft(id);
         if (draft.success && draft.data) {
+          setInitialName(draft.data.name);
           let newValue: Descendant[];
           if (typeof draft.data.content === "string") {
             try {
@@ -130,6 +131,7 @@ export default function EditDraft() {
               initialDocumentUrn={documentUrn}
               setFileType={setFileType}
               updateAt={updatedAt}
+              initialName={initialName || ""}
             />
           </div>
 
