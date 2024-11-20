@@ -101,9 +101,7 @@ export const updateInspiration = schedules.task({
           }
 
           // Filter out posts with Unicode issues
-          const validPosts = postsData.data.filter((post: any) => {
-            return post.text && !/[^\x00-\x7F]/.test(post.text);
-          });
+          const validPosts = postsData.data;
 
           allPosts = [...allPosts, ...validPosts];
 
