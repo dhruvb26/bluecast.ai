@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
     const fullName = `${firstName} ${lastName}`;
     const headline = profileData.localizedHeadline;
     const linkedInId = profileData.id;
+    const email = profileData.emailAddress;
 
     // Fetch profile picture URL
     let profilePictureUrl = null;

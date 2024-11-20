@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UpdateProfilePictureButton from "@/components/buttons/update-profile-picture-button";
 import { auth } from "@clerk/nextjs/server";
-import { getLinkedInId } from "@/actions/user";
 
 export const dynamic = "force-dynamic";
 
@@ -128,7 +127,11 @@ const SettingsPage = async () => {
                     }
                     alt={user.name || ""}
                   />
-                  <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
+                  <AvatarFallback>
+                    {workspace
+                      ? workspace.linkedInName?.charAt(0) || ""
+                      : user.name?.charAt(0) || ""}
+                  </AvatarFallback>
                 </Avatar>
                 <UpdateProfilePictureButton />
               </div>
@@ -141,12 +144,14 @@ const SettingsPage = async () => {
                 disabled
                 type="text"
                 id="name"
-                defaultValue={user.name || ""}
+                defaultValue={
+                  workspace ? workspace.linkedInName || "" : user.name || ""
+                }
                 className="text-sm"
                 placeholder="example.com/janesmith"
               />
             </div>
-            <div>
+            {/* <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium">
                 Email
               </label>
@@ -157,7 +162,7 @@ const SettingsPage = async () => {
                 defaultValue={user.email || ""}
                 className="text-sm"
               />
-            </div>
+            </div> */}
           </div>
         </section>
 
@@ -222,31 +227,41 @@ const SettingsPage = async () => {
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-base font-semibold tracking-tight text-foreground">
-              {hasSubscription ? "Subscription" : "Pricing"}
+              Pricing
             </h2>
             <p className="text-sm text-muted-foreground">
-              {hasSubscription
-                ? "Manage your current subscription plan."
-                : "Check out our different plans and what they offer."}
+              Check out our different plans and what they offer.
             </p>
           </div>
           <div className="flex w-2/3 items-center justify-start">
-            <Link
-              target="_blank"
-              href={
-                hasSubscription
-                  ? env.NEXT_PUBLIC_NODE_ENV === "development"
-                    ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
-                    : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
-                  : "/pricing"
-              }
-            >
-              <Button variant={"outline"}>
-                {hasSubscription ? "Manage Subscription" : "Pricing and Plans"}
-              </Button>
+            <Link href={"/pricing"}>
+              <Button variant={"outline"}>Pricing and Plans</Button>
             </Link>
           </div>
         </section>
+        {hasSubscription && (
+          <section className="flex space-x-4">
+            <div className="w-1/3">
+              <h2 className="text-base font-semibold tracking-tight text-foreground">
+                Subscription
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Manage your current subscription plan.
+              </p>
+            </div>
+            <div className="flex w-2/3 items-center justify-start">
+              <Link
+                href={
+                  env.NEXT_PUBLIC_NODE_ENV === "development"
+                    ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
+                    : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
+                }
+              >
+                <Button variant={"outline"}>Manage Subscription</Button>
+              </Link>
+            </div>
+          </section>
+        )}
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-base font-semibold tracking-tight text-foreground">

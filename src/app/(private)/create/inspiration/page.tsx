@@ -26,20 +26,42 @@ export default function Home() {
     threshold: 0,
   });
 
+  // Define the order of public lists
+  const publicListOrder = [
+    "Marketing",
+    "Sales",
+    "Startups",
+    "Personal Brand",
+    "AI",
+    "Leadership",
+    "Storytelling",
+  ];
+
   useEffect(() => {
     async function fetchData() {
       try {
         const publicListsResult = await getCreatorLists(true);
         const privateListsResult = await getCreatorLists(false);
         if (publicListsResult.success && privateListsResult.success) {
-          const allLists = [
-            ...publicListsResult.data,
-            ...privateListsResult.data,
-          ];
-          allLists.sort((a, b) => a.name.localeCompare(b.name));
+          // Sort public lists according to defined order
+          const sortedPublicLists = [...publicListsResult.data].sort((a, b) => {
+            const indexA = publicListOrder.indexOf(a.name);
+            const indexB = publicListOrder.indexOf(b.name);
+            if (indexA === -1 && indexB === -1)
+              return a.name.localeCompare(b.name);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          });
 
+          // Sort private lists alphabetically
+          const sortedPrivateLists = [...privateListsResult.data].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          );
+
+          const allLists = [...sortedPublicLists, ...sortedPrivateLists];
           setLists(allLists);
-          setActiveTab(allLists[0]?.id || null); // Set the first list as the active tab
+          setActiveTab(allLists[0]?.id || null);
 
           const postsData: { [key: string]: any[] } = {};
           const pageData: { [key: string]: number } = {};
@@ -72,6 +94,7 @@ export default function Home() {
 
     fetchData();
   }, []);
+
   useEffect(() => {
     if (activeTab && lists.length > 0) {
       if (posts[activeTab].length === 0) {
@@ -148,13 +171,11 @@ export default function Home() {
       ) : (
         <Tabs value={activeTab || ""} onValueChange={setActiveTab}>
           <TabsList className="mb-6 grid grid-cols-4 sm:grid-cols-7 w-full">
-            {lists
-              .sort((a, b) => a.name.localeCompare(b.name))
-              .map((list) => (
-                <TabsTrigger key={list.id} value={list.id}>
-                  {list.name}
-                </TabsTrigger>
-              ))}
+            {lists.map((list) => (
+              <TabsTrigger key={list.id} value={list.id}>
+                {list.name}
+              </TabsTrigger>
+            ))}
           </TabsList>
           {lists.map((list) => (
             <TabsContent key={list.id} value={list.id}>

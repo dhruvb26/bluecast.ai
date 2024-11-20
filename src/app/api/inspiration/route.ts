@@ -95,11 +95,6 @@ export async function GET(req: Request) {
     const formattedPosts = postsData.data
       .map((post: any) => {
         try {
-          // Skip posts with potential Unicode issues
-          if (!post.text || /[^\x00-\x7F]/.test(post.text)) {
-            return null;
-          }
-
           return {
             id: post.urn,
             images: post.images,

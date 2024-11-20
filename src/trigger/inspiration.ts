@@ -7,7 +7,7 @@ const RATE_LIMIT = 20;
 
 export const updateInspiration = schedules.task({
   id: "update-inspiration",
-  cron: "0 0 * * *",
+  cron: "0 0 */3 * *",
   maxDuration: 5000,
   run: async (payload, { ctx }) => {
     const creatorUrls = await db
