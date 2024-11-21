@@ -241,10 +241,10 @@ const SettingsPage = async () => {
                       ? "Monthly Pro Plan"
                       : user.priceId === "price_1QMOYXRrqqSKPUNWcFVWJIs4" ||
                         user.priceId === "price_1QN9NyRrqqSKPUNWWwB1zAXa"
-                      ? "Monthly Grow Plan"
+                      ? "Annual Grow Plan"
                       : user.priceId === "price_1QLXONRrqqSKPUNW7s5FxANR" ||
                         user.priceId === "price_1QN9JoRrqqSKPUNWuTZBJWS1"
-                      ? "Annual Grow Plan"
+                      ? "Monthly Grow Plan"
                       : "Active"}
                   </SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>

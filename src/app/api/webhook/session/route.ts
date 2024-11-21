@@ -37,9 +37,9 @@ export async function POST(req: Request) {
       success_url: `${env.BASE_URL}/create/posts`,
       cancel_url: `${env.BASE_URL}/pricing`,
       allow_promotion_codes: true,
-      // metadata: {
-      //   dbId: user.id,
-      // },
+      metadata: {
+        dbId: user.id,
+      },
     });
 
     console.log("Session ID: ", session.id);

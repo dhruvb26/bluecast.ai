@@ -8,6 +8,7 @@ import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const plans = [
+  // Pro Monthly
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
@@ -20,6 +21,7 @@ const plans = [
     price: 29,
     duration: "/month",
   },
+  // Pro Annual
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
@@ -28,9 +30,27 @@ const plans = [
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "price_1QMOWRRrqqSKPUNWRV27Uiv7"
-        : "price_1QMcQPRrqqSKPUNWXMw3yYy8",
-    price: 200,
-    duration: "/year",
+        : "price_1QN9MVRrqqSKPUNWHqv3bcMM",
+    price: 23,
+    duration: "/month",
+  },
+  // Grow Monthly
+  {
+    priceId:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
+        : "price_1QN9NyRrqqSKPUNWWwB1zAXa",
+    price: 49,
+    duration: "/month",
+  },
+  // Grow Annual
+  {
+    priceId:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QLXONRrqqSKPUNW7s5FxANR"
+        : "price_1QN9JoRrqqSKPUNWuTZBJWS1",
+    price: 39,
+    duration: "/month",
   },
 ];
 
