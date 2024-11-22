@@ -36,7 +36,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { updateWorkspace } from "@/actions/workspace";
-import { deleteWorkspace } from "@/actions/workspace";
 import WorkspaceDialog from "@/components/auth/workspace-dialog";
 import DeleteWorkspaceDialog from "@/components/auth/delete-workspace-dialog";
 

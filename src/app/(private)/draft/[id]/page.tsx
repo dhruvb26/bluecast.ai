@@ -25,7 +25,7 @@ export default function EditDraft() {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
   const [fileType, setFileType] = useState(null);
-
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>(undefined);
   const [documentUrn, setDocumentUrn] = useState<string | null>(null);
   const [device, setDevice] = useState<"mobile" | "tablet" | "desktop">(
     "mobile"
@@ -40,6 +40,7 @@ export default function EditDraft() {
         const draft = await getDraft(id);
         if (draft.success && draft.data) {
           setInitialName(draft.data.name);
+          setWorkspaceId(draft.data.workspaceId);
           let newValue: Descendant[];
           if (typeof draft.data.content === "string") {
             try {
@@ -124,6 +125,7 @@ export default function EditDraft() {
           <div className="w-full lg:w-1/2 border-input">
             <EditorSection
               id={id}
+              workspaceId={workspaceId}
               initialValue={value}
               setValue={setValue}
               editor={editor}

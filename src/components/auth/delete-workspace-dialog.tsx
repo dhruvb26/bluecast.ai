@@ -14,7 +14,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
-import { deleteWorkspace } from "@/actions/workspace";
+import { deleteWorkspace, switchWorkspace } from "@/actions/workspace";
 
 interface DeleteWorkspaceDialogProps {
   workspaceId: string;
@@ -37,6 +37,7 @@ export default function DeleteWorkspaceDialog({
     setIsDeleting(true);
     try {
       await deleteWorkspace(workspaceId);
+      await switchWorkspace("");
       window.location.reload();
     } catch (error) {
       console.error("Error deleting workspace:", error);

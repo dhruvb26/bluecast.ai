@@ -52,7 +52,10 @@ export async function POST(req: Request): Promise<
     const accessToken = account[0].access_token;
     const linkedInId = account[0].providerAccountId;
 
-    console.log("Initializing upload with LinkedIn API");
+    console.log(
+      "Initializing upload with LinkedIn API for linkedinId:",
+      linkedInId
+    );
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/images?action=initializeUpload",
       {

@@ -112,6 +112,7 @@ export function TeamSwitcher({
         throw new Error(response.error);
       }
       toast.success("Workspace created successfully");
+      router.refresh();
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Failed to create workspace"
@@ -211,16 +212,20 @@ export function TeamSwitcher({
             <Dialog>
               <DialogTrigger asChild>
                 <DropdownMenuItem
+                  disabled={true}
                   onSelect={(e) => e.preventDefault()}
                   className="focus:bg-accent  transition-all  flex justify-between items-center"
                 >
-                  <div className="flex items-center ">
+                  <div className="flex items-center opacity-50">
                     <Plus className="inline mr-1" size={16} />
                     Add Workspace
                   </div>
                   <Badge className="opacity-80 font-normal text-xs text-indigo-600 bg-indigo-100">
-                    <Sparkle weight="duotone" className="inline mr-1 w-3 h-3" />
-                    New
+                    <HourglassSimpleHigh
+                      weight="duotone"
+                      className="inline mr-1 w-3 h-3"
+                    />
+                    Soon{" "}
                   </Badge>
                 </DropdownMenuItem>
               </DialogTrigger>

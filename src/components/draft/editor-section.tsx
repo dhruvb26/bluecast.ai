@@ -175,6 +175,7 @@ interface EditorSectionProps {
   initialDocumentUrn: string | null;
   updateAt: Date | null;
   initialName: string | null;
+  workspaceId: string | undefined;
 }
 
 function EditorSection({
@@ -187,6 +188,7 @@ function EditorSection({
   setFileType,
   updateAt,
   initialName,
+  workspaceId,
 }: EditorSectionProps) {
   const [value, setInternalValue] = useState<Descendant[]>(() => {
     if (typeof initialValue === "string") {
@@ -360,6 +362,7 @@ function EditorSection({
       const publishData: any = {
         postId: id,
         userId: user?.id,
+        workspaceId: workspaceId,
       };
 
       const response = await fetch("/api/linkedin/post", {
@@ -387,7 +390,7 @@ function EditorSection({
             Post published successfully.{" "}
             <a
               href={link}
-              className="font-semibold text-green-700"
+              className="font-semibold text-green-700 ml-1"
               target="_blank"
               rel="noopener noreferrer"
             >

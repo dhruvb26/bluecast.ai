@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { accounts, drafts, users } from "@/server/db/schema";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
-import { env } from "@/env";
 import { updateDraftField } from "@/actions/draft";
-import { waitUntil } from "@vercel/functions";
-import { auth } from "@clerk/nextjs/server";
+import { linkedinPost } from "@/trigger/linkedin-post";
 
 type Node = {
   type: string;
@@ -280,19 +278,19 @@ function extractText(content: Node | Node[]): string {
 
   return result.trim();
 }
-
 export async function POST(request: Request) {
   try {
-    const { postId, userId } = (await request.json()) as any;
-    const { sessionClaims } = auth();
-    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
-      | string
-      | undefined;
+    const { postId, userId, workspaceId } = (await request.json()) as any;
+
+    const conditions = [eq(drafts.id, postId), eq(drafts.userId, userId)];
+    if (workspaceId) {
+      conditions.push(eq(drafts.workspaceId, workspaceId));
+    }
 
     const draft = await db
       .select()
       .from(drafts)
-      .where(and(eq(drafts.id, postId), eq(drafts.userId, userId)))
+      .where(and(...conditions))
       .limit(1);
 
     if (draft.length === 0) {
@@ -307,234 +305,180 @@ export async function POST(request: Request) {
       !draft[0].documentUrn &&
       draft[0].downloadUrl?.startsWith("https://utfs.io/f/")
     ) {
-      console.log("Initiating video upload to LinkedIn");
+      console.log("Triggering LinkedIn post task");
 
       await updateDraftField(postId, "status", "progress");
 
-      // Send an early response indicating the post is in progress
-      const earlyResponse = NextResponse.json({ status: "progress" });
-      earlyResponse.headers.set("Connection", "keep-alive");
-      earlyResponse.headers.set("Content-Type", "application/json");
-      waitUntil(
-        (async () => {
-          try {
-            const videoUploadResponse = await fetch(
-              `${env.BASE_URL}/api/linkedin/video-upload`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  userId: userId,
-                  postId: postId,
-                  url: draft[0].downloadUrl,
-                }),
-              }
-            );
+      console.log("Triggering LinkedIn post task");
+      // Trigger the LinkedIn post task
+      const taskPayload = {
+        userId,
+        postId,
+        workspaceId,
+        url: draft[0].downloadUrl,
+      };
 
-            if (!videoUploadResponse.ok) {
-              const errorData = await videoUploadResponse.json();
-              console.error("Error uploading video to LinkedIn:", errorData);
-              await updateDraftField(postId, "status", "failed");
-              return;
-            }
+      await linkedinPost.trigger(taskPayload);
 
-            const {
-              data: { videoUrn, downloadUrl },
-            }: any = await videoUploadResponse.json();
-            draft[0].documentUrn = videoUrn;
-            console.log("Video uploaded successfully, URN:", videoUrn);
-
-            await updateDraftField(postId, "downloadUrl", downloadUrl);
-            await updateDraftField(postId, "documentUrn", videoUrn);
-
-            // Continue with the rest of the posting process
-            await continuePostingProcess(draft[0], userId, workspaceId);
-          } catch (error) {
-            console.error("Error in video upload process:", error);
-            // await updateDraftField(postId, "status", "failed");
-          }
-        })()
-      );
-
-      return earlyResponse;
+      return NextResponse.json({ status: "progress" });
     }
 
-    // If no video upload is needed, continue with the normal posting process
-    return await continuePostingProcess(draft[0], userId, workspaceId);
+    // If no video upload is needed, continue with normal posting process
+    const content = draft[0].content;
+    const documentUrn = draft[0].documentUrn;
+    const documentTitle = draft[0].documentTitle || "";
+
+    let formattedContent;
+    try {
+      formattedContent = extractText(JSON.parse(content || "[]"));
+      // No need to escape parentheses
+    } catch (parseError) {
+      console.error("Error parsing content:", parseError);
+      return NextResponse.json(
+        { error: "Invalid content format" },
+        { status: 400 }
+      );
+    }
+
+    // Get account based on userId and workspaceId
+    const accountConditions = [eq(accounts.userId, userId)];
+    if (workspaceId) {
+      accountConditions.push(eq(accounts.workspaceId, workspaceId));
+    } else {
+      accountConditions.push(isNull(accounts.workspaceId));
+    }
+
+    const accountResult = await db
+      .select()
+      .from(accounts)
+      .where(and(...accountConditions))
+      .limit(1);
+
+    if (!accountResult || accountResult.length === 0) {
+      return NextResponse.json(
+        { error: "No LinkedIn account found" },
+        { status: 400 }
+      );
+    }
+
+    const accessToken = accountResult[0].access_token;
+    const linkedInId = accountResult[0].providerAccountId;
+
+    if (!linkedInId || !accessToken) {
+      console.error("Unable to retrieve LinkedIn credentials");
+      return NextResponse.json(
+        { error: "Unable to retrieve LinkedIn credentials" },
+        { status: 400 }
+      );
+    }
+
+    let mediaContent = null;
+
+    if (documentUrn) {
+      const parts = documentUrn.split(":");
+      const urnId = parts[parts.length - 1];
+
+      if (documentUrn.includes(":image:")) {
+        mediaContent = {
+          media: {
+            id: `urn:li:image:${urnId}`,
+          },
+        };
+      } else if (documentUrn.includes(":document:")) {
+        mediaContent = {
+          media: {
+            id: `urn:li:document:${urnId}`,
+            title: documentTitle,
+          },
+        };
+      } else if (documentUrn.includes(":video:")) {
+        mediaContent = {
+          media: {
+            title: documentTitle,
+            id: `urn:li:video:${urnId}`,
+          },
+        };
+      }
+    }
+
+    const postBody: any = {
+      author: `urn:li:person:${linkedInId}`,
+      commentary: formattedContent,
+      visibility: "PUBLIC",
+      distribution: {
+        feedDistribution: "MAIN_FEED",
+        targetEntities: [],
+        thirdPartyDistributionChannels: [],
+      },
+      lifecycleState: "PUBLISHED",
+      isReshareDisabledByAuthor: false,
+    };
+
+    if (mediaContent) {
+      postBody.content = mediaContent;
+    }
+
+    console.log("Posting to LinkedIn:", JSON.stringify(postBody, null, 2));
+
+    const linkedInResponse = await fetch(
+      "https://api.linkedin.com/rest/posts",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "LinkedIn-Version": "202401",
+          Authorization: `Bearer ${accessToken}`,
+          "X-Restli-Protocol-Version": "2.0.0",
+        },
+        body: JSON.stringify(postBody),
+      }
+    );
+
+    let linkedInPostId;
+    let responseData;
+
+    if (linkedInResponse.status === 201) {
+      linkedInPostId = linkedInResponse.headers.get("x-restli-id");
+      console.log("LinkedIn Post ID:", linkedInPostId);
+    } else {
+      try {
+        responseData = await linkedInResponse.json();
+        console.log(
+          "LinkedIn API response:",
+          JSON.stringify(responseData, null, 2)
+        );
+      } catch (error) {
+        console.error("Error reading LinkedIn API response:", error);
+      }
+    }
+
+    if (!linkedInResponse.ok) {
+      console.error(
+        "Error publishing draft",
+        linkedInResponse.status,
+        responseData
+      );
+      return NextResponse.json(
+        { error: `Error publishing draft: ${JSON.stringify(responseData)}` },
+        { status: linkedInResponse.status }
+      );
+    }
+
+    await db
+      .update(drafts)
+      .set({
+        status: "published",
+        updatedAt: new Date(),
+      })
+      .where(and(eq(drafts.id, draft[0].id), eq(drafts.userId, userId)));
+
+    console.log("Draft published successfully");
+    return NextResponse.json({
+      message: "Draft published successfully",
+      urn: linkedInPostId,
+    });
   } catch (error) {
     console.error("Failed to post:", error);
     return NextResponse.json({ error: "Failed to post" }, { status: 500 });
   }
-}
-
-async function continuePostingProcess(
-  draft: any,
-  userId: string,
-  workspaceId: string | undefined
-) {
-  const content = draft.content;
-  const documentUrn = draft.documentUrn;
-  const documentTitle = draft.documentTitle || "";
-
-  let formattedContent;
-  try {
-    formattedContent = extractText(JSON.parse(content || "[]"));
-    formattedContent = formattedContent.replace(/([()])/g, "\\$1");
-  } catch (parseError) {
-    console.error("Error parsing content:", parseError);
-    return NextResponse.json(
-      { error: "Invalid content format" },
-      { status: 400 }
-    );
-  }
-
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  const linkedInId = user[0]?.linkedInId;
-  if (!linkedInId) {
-    return NextResponse.json(
-      { error: "LinkedIn ID not found for the user" },
-      { status: 400 }
-    );
-  }
-
-  // Get account based on userId and workspaceId
-  const conditions = [eq(accounts.userId, userId)];
-  if (workspaceId) {
-    conditions.push(eq(accounts.workspaceId, workspaceId));
-  } else {
-    conditions.push(isNull(accounts.workspaceId));
-  }
-
-  const account = await db
-    .select()
-    .from(accounts)
-    .where(and(...conditions))
-    .limit(1);
-
-  if (!account || account.length === 0) {
-    return NextResponse.json(
-      { error: "No LinkedIn account found" },
-      { status: 400 }
-    );
-  }
-
-  const accessToken = account[0].access_token;
-
-  if (!linkedInId || !accessToken) {
-    console.error("Unable to retrieve LinkedIn credentials");
-    return NextResponse.json(
-      { error: "Unable to retrieve LinkedIn credentials" },
-      { status: 400 }
-    );
-  }
-
-  let mediaContent = null;
-
-  if (documentUrn) {
-    const parts = documentUrn.split(":");
-    const urnId = parts[parts.length - 1];
-
-    if (documentUrn.includes(":image:")) {
-      mediaContent = {
-        media: {
-          id: `urn:li:image:${urnId}`,
-        },
-      };
-    } else if (documentUrn.includes(":document:")) {
-      mediaContent = {
-        media: {
-          id: `urn:li:document:${urnId}`,
-          title: documentTitle,
-        },
-      };
-    } else if (documentUrn.includes(":video:")) {
-      mediaContent = {
-        media: {
-          title: documentTitle,
-          id: `urn:li:video:${urnId}`,
-        },
-      };
-    }
-  }
-
-  const postBody: any = {
-    author: `urn:li:person:${linkedInId}`,
-    commentary: formattedContent,
-    visibility: "PUBLIC",
-    distribution: {
-      feedDistribution: "MAIN_FEED",
-      targetEntities: [],
-      thirdPartyDistributionChannels: [],
-    },
-    lifecycleState: "PUBLISHED",
-    isReshareDisabledByAuthor: false,
-  };
-
-  if (mediaContent) {
-    postBody.content = mediaContent;
-  }
-
-  console.log("Posting to LinkedIn:", JSON.stringify(postBody, null, 2));
-
-  const linkedInResponse = await fetch("https://api.linkedin.com/rest/posts", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "LinkedIn-Version": "202401",
-      Authorization: `Bearer ${accessToken}`,
-      "X-Restli-Protocol-Version": "2.0.0",
-    },
-    body: JSON.stringify(postBody),
-  });
-
-  let linkedInPostId;
-  let responseData;
-
-  if (linkedInResponse.status === 201) {
-    linkedInPostId = linkedInResponse.headers.get("x-restli-id");
-    console.log("LinkedIn Post ID:", linkedInPostId);
-  } else {
-    try {
-      responseData = await linkedInResponse.json();
-      console.log(
-        "LinkedIn API response:",
-        JSON.stringify(responseData, null, 2)
-      );
-    } catch (error) {
-      console.error("Error reading LinkedIn API response:", error);
-    }
-  }
-
-  if (!linkedInResponse.ok) {
-    console.error(
-      "Error publishing draft",
-      linkedInResponse.status,
-      responseData
-    );
-    return NextResponse.json(
-      { error: `Error publishing draft: ${JSON.stringify(responseData)}` },
-      { status: linkedInResponse.status }
-    );
-  }
-
-  await db
-    .update(drafts)
-    .set({
-      status: "published",
-      updatedAt: new Date(),
-    })
-    .where(and(eq(drafts.id, draft.id), eq(drafts.userId, userId)));
-
-  console.log("Draft published successfully");
-  return NextResponse.json({
-    message: "Draft published successfully",
-    urn: linkedInPostId,
-  });
 }

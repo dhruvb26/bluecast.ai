@@ -11,6 +11,8 @@ export const env = createEnv({
     REDIS_CLOUD_PASSWORD: z.string(),
     DATABASE_PASSWORD: z.string(),
 
+    TRIGGER_SECRET_KEY: z.string(),
+
     LINKEDIN_CLIENT_ID: z.string(),
     LINKEDIN_CLIENT_SECRET: z.string(),
     CALLBACK_URL: z.string(),
@@ -82,6 +84,7 @@ export const env = createEnv({
     AIGATEWAY_ACCOUNT_ID: process.env.AIGATEWAY_ACCOUNT_ID,
     AIGATEWAY_ID: process.env.AIGATEWAY_ID,
     NODE_ENV: process.env.NODE_ENV,
+    TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
     ASSEMBLY_API_KEY: process.env.ASSEMBLY_API_KEY,
     BASE_URL: process.env.BASE_URL,

@@ -21,6 +21,7 @@ interface ScheduleData {
 interface JobData {
   userId: string;
   postId: string;
+  workspaceId: string | undefined;
 }
 
 export async function POST(req: Request) {
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
       workspaceId
     );
 
-    const jobData: JobData = { userId, postId };
+    const jobData: JobData = { userId, postId, workspaceId };
     const jobOptions = prepareJobOptions(scheduledDate);
     const job = await queue.add("post", jobData, jobOptions);
 
