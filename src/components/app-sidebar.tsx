@@ -116,7 +116,7 @@ const data = {
       url: "/create/for-you",
       activeIcon: <Rocket className="text-blue-600" />,
       inactiveIcon: <RocketOutline />,
-      comingSoon: true,
+      // comingSoon: true,
     },
     {
       name: "Content Scheduler",

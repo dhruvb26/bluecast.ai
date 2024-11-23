@@ -14,6 +14,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -41,7 +48,15 @@ const SavedDraftsContent = () => {
   const searchParams = useSearchParams();
   const activeTab = (searchParams.get("tab") as TabType) || "saved";
   const [draftToDelete, setDraftToDelete] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
+  const getSortedDrafts = () => {
+    return [...drafts].sort((a, b) => {
+      const dateA = new Date(a.updatedAt).getTime();
+      const dateB = new Date(b.updatedAt).getTime();
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
+    });
+  };
   useEffect(() => {
     fetchDrafts(activeTab);
   }, [activeTab]);
@@ -121,12 +136,27 @@ const SavedDraftsContent = () => {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-lg font-semibold tracking-tight">Drafts</h1>
-      <p className="text-muted-foreground mb-6 text-sm">
-        Manage your content creation journey here.
-      </p>
-
+    <div className="p-8 h-full">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-lg font-semibold tracking-tight">Drafts</h1>
+          <p className="text-muted-foreground text-sm">
+            Manage your content creation journey here.
+          </p>
+        </div>
+        <Select
+          value={sortOrder}
+          onValueChange={(value: "asc" | "desc") => setSortOrder(value)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by date" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="desc">Newest first</SelectItem>
+            <SelectItem value="asc">Oldest first</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid grid-cols-4 mb-8">
           <TabsTrigger value="saved">Saved</TabsTrigger>
@@ -135,7 +165,28 @@ const SavedDraftsContent = () => {
           <TabsTrigger value="progress">In Progress</TabsTrigger>
         </TabsList>
 
-        <TabsContent value={activeTab}>{renderContent()}</TabsContent>
+        <TabsContent value={activeTab}>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-[400px]">
+              <BarLoader color="#2563eb" height={3} width={300} />
+            </div>
+          ) : error ? (
+            <p className="text-red-500">{error}</p>
+          ) : drafts.length === 0 ? (
+            <EmptyState type={activeTab} />
+          ) : (
+            <ParallaxScroll
+              posts={getSortedDrafts().map((draft) => ({
+                id: draft.id,
+                name: draft.name || "Untitled",
+                content: draft.content || {},
+                status: draft.status,
+                updatedAt: new Date(draft.updatedAt),
+              }))}
+              onDeleteDraft={(draftId: string) => setDraftToDelete(draftId)}
+            />
+          )}
+        </TabsContent>
       </Tabs>
 
       <AlertDialog

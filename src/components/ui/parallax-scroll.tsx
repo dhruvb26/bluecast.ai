@@ -1,9 +1,6 @@
 "use client";
-import { useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import {
   TooltipProvider,
   Tooltip,
@@ -34,14 +31,6 @@ export const ParallaxScroll = ({
   onDeleteDraft: (id: string) => void;
 }) => {
   const gridRef = useRef<any>(null);
-  const { scrollYProgress } = useScroll({
-    container: gridRef,
-    offset: ["start start", "end start"],
-  });
-
-  const translateFirst = useTransform(scrollYProgress, [0, 1], [0, -200]);
-  const translateSecond = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const translateThird = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const router = useRouter();
 
   const third = Math.ceil(posts.length / 3);
@@ -95,11 +84,9 @@ export const ParallaxScroll = ({
       console.error("Error cancelling schedule:", error);
     }
   };
-  const PostCard = ({ post, translateY }: { post: any; translateY: any }) => (
-    <motion.div
-      style={{ y: translateY }}
-      className="mb-6 rounded-md border border-input hover:-translate-y-1 transition-all bg-white p-4 hover:shadow-sm h-[175px] flex flex-col justify-between"
-    >
+
+  const PostCard = ({ post }: { post: any }) => (
+    <div className="mb-6 rounded-md border border-input hover:-translate-y-1 transition-all bg-white p-4 hover:shadow-sm h-[175px] flex flex-col justify-between">
       <div>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
@@ -192,7 +179,7 @@ export const ParallaxScroll = ({
           )}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   return (
@@ -203,29 +190,17 @@ export const ParallaxScroll = ({
       <div className="grid grid-cols-1 items-start gap-6  py-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="grid gap-6">
           {firstPart.map((post, idx) => (
-            <PostCard
-              key={`grid-1-${idx}`}
-              post={post}
-              translateY={translateFirst}
-            />
+            <PostCard key={`grid-1-${idx}`} post={post} />
           ))}
         </div>
         <div className="grid gap-6">
           {secondPart.map((post, idx) => (
-            <PostCard
-              key={`grid-2-${idx}`}
-              post={post}
-              translateY={translateSecond}
-            />
+            <PostCard key={`grid-2-${idx}`} post={post} />
           ))}
         </div>
         <div className="grid gap-6">
           {thirdPart.map((post, idx) => (
-            <PostCard
-              key={`grid-3-${idx}`}
-              post={post}
-              translateY={translateThird}
-            />
+            <PostCard key={`grid-3-${idx}`} post={post} />
           ))}
         </div>
       </div>

@@ -14,10 +14,10 @@ export const metadata: Metadata = {
 
 export default function SignInPage() {
   const avatarUrls = [
-    "https://media.licdn.com/dms/image/D5603AQE1mcDQhAvINg/profile-displayphoto-shrink_100_100/0/1722469152073?e=2147483647&v=beta&t=DohYF7jtDgmhP-thFsuSZrnpUL7-c5s3k6pPdxPGB4s",
-    "https://media.licdn.com/dms/image/v2/D5603AQGLAtH5GgPm4w/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1679939089348?e=1732147200&v=beta&t=IfFu5Wl2uXJ5VjpAg_BZFvpkLa2bq5kRBP_9IfeIgt4",
-    "https://media.licdn.com/dms/image/D5603AQHsrYyK_hD5uQ/profile-displayphoto-shrink_100_100/0/1699974393415?e=2147483647&v=beta&t=NtL20it-fetquWmZkYZ3-Ryeljz2uLz2N4Ht05MrCuQ",
-    "https://media.licdn.com/dms/image/v2/D5603AQHYENPGn3m5DQ/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1682725967530?e=1732147200&v=beta&t=_obCXYmwSZUAsEDkRVdIetMnuYF_kauBAbkvQ_thLxY",
+    "https://utfs.io/f/Hny9aU7MkSTDiiOBuu37vEqg4NkAFcsWxz1D9T6u2yLldmRt",
+    "https://utfs.io/f/Hny9aU7MkSTDIMFr0VALb1UPgqefS7Jc58iIph4o9waMTCGx",
+    "https://utfs.io/f/Hny9aU7MkSTD7IM5Xt2GWpXEGYV0ShTBZOxvQl35UaiqM4jJ",
+    "https://utfs.io/f/Hny9aU7MkSTDWgaJy4V8ftSPjm7p9E2NaJMVQH1Gek5CXL3F",
   ];
 
   return (
