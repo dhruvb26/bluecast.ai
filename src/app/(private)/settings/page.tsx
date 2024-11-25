@@ -3,6 +3,7 @@ import Link from "next/link";
 import {
   UserCircleCheck,
   ClockCounterClockwise,
+  Info,
 } from "@phosphor-icons/react/dist/ssr";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,11 @@ import { auth } from "@clerk/nextjs/server";
 import WorkspaceDialog from "@/components/auth/workspace-dialog";
 import DeleteWorkspaceDialog from "@/components/auth/delete-workspace-dialog";
 import WorkspaceUserNameDialog from "@/components/auth/workspace-user-name-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const dynamic = "force-dynamic";
 
@@ -135,8 +141,20 @@ const SettingsPage = async () => {
               </div>
             </div>
             <div>
-              <label htmlFor="name" className="mb-1 block text-sm font-medium">
+              <label
+                htmlFor="name"
+                className="mb-1 flex items-center space-x-1 text-sm font-medium"
+              >
                 Name
+                <Tooltip>
+                  <TooltipTrigger
+                    className="ml-1 text-muted-foreground"
+                    asChild
+                  >
+                    <Info className="w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>Name used to display posts.</TooltipContent>
+                </Tooltip>
               </label>
               <div className="flex items-center space-x-2">
                 <Input
@@ -147,7 +165,7 @@ const SettingsPage = async () => {
                     workspace ? workspace.linkedInName || "" : user.name || ""
                   }
                   className="text-sm"
-                  placeholder="example.com/janesmith"
+                  placeholder="Example: Tommy Clark"
                 />
                 {workspaceId && (
                   <WorkspaceUserNameDialog

@@ -38,7 +38,7 @@ export default function WorkspaceUserNameDialog({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline">Edit</Button>
+        <Button>Edit</Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
