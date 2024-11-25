@@ -150,8 +150,8 @@ const PricingPage = () => {
           <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
           <span className="text-sm">Annual</span>
         </div>
-        {/* <div className="grid grid-cols-2 gap-8 justify-center"> */}
-        <div className="flex flex-row items-center justify-center">
+        <div className="grid grid-cols-2 gap-8 justify-center">
+          {/* <div className="flex flex-row items-center justify-center"> */}
           <div className="max-w-sm w-full border rounded-lg dark:border-gray-700">
             <div className="p-6">
               <h1 className="text-lg font-semibold tracking-tight capitalize dark:text-white">
@@ -216,7 +216,7 @@ const PricingPage = () => {
             </div>
           </div>
 
-          {/* <div className="max-w-sm w-full border bg-blue-600 text-white rounded-lg dark:border-gray-700">
+          <div className="max-w-sm w-full border bg-blue-600 text-white rounded-lg dark:border-gray-700">
             <div className="p-6">
               <h1 className="text-lg font-semibold tracking-tight capitalize dark:text-white">
                 {isAnnual ? "Annual Grow Plan" : "Monthly Grow Plan"}
@@ -268,7 +268,7 @@ const PricingPage = () => {
                 ))}
               </div>
             </div>
-          </div> */}
+          </div>
         </div>
       </div>
     </main>

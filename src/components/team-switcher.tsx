@@ -148,22 +148,22 @@ export function TeamSwitcher({
                 />
                 {state !== "collapsed" && (
                   <>
-                    <div className="ml-2 grid flex-1 text-left text-sm leading-tight">
+                    <div className="ml-2 grid flex-1 text-left items-end text-sm leading-tight">
                       <Image
                         priority
                         src="/brand/Name.png"
                         alt="Bluecast"
-                        width={80}
-                        height={20}
-                        className="w-20 h-5 object-contain"
+                        width={90}
+                        height={30}
+                        className="w-25 h-7 object-contain"
                       />
-                      <span className="truncate text-xs text-muted-foreground">
+                      {/* <span className="truncate text-xs text-muted-foreground">
                         {loading ? (
                           <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
                         ) : (
                           activeWorkspace?.plan
                         )}
-                      </span>
+                      </span> */}
                     </div>
                     <ChevronsUpDown className="ml-auto size-4" />
                   </>
@@ -210,20 +210,16 @@ export function TeamSwitcher({
             <Dialog>
               <DialogTrigger asChild>
                 <DropdownMenuItem
-                  disabled={true}
                   onSelect={(e) => e.preventDefault()}
                   className="focus:bg-accent  transition-all  flex justify-between items-center"
                 >
-                  <div className="flex items-center opacity-50">
+                  <div className="flex items-center">
                     <Plus className="inline mr-1" size={16} />
                     Add Workspace
                   </div>
                   <Badge className="opacity-80 font-normal text-xs text-indigo-600 bg-indigo-100">
-                    <HourglassSimpleHigh
-                      weight="duotone"
-                      className="inline mr-1 w-3 h-3"
-                    />
-                    Soon{" "}
+                    <Sparkle weight="duotone" className="inline mr-1 w-3 h-3" />
+                    New{" "}
                   </Badge>
                 </DropdownMenuItem>
               </DialogTrigger>
