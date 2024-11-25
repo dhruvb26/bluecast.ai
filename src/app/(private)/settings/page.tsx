@@ -18,26 +18,15 @@ import {
 } from "@/components/ui/select";
 import LinkedInSignInButton from "@/components/auth/linkedin-signin-button";
 import { db } from "@/server/db";
-import { accounts, workspaces } from "@/server/db/schema";
+import { workspaces } from "@/server/db/schema";
 import { env } from "@/env";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import UpdateProfilePictureButton from "@/components/buttons/update-profile-picture-button";
 import { auth } from "@clerk/nextjs/server";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { updateWorkspace } from "@/actions/workspace";
 import WorkspaceDialog from "@/components/auth/workspace-dialog";
 import DeleteWorkspaceDialog from "@/components/auth/delete-workspace-dialog";
+import WorkspaceUserNameDialog from "@/components/auth/workspace-user-name-dialog";
 
 export const dynamic = "force-dynamic";
 
@@ -45,10 +34,6 @@ const SettingsPage = async () => {
   const user = await getUser();
   const endsAt = (await checkValidity()) as Date;
   if (!user) return null;
-
-  const account = await db.query.accounts.findFirst({
-    where: eq(accounts.userId, user.id),
-  });
 
   const { sessionClaims } = auth();
   const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
@@ -61,12 +46,6 @@ const SettingsPage = async () => {
       })
     : null;
 
-  const handleUpdateWorkspace = async (workspaceName: string) => {
-    if (!workspaceId) return;
-    await updateWorkspace(workspaceId, workspaceName);
-  };
-
-  // Get all workspaces for user to determine limit
   const userWorkspaces = await db.query.workspaces.findMany({
     where: eq(workspaces.userId, user.id),
   });
@@ -159,16 +138,26 @@ const SettingsPage = async () => {
               <label htmlFor="name" className="mb-1 block text-sm font-medium">
                 Name
               </label>
-              <Input
-                disabled
-                type="text"
-                id="name"
-                defaultValue={
-                  workspace ? workspace.linkedInName || "" : user.name || ""
-                }
-                className="text-sm"
-                placeholder="example.com/janesmith"
-              />
+              <div className="flex items-center space-x-2">
+                <Input
+                  disabled
+                  type="text"
+                  id="name"
+                  defaultValue={
+                    workspace ? workspace.linkedInName || "" : user.name || ""
+                  }
+                  className="text-sm"
+                  placeholder="example.com/janesmith"
+                />
+                {workspaceId && (
+                  <WorkspaceUserNameDialog
+                    workspaceId={workspaceId || ""}
+                    currentLinkedInName={
+                      workspace ? workspace.linkedInName || "" : ""
+                    }
+                  />
+                )}
+              </div>
             </div>
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium">

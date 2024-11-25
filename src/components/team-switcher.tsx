@@ -75,8 +75,6 @@ export function TeamSwitcher({
       if (!activeId && teams.length > 0) {
         setActiveWorkspaceState(teams[0]);
         await switchWorkspace(teams[0].id!);
-
-        console.log("Selected workspace ID:", teams[0].id);
       } else if (activeId) {
         const activeTeam = teams.find((team) => team.id === activeId);
         if (activeTeam) {

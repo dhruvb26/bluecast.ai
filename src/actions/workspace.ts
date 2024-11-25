@@ -28,26 +28,26 @@ export async function createWorkspace(
       return { success: false, error: "User not authenticated" };
     }
 
-    const monthlyGrowPlan =
-      env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1QLXONRrqqSKPUNW7s5FxANR"
-        : "price_1QN9JoRrqqSKPUNWuTZBJWS1";
+    // const monthlyGrowPlan =
+    //   env.NEXT_PUBLIC_NODE_ENV === "development"
+    //     ? "price_1QLXONRrqqSKPUNW7s5FxANR"
+    //     : "price_1QN9JoRrqqSKPUNWuTZBJWS1";
 
-    const annualGrowPlan =
-      env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
-        : "price_1QN9NyRrqqSKPUNWWwB1zAXa";
+    // const annualGrowPlan =
+    //   env.NEXT_PUBLIC_NODE_ENV === "development"
+    //     ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
+    //     : "price_1QN9NyRrqqSKPUNWWwB1zAXa";
 
-    if (
-      !user.priceId ||
-      !user.stripeSubscriptionId ||
-      (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
-    ) {
-      return {
-        success: false,
-        error: "Upgrade to Grow Plan to create more workspaces.",
-      };
-    }
+    // if (
+    //   !user.priceId ||
+    //   !user.stripeSubscriptionId ||
+    //   (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
+    // ) {
+    //   return {
+    //     success: false,
+    //     error: "Upgrade to Grow Plan to create more workspaces.",
+    //   };
+    // }
 
     const existingWorkspaces = await db
       .select()
@@ -251,4 +251,36 @@ export async function getActiveWorkspaceId() {
 
   const user = await clerkClient().users.getUser(userId);
   return user.publicMetadata.activeWorkspaceId as string | null;
+}
+
+export async function updateWorkspaceLinkedInName(
+  workspaceId: string,
+  linkedInName: string
+): Promise<ServerActionResponse<Workspace>> {
+  try {
+    const user = await getUser();
+    const userId = user.id;
+
+    if (!userId) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const updatedWorkspace = await db
+      .update(workspaces)
+      .set({ linkedInName })
+      .where(and(eq(workspaces.id, workspaceId), eq(workspaces.userId, userId)))
+      .returning();
+
+    if (updatedWorkspace.length === 0) {
+      return { success: false, error: "No workspace found with the given ID." };
+    }
+
+    return { success: true, data: updatedWorkspace[0] as Workspace };
+  } catch (error) {
+    console.error("Error in updateWorkspaceLinkedInName:", error);
+    return {
+      success: false,
+      error: "An error occurred while updating the workspace LinkedIn name.",
+    };
+  }
 }

@@ -4,15 +4,11 @@ import { NavMain } from "@/components/nav-main";
 import Lightbulb from "./icons/lightbulb-3";
 import Lightbulb3Outline from "./icons/lightbulb-3-outline";
 import { NavCreate } from "@/components/nav-create";
-import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useEffect, useState } from "react";
 import GridCirclePlus from "./icons/grid-circle-plus";
@@ -34,8 +30,8 @@ import { User } from "@/actions/user";
 import MsgBubbleUser from "./icons/msg-bubble-user";
 import Rocket from "./icons/rocket";
 import RocketOutline from "./icons/rocket-outline";
-import { StackSimple } from "@phosphor-icons/react";
 import { getWorkspaces } from "@/actions/workspace";
+import { SignOut } from "@phosphor-icons/react";
 
 const data = {
   teams: [
@@ -89,6 +85,11 @@ const data = {
       name: "Feedback",
       url: "https://bluecast.canny.io/feedback",
       icon: <MsgBubbleUser />,
+    },
+    {
+      name: "Logout",
+      url: "https://bluecast.ai/",
+      icon: <SignOut className="w-4 h-4" />,
     },
   ],
   create: [
@@ -184,20 +185,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavCreate projects={data.create} />
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <NavFooter user={user} footerItems={data.footer} />
-      <SidebarFooter>
-        {isLoaded && user ? (
-          <NavUser user={user} />
-        ) : (
-          <div className="flex items-center gap-2 p-2 h-[48px]">
-            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-            <div className="flex flex-col gap-1">
-              <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
-              <div className="h-3 w-32 bg-gray-200 rounded animate-pulse" />
-            </div>
-          </div>
-        )}
-      </SidebarFooter>
+      <NavFooter footerItems={data.footer} />
     </Sidebar>
   );
 }

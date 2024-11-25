@@ -147,14 +147,14 @@ const PostsPage = () => {
                 <CardTitle className="text-base font-semibold tracking-tight items-end">
                   <Refresh2 className="inline mr-2 text-foreground" />
                   Refresh Writing Style{" "}
-                  <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500 font-normal ml-1">
+                  {/* <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500 font-normal ml-1">
                     <Sparkle
                       weight="duotone"
                       className="inline mr-1"
                       size={16}
                     />
                     New
-                  </Badge>
+                  </Badge> */}
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
                   Use our AI-powered tool to adapt any post to a new writing
