@@ -332,6 +332,10 @@ export async function POST(request: Request) {
     try {
       formattedContent = extractText(JSON.parse(content || "[]"));
       // No need to escape parentheses
+      // escape parentheses for LinkedIn
+      formattedContent = formattedContent
+        .replace(/\(/g, "/(")
+        .replace(/\)/g, ")/");
     } catch (parseError) {
       console.error("Error parsing content:", parseError);
       return NextResponse.json(
