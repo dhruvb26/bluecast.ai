@@ -128,7 +128,6 @@ function prepareJobOptions(scheduledDate: DateTime): JobsOptions {
 
   return {
     removeOnComplete: true,
-    removeOnFail: true,
     delay: delay,
   };
 }
