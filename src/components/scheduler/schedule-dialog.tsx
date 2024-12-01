@@ -125,6 +125,7 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
 
       if (response.ok) {
         toast.success(data.message);
+        setIsOpen(false);
       } else {
         toast.error("Failed to schedule draft.");
       }
