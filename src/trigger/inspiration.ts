@@ -7,7 +7,7 @@ const RATE_LIMIT = 20;
 
 export const updateInspiration = schedules.task({
   id: "update-inspiration",
-  cron: "0 0 */10 * *",
+  cron: "0 0 */3 * *",
   maxDuration: 5000,
   run: async (payload, { ctx }) => {
     logger.log("Starting update inspiration task");
