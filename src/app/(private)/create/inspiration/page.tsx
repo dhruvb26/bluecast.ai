@@ -123,16 +123,40 @@ export default function Home() {
       })
     );
 
-    // Flatten, filter out undefined, and sort all posts by relative time
-    const allPosts: any[] = newPosts.flat().sort((a: any, b: any) => {
-      const timeA = parseRelativeTime(a.time || "");
-      const timeB = parseRelativeTime(b.time || "");
-      return timeB.getTime() - timeA.getTime();
+    // Flatten and filter out undefined posts
+    const allPosts: any[] = newPosts.flat();
+
+    // Group posts by time period (month, week, day, hour)
+    const groupedPosts: { [key: string]: any[] } = {};
+
+    allPosts.forEach((post) => {
+      const time = parseRelativeTime(post.time || "");
+      const key = time.toISOString().split("T")[0]; // Use date as key
+      if (!groupedPosts[key]) {
+        groupedPosts[key] = [];
+      }
+      groupedPosts[key].push(post);
     });
+
+    // Shuffle posts within each time period
+    Object.keys(groupedPosts).forEach((key) => {
+      for (let i = groupedPosts[key].length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [groupedPosts[key][i], groupedPosts[key][j]] = [
+          groupedPosts[key][j],
+          groupedPosts[key][i],
+        ];
+      }
+    });
+
+    // Combine all posts maintaining chronological order between groups
+    const sortedPosts = Object.keys(groupedPosts)
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+      .flatMap((key) => groupedPosts[key]);
 
     setPosts((prev) => ({
       ...prev,
-      [listId]: [...prev[listId], ...allPosts],
+      [listId]: [...prev[listId], ...sortedPosts],
     }));
     setCurrentPage((prev) => ({
       ...prev,

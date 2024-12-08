@@ -30,6 +30,7 @@ export default function EditDraft() {
   const [device, setDevice] = useState<"mobile" | "tablet" | "desktop">(
     "mobile"
   );
+  const [status, setStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
   const [initialName, setInitialName] = useState<string | null>(null);
@@ -62,10 +63,12 @@ export default function EditDraft() {
           setUpdatedAt(
             draft.data.updatedAt ? new Date(draft.data.updatedAt) : null
           );
+          setStatus(draft.data.status);
         } else {
           setValue(initialValue);
           setDocumentUrn(null);
           setUpdatedAt(null);
+          setStatus(null);
         }
       } catch (error) {
         console.error("Error fetching draft:", error);
@@ -124,6 +127,7 @@ export default function EditDraft() {
         <div className="flex w-full flex-col min-h-full lg:flex-row">
           <div className="w-full lg:w-1/2 border-input">
             <EditorSection
+              status={status}
               id={id}
               workspaceId={workspaceId}
               initialValue={value}

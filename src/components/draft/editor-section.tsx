@@ -176,6 +176,7 @@ interface EditorSectionProps {
   updateAt: Date | null;
   initialName: string | null;
   workspaceId: string | undefined;
+  status: string | null;
 }
 
 function EditorSection({
@@ -185,6 +186,7 @@ function EditorSection({
   editor,
   handleSave,
   initialDocumentUrn,
+  status,
   setFileType,
   updateAt,
   initialName,
@@ -802,39 +804,43 @@ function EditorSection({
       </div>
 
       <div className="flex items-center justify-between border-gray-200 px-4 py-2">
-        <div className="flex space-x-2">
-          <Button onClick={handleSave} disabled={isPublishing}>
-            Save Draft
-          </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline">Delete</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-lg font-semibold tracking-tight">
-                  Are you sure?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete
-                  your draft.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleDeleteDraft()}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
-        <div className="flex space-x-2">
-          <ScheduleDialog id={id} disabled={isPublishing} />
-          <Button onClick={handlePublish} loading={isPublishing}>
-            {isPublishing ? "Publishing" : "Publish"}
-          </Button>
-        </div>
+        {status !== "published" && (
+          <>
+            <div className="flex space-x-2">
+              <Button onClick={handleSave} disabled={isPublishing}>
+                Save Draft
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline">Delete</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-lg font-semibold tracking-tight">
+                      Are you sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your draft.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDeleteDraft()}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+            <div className="flex space-x-2">
+              <ScheduleDialog id={id} disabled={isPublishing} />
+              <Button onClick={handlePublish} loading={isPublishing}>
+                {isPublishing ? "Publishing" : "Publish"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

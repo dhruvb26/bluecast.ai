@@ -3,16 +3,16 @@ import { db } from "@/server/db";
 import { creatorListItems, creators, posts } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { env } from "@/env";
-const RATE_LIMIT = 20;
-
+const RATE_LIMIT = {
+  requestsPerMinute: 20,
+  requestCount: 0,
+  lastResetTime: Date.now(),
+};
 export const updateInspiration = schedules.task({
   id: "update-inspiration",
   cron: "0 0 */3 * *",
   maxDuration: 5000,
   run: async (payload, { ctx }) => {
-    logger.log("Starting update inspiration task");
-
-    // Get all creators
     const creatorUrls = await db
       .select({
         id: creators.id,
@@ -34,6 +34,27 @@ export const updateInspiration = schedules.task({
       logger.log(
         `Fetching posts for creator ${creator.profileUrl} starting at position ${start}`
       );
+
+      // Add rate limit check before each request
+      const now = Date.now();
+      if (now - RATE_LIMIT.lastResetTime >= 60000) {
+        // Reset counter every minute
+        RATE_LIMIT.requestCount = 0;
+        RATE_LIMIT.lastResetTime = now;
+      }
+
+      if (RATE_LIMIT.requestCount >= RATE_LIMIT.requestsPerMinute) {
+        logger.log("Rate limit reached, waiting for next minute window...");
+        await wait.for({ seconds: 60 });
+        RATE_LIMIT.requestCount = 0;
+        RATE_LIMIT.lastResetTime = Date.now();
+      }
+
+      RATE_LIMIT.requestCount++;
+      logger.log(
+        `Request ${RATE_LIMIT.requestCount}/${RATE_LIMIT.requestsPerMinute} this minute`
+      );
+
       try {
         const postsResponse = await fetch(
           `https://${
@@ -53,13 +74,16 @@ export const updateInspiration = schedules.task({
         if (!postsResponse.ok) {
           if (postsResponse.status === 429) {
             logger.log(`Rate limited, waiting before retry...`);
-            await wait.for({ seconds: 60 / RATE_LIMIT });
+            await wait.for({ seconds: 60 });
+            RATE_LIMIT.requestCount = 0;
+            RATE_LIMIT.lastResetTime = Date.now();
             return null;
           }
           logger.error(`Failed to fetch posts for ${creator.profileUrl}`);
           return null;
         }
 
+        // something new by neovim
         const postsData: any = await postsResponse.json();
         logger.log(
           `Successfully fetched ${postsData.data?.length || 0} posts for ${
@@ -181,18 +205,8 @@ export const updateInspiration = schedules.task({
       }
     };
 
-    // Process creators in batches
-    for (let i = 0; i < creatorUrls.length; i += RATE_LIMIT) {
-      const batch = creatorUrls.slice(i, i + RATE_LIMIT);
-      logger.log(
-        `Processing batch ${i / RATE_LIMIT + 1} of ${Math.ceil(
-          creatorUrls.length / RATE_LIMIT
-        )}, containing ${batch.length} creators`
-      );
-      await Promise.all(batch.map(updateCreatorPosts));
-      logger.log(`Completed batch ${i / RATE_LIMIT + 1}`);
+    for (const creator of creatorUrls) {
+      await updateCreatorPosts(creator);
     }
-
-    logger.log("Completed update inspiration task");
   },
 });

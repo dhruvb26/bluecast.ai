@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PenSquare } from "lucide-react";
 import { Button } from "./button";
+import { Eye } from "@phosphor-icons/react";
 
 export const ParallaxScroll = ({
   posts,
@@ -119,64 +120,80 @@ export const ParallaxScroll = ({
           >
             {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
           </Badge>
-          {post.status !== "published" && (
-            <div className="flex space-x-2">
+
+          <div className="flex space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size={"sm"}
+                    variant={
+                      post.status === "published" ? "outline" : undefined
+                    }
+                    className={
+                      post.status === "published"
+                        ? ""
+                        : "to-brand-blue-secondary from-brand-blue-primary bg-gradient-to-r border-blue-500 shadow-md border"
+                    }
+                    onClick={() =>
+                      router.push(
+                        post.status === "published"
+                          ? `/draft/${post.id}`
+                          : `/draft/${post.id}`
+                      )
+                    }
+                  >
+                    {post.status === "published" ? (
+                      <Eye size={15} />
+                    ) : (
+                      <PenSquare size={15} />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{post.status === "published" ? "View" : "Edit"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {post.status === "scheduled" && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
+                      variant={"outline"}
                       size={"sm"}
-                      className="to-brand-blue-secondary  from-brand-blue-primary bg-gradient-to-r border-blue-500 shadow-md border"
-                      onClick={() => router.push(`/draft/${post.id}`)}
+                      onClick={() => cancelSchedule(post.id)}
                     >
-                      <PenSquare size={15} />
+                      <Clock size={15} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Edit</p>
+                    <p>Cancel</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            )}
 
-              {post.status === "scheduled" && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        size={"sm"}
-                        onClick={() => cancelSchedule(post.id)}
-                      >
-                        <Clock size={15} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Cancel</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              {post.status !== "scheduled" && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        size={"sm"}
-                        onClick={() => onDeleteDraft(post.id)}
-                      >
-                        <Trash size={15} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-          )}
+            {post.status !== "scheduled" && post.status !== "published" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      size={"sm"}
+                      onClick={() => onDeleteDraft(post.id)}
+                    >
+                      <Trash size={15} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </div>
     </div>
