@@ -93,6 +93,50 @@ export async function POST(req: Request) {
           );
         }
 
+        console.log(
+          "Searching for active user with email:",
+          session.customer_details
+        );
+        const activeUser = await db.query.users.findFirst({
+          where: eq(users.email, session.customer_details?.email as string),
+        });
+        console.log("Active user found:", activeUser);
+
+        if (activeUser?.stripeCustomerId && activeUser?.stripeSubscriptionId) {
+          console.log(
+            "Found existing stripe customer:",
+            activeUser.stripeCustomerId
+          );
+          const activeCustomerId = activeUser.stripeCustomerId;
+
+          console.log(
+            "Fetching active subscriptions for customer:",
+            activeCustomerId
+          );
+          const activeSubscriptions = await stripe.subscriptions.list({
+            customer: activeCustomerId,
+          });
+
+          console.log("Active subscriptions:", activeSubscriptions);
+
+          if (activeSubscriptions.data.length > 0) {
+            const activeSubscription = activeSubscriptions.data[0];
+            console.log(
+              "Cancelling existing subscription:",
+              activeSubscription.id
+            );
+            await stripe.subscriptions.cancel(activeSubscription.id);
+            console.log(
+              "Successfully cancelled subscription:",
+              activeSubscription.id
+            );
+          } else {
+            console.log("No active subscriptions found to cancel");
+          }
+        } else {
+          console.log("No existing stripe customer or subscription found");
+        }
+
         const customerId = session.customer;
         console.log("Customer ID:", customerId);
 
