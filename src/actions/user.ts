@@ -2,7 +2,18 @@
 
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/server/db";
-import { accounts, forYouAnswers, users, workspaces } from "@/server/db/schema";
+import {
+  ideas,
+  drafts,
+  contentStyles,
+  creatorLists,
+  accounts,
+  forYouAnswers,
+  instructions,
+  users,
+  workspaceMembers,
+  workspaces,
+} from "@/server/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -212,7 +223,6 @@ export async function setGeneratedWords(words: number) {
 
         usePostStore.getState().setWordsGenerated(1);
       } else {
-        // Handle workspace-specific or personal usage
         if (workspaceId) {
           await db
             .update(workspaces)
@@ -631,6 +641,67 @@ export async function getActiveWorkspace() {
     return workspace;
   } catch (error) {
     console.error("Error fetching active workspace:", error);
+    throw error;
+  }
+}
+
+export async function migrateToDefaultWorkspace() {
+  try {
+    const userClerk = await currentUser();
+
+    if (!userClerk) {
+      throw new Error("No user found.");
+    }
+
+    const userId = userClerk.id;
+
+    // 1. Create default workspace
+    const orgResponse = await clerkClient().organizations.createOrganization({
+      name: "DEFAULT",
+      createdBy: userId,
+    });
+
+    const workspace = await db
+      .insert(workspaces)
+      .values({
+        id: orgResponse.id,
+        name: orgResponse.name,
+        userId: orgResponse.createdBy,
+      })
+      .returning();
+
+    // 2. Create workspace membership
+    await db.insert(workspaceMembers).values({
+      id: uuidv4(),
+      workspaceId: workspace[0].id,
+      userId: userId,
+      role: "org:admin",
+    });
+
+    // 3. Update all relevant tables
+    const tables = [
+      { table: ideas, column: ideas.workspaceId },
+      { table: drafts, column: drafts.workspaceId },
+      { table: accounts, column: accounts.workspaceId },
+      { table: forYouAnswers, column: forYouAnswers.workspaceId },
+      { table: generatedPosts, column: generatedPosts.workspaceId },
+      { table: contentStyles, column: contentStyles.workspaceId },
+      { table: creatorLists, column: creatorLists.workspaceId },
+      { table: instructions, column: instructions.workspaceId },
+    ];
+
+    for (const { table, column } of tables) {
+      await db
+        .update(table)
+        .set({
+          workspaceId: workspace[0].id,
+        })
+        .where(and(eq(table.userId, userId), isNull(column)));
+    }
+
+    return { success: true, workspaceId: workspace[0].id };
+  } catch (error) {
+    console.error("Error in migrateToDefaultWorkspace:", error);
     throw error;
   }
 }

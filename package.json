@@ -65,7 +65,6 @@
     "@vercel/functions": "^1.4.1",
     "assemblyai": "^4.7.0",
     "bullmq": "^5.10.3",
-    "canvas": "^2.11.2",
     "cheerio": "^1.0.0",
     "chrome-aws-lambda": "^10.1.0",
     "class-variance-authority": "^0.7.0",

@@ -16,6 +16,14 @@ export async function initializeQueue() {
   const redisConnection = await getRedisConnection("client");
   queue = new Queue("linkedin-posts", {
     connection: redisConnection,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+      removeOnFail: false,
+    },
   });
 
   console.log("New queue created");

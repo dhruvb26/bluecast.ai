@@ -15,9 +15,19 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 const isOnboardingRoute = createRouteMatcher(["/onboarding"]);
+const isSignUpWithInviteRoute = createRouteMatcher(["/sign-up/(.*)"]);
 
 export default clerkMiddleware((auth, req: NextRequest) => {
   const { userId, sessionClaims, redirectToSignIn } = auth();
+
+  // Check for sign-up route with invited=true parameter
+  if (
+    userId &&
+    isSignUpWithInviteRoute(req) &&
+    req.nextUrl.searchParams.get("invited") === "true"
+  ) {
+    return NextResponse.next();
+  }
 
   // For users visiting /onboarding, don't try to redirect
   if (userId && isOnboardingRoute(req)) {

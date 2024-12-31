@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_user" DROP COLUMN IF EXISTS "is_invited";

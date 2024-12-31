@@ -121,9 +121,7 @@ export function NavUser({ user }: { user: any }) {
             <DropdownMenuSeparator />
 
             <DropdownMenuItem>
-              <SignOutButton redirectUrl="https://bluecast.ai/">
-                <p className="text-sm">Logout</p>
-              </SignOutButton>
+              <SignOutButton>Logout</SignOutButton>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
