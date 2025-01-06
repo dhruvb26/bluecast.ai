@@ -7,7 +7,6 @@ import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "@/env";
-import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.WEBHOOK_SECRET;
@@ -18,29 +17,24 @@ export async function POST(req: Request) {
     );
   }
 
-  // Get the headers
   const headerPayload = headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
-  // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return new Response("Error occured -- no svix headers", {
       status: 400,
     });
   }
 
-  // Get the body
   const payload = await req.json();
   const body = JSON.stringify(payload);
 
-  // Create a new Svix instance with your secret.
   const wh = new Webhook(WEBHOOK_SECRET);
 
   let evt: WebhookEvent;
 
-  // Verify the payload with the headers
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
@@ -54,214 +48,185 @@ export async function POST(req: Request) {
     });
   }
 
-  const eventType = evt.type;
+  try {
+    const eventType = evt.type;
 
-  if (eventType === "user.created") {
-    console.log("User created event received");
-    const { id, first_name, last_name, image_url, email_addresses } = evt.data;
+    switch (eventType) {
+      case "user.created": {
+        const { id, first_name, last_name, image_url, email_addresses } =
+          evt.data;
 
-    // const existingUser = await db.query.users.findFirst({
-    //   where: eq(users.email, email_addresses[0].email_address),
-    // });
+        await clerkClient().users.updateUserMetadata(id, {
+          publicMetadata: {
+            hasAccess: true,
+          },
+        });
 
-    // if (existingUser?.metadata?.isInvited) {
-    //   await db
-    //     .update(users)
-    //     .set({
-    //       id: id,
-    //       name: `${first_name} ${last_name}`.trim(),
-    //       image: image_url,
-    //       hasAccess: true,
-    //     })
-    //     .where(eq(users.email, email_addresses[0].email_address));
+        const updateData = {
+          id,
+          name: `${first_name} ${last_name}`.trim(),
+          email: email_addresses[0].email_address,
+          image: image_url,
+          trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        };
 
-    //   await db.insert(workspaceMembers).values({
-    //     id: uuidv4(),
-    //     userId: id,
-    //     workspaceId: existingUser.metadata.invitedToWorkspace,
-    //     role: existingUser.metadata.role,
-    //   });
+        await db.insert(users).values(updateData).onConflictDoUpdate({
+          target: users.id,
+          set: updateData,
+        });
+        break;
+      }
 
-    //   try {
-    //     await clerkClient.organizations.createOrganizationMembership({
-    //       organizationId: existingUser.metadata.invitedToWorkspace,
-    //       userId: id,
-    //       role: existingUser.metadata.role,
-    //     });
-    //   } catch (error) {
-    //     console.error("Error creating organization membership:", error);
-    //   }
+      case "user.updated": {
+        const { id, first_name, last_name, image_url, email_addresses } =
+          evt.data;
 
-    //   // await clerkClient().users.updateUserMetadata(id, {
-    //   //   publicMetadata: {
-    //   //     hasAccess: true,
-    //   //     activeWorkspaceId: existingUser.metadata.invitedToWorkspace,
-    //   //   },
-    //   // });
+        const existingUser = await db
+          .select({
+            image: users.image,
+            priceId: users.priceId,
+            stripeCustomerId: users.stripeCustomerId,
+            stripeSubscriptionId: users.stripeSubscriptionId,
+            trialEndsAt: users.trialEndsAt,
+            metadata: users.metadata,
+          })
+          .from(users)
+          .where(eq(users.id, id))
+          .limit(1);
 
-    //   return new Response("", { status: 200 });
-    // }
+        const updateData: Partial<typeof users.$inferInsert> = {
+          name: `${first_name} ${last_name}`.trim(),
+          email: email_addresses[0].email_address,
+        };
 
-    await clerkClient().users.updateUserMetadata(id, {
-      publicMetadata: {
-        hasAccess: true,
-      },
-    });
+        if (existingUser[0]?.metadata?.isInvited) {
+          updateData.priceId = existingUser[0].priceId;
+          updateData.stripeCustomerId = existingUser[0].stripeCustomerId;
+          updateData.stripeSubscriptionId =
+            existingUser[0].stripeSubscriptionId;
+          updateData.trialEndsAt = existingUser[0].trialEndsAt;
+          updateData.metadata = existingUser[0].metadata;
+        }
 
-    const updateData = {
-      id,
-      name: `${first_name} ${last_name}`.trim(),
-      email: email_addresses[0].email_address,
-      image: image_url,
-      trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    };
+        if (image_url && image_url.startsWith("https://img.clerk.com/")) {
+          const currentImage = existingUser[0]?.image;
+          if (
+            !currentImage ||
+            currentImage.startsWith("https://img.clerk.com/")
+          ) {
+            updateData.image = image_url;
+          }
+        }
 
-    await db.insert(users).values(updateData).onConflictDoUpdate({
-      target: users.id,
-      set: updateData,
-    });
-  }
+        await db.update(users).set(updateData).where(eq(users.id, id));
+        break;
+      }
 
-  if (eventType === "user.updated") {
-    console.log("User updated event received");
-    const { id, first_name, last_name, image_url, email_addresses } = evt.data;
+      case "user.deleted": {
+        const { id } = evt.data;
+        if (typeof id === "string") {
+          await db.delete(users).where(eq(users.id, id));
+        } else {
+          console.error("Invalid user ID for deletion:", id);
+        }
+        break;
+      }
 
-    // First fetch the existing user to check if they were invited
-    const existingUser = await db
-      .select({
-        image: users.image,
-        priceId: users.priceId,
-        stripeCustomerId: users.stripeCustomerId,
-        stripeSubscriptionId: users.stripeSubscriptionId,
-        trialEndsAt: users.trialEndsAt,
-        metadata: users.metadata,
-      })
-      .from(users)
-      .where(eq(users.id, id))
-      .limit(1);
+      case "organization.created": {
+        const { id, name, slug, created_by } = evt.data;
+        const user = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, created_by));
 
-    const updateData: Partial<typeof users.$inferInsert> = {
-      name: `${first_name} ${last_name}`.trim(),
-      email: email_addresses[0].email_address,
-    };
+        await db.insert(workspaces).values({
+          id,
+          name,
+          userId: user[0].id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        break;
+      }
 
-    // If user was invited, preserve their subscription-related fields
-    if (existingUser[0]?.metadata?.isInvited) {
-      updateData.priceId = existingUser[0].priceId;
-      updateData.stripeCustomerId = existingUser[0].stripeCustomerId;
-      updateData.stripeSubscriptionId = existingUser[0].stripeSubscriptionId;
-      updateData.trialEndsAt = existingUser[0].trialEndsAt;
-      updateData.metadata = existingUser[0].metadata;
-    }
+      case "organization.updated": {
+        const { id, name } = evt.data;
+        await db.update(workspaces).set({ name }).where(eq(workspaces.id, id));
+        break;
+      }
 
-    // Handle image update only if it's a Clerk image
-    if (image_url && image_url.startsWith("https://img.clerk.com/")) {
-      const currentImage = existingUser[0]?.image;
-      if (!currentImage || currentImage.startsWith("https://img.clerk.com/")) {
-        updateData.image = image_url;
+      case "organization.deleted": {
+        const { id } = evt.data;
+        await db
+          .delete(workspaceMembers)
+          .where(eq(workspaceMembers.workspaceId, id || ""));
+        break;
+      }
+
+      case "organizationInvitation.created": {
+        const { public_metadata } = evt.data;
+        console.log(public_metadata);
+        break;
+      }
+
+      case "organizationInvitation.accepted": {
+        const { public_metadata, role, email_address } = evt.data;
+
+        const isInvited = public_metadata?.isInvited === true;
+        const invitedToWorkspace = public_metadata?.invitedToWorkspace;
+        const inviterUserId = public_metadata?.inviterUserId;
+
+        const inviter = await db.query.users.findFirst({
+          where: eq(users.id, inviterUserId as string),
+        });
+
+        const updateData = {
+          priceId: isInvited ? inviter?.priceId : undefined,
+          stripeCustomerId: isInvited ? inviter?.stripeCustomerId : undefined,
+          stripeSubscriptionId: isInvited
+            ? inviter?.stripeSubscriptionId
+            : undefined,
+          trialEndsAt: isInvited
+            ? null
+            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          specialAccess: false,
+          hasAccess: true,
+          metadata: {
+            isInvited: isInvited || false,
+            invitedToWorkspace: invitedToWorkspace || "",
+            inviterUserId: inviterUserId || "",
+            role: role as "org:admin" | "org:member" | "org:client",
+          },
+        };
+        const user = await db.query.users.findFirst({
+          where: eq(users.email, email_address),
+        });
+
+        await db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.email, email_address));
+
+        await clerkClient().users.updateUserMetadata(user?.id || "", {
+          publicMetadata: {
+            hasAccess: true,
+            activeWorkspaceId: invitedToWorkspace as string,
+          },
+        });
+
+        await db.insert(workspaceMembers).values({
+          id: uuidv4(),
+          userId: user?.id || "",
+          workspaceId: invitedToWorkspace as string,
+          role: role as "org:admin" | "org:member" | "org:client",
+        });
+        break;
       }
     }
 
-    await db.update(users).set(updateData).where(eq(users.id, id));
+    return new Response("", { status: 200 });
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    return new Response("Error processing webhook", { status: 500 });
   }
-
-  if (eventType === "user.deleted") {
-    const { id } = evt.data;
-
-    if (typeof id === "string") {
-      await db.delete(users).where(eq(users.id, id));
-    } else {
-      console.error("Invalid user ID for deletion:", id);
-    }
-  }
-
-  if (eventType === "organization.created") {
-    const { id, name, slug, created_by } = evt.data;
-
-    const user = await db.select().from(users).where(eq(users.id, created_by));
-
-    await db.insert(workspaces).values({
-      id,
-      name,
-      userId: user[0].id,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-  }
-
-  if (eventType === "organization.updated") {
-    const { id, name, slug, created_by } = evt.data;
-
-    await db.update(workspaces).set({ name }).where(eq(workspaces.id, id));
-  }
-
-  if (eventType === "organization.deleted") {
-    const { id } = evt.data;
-
-    await db
-      .delete(workspaceMembers)
-      .where(eq(workspaceMembers.workspaceId, id || ""));
-  }
-
-  if (eventType === "organizationInvitation.created") {
-    const { id, email_address, public_metadata } = evt.data;
-
-    console.log(public_metadata);
-  }
-
-  if (eventType === "organizationInvitation.accepted") {
-    const { id, public_metadata, role, email_address } = evt.data;
-    console.log("Organization invitation accepted event received");
-
-    const isInvited = public_metadata?.isInvited === true;
-    const invitedToWorkspace = public_metadata?.invitedToWorkspace;
-    const inviterUserId = public_metadata?.inviterUserId;
-
-    const inviter = await db.query.users.findFirst({
-      where: eq(users.id, inviterUserId as string),
-    });
-
-    const updateData = {
-      priceId: isInvited ? inviter?.priceId : undefined,
-      stripeCustomerId: isInvited ? inviter?.stripeCustomerId : undefined,
-      stripeSubscriptionId: isInvited
-        ? inviter?.stripeSubscriptionId
-        : undefined,
-      trialEndsAt: isInvited
-        ? null
-        : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      specialAccess: false,
-      hasAccess: true,
-      metadata: {
-        isInvited: isInvited || false,
-        invitedToWorkspace: invitedToWorkspace || "",
-        inviterUserId: inviterUserId || "",
-        role: role as "org:admin" | "org:member" | "org:client",
-      },
-    };
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, email_address),
-    });
-
-    await db
-      .update(users)
-      .set(updateData)
-      .where(eq(users.email, email_address));
-
-    await clerkClient().users.updateUserMetadata(user?.id || "", {
-      publicMetadata: {
-        hasAccess: true,
-        activeWorkspaceId: invitedToWorkspace as string,
-      },
-    });
-
-    await db.insert(workspaceMembers).values({
-      id: uuidv4(),
-      userId: user?.id || "",
-      workspaceId: invitedToWorkspace as string,
-      role: role as "org:admin" | "org:member" | "org:client",
-    });
-  }
-
-  return new Response("", { status: 200 });
 }

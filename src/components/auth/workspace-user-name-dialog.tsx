@@ -30,9 +30,13 @@ export default function WorkspaceUserNameDialog({
 
   const handleUpdateLinkedInName = async () => {
     if (!workspaceId) return;
-    await updateWorkspaceLinkedInName(workspaceId, linkedInName);
-    toast.success("Display name updated");
-    window.location.reload();
+    const result = await updateWorkspaceLinkedInName(workspaceId, linkedInName);
+    if (result.success) {
+      toast.success("Display name updated");
+      window.location.reload();
+    } else {
+      toast.error(result.error);
+    }
   };
 
   return (

@@ -111,18 +111,15 @@ export async function POST(
       console.error("Error updating posts table:", await postsResponse.text());
     }
 
-    // Fetch posts for the creator
     const creatorPosts = await db.query.posts.findMany({
       where: eq(posts.creatorId, data.profile_id),
       limit: 10,
     });
 
-    // Extract text from posts for examples
     const examples = creatorPosts
       .map((post) => post.text)
       .filter((text): text is string => Boolean(text));
 
-    // Save content style
     const newContentStyle = await db.insert(contentStyles).values({
       id: uuidv4(),
       creatorId: data.profile_id,

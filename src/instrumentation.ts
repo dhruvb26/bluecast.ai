@@ -1,14 +1,18 @@
 "use server";
 export const register = async () => {
+  if (process.env.NODE_ENV === "development") {
+    console.log("Skipping worker initialization in development");
+    return;
+  }
+
   if (process.env.NEXT_RUNTIME === "nodejs") {
     const { Worker } = await import("bullmq");
     const { postWorker } = await import("./server/bull/worker");
     const { getRedisConnection } = await import("./utils/redis");
 
     const redisConnection = await getRedisConnection("subscriber");
-    // Create a new worker to process jobs from the queue
     const worker = new Worker("linkedin-posts", postWorker, {
-      connection: redisConnection,
+      connection: redisConnection as any,
     });
 
     console.log("Worker started for queue: linkedin-posts");

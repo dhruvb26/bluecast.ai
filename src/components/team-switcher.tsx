@@ -21,7 +21,11 @@ import { StackSimple } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { migrateToDefaultWorkspace, User } from "@/actions/user";
 import { useEffect } from "react";
-import { getWorkspaceMemberships, switchWorkspace } from "@/actions/workspace";
+import {
+  getNumberOfOwnerWorkspaces,
+  getWorkspaceMemberships,
+  switchWorkspace,
+} from "@/actions/workspace";
 import { getWorkspaces } from "@/actions/workspace";
 interface TeamSwitcherProps {
   user: User | null;
@@ -43,11 +47,15 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
   });
   const { organization } = useOrganization();
   const [workspaceCount, setWorkspaceCount] = React.useState(0);
+  const [numberOfOwnerWorkspaces, setNumberOfOwnerWorkspaces] =
+    React.useState(0);
 
   React.useEffect(() => {
     const fetchWorkspaces = async () => {
       const response = await getWorkspaceMemberships();
+      const numberOfOwnerWorkspaces = await getNumberOfOwnerWorkspaces();
       setWorkspaceCount(response);
+      setNumberOfOwnerWorkspaces(numberOfOwnerWorkspaces);
       console.log(response);
     };
     fetchWorkspaces();
@@ -112,7 +120,7 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            {workspaceCount === 0 && (
+            {numberOfOwnerWorkspaces === 0 && (
               <DropdownMenuItem
                 onClick={() => handleOrganizationSwitch("")}
                 className={`text-muted-foreground flex items-center ${
@@ -130,7 +138,7 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
                   }`}
                   size={16}
                 />
-                Default
+                DEFAULT
               </DropdownMenuItem>
             )}
             {userMemberships.data?.map((mem) => (

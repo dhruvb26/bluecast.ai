@@ -175,14 +175,14 @@ const SettingsPage = async () => {
                   className="text-sm"
                   placeholder="Example: Tommy Clark"
                 />
-                {/* {workspaceId && (
+                {workspaceId && (
                   <WorkspaceUserNameDialog
                     workspaceId={workspaceId || ""}
                     currentLinkedInName={
                       workspace ? workspace.linkedInName || "" : ""
                     }
                   />
-                )} */}
+                )}
               </div>
             </div>
           </div>

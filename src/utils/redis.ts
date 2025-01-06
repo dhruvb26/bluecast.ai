@@ -40,6 +40,11 @@ function createConnection(type: "client" | "subscriber" | "bclient"): IORedis {
 
 export const getSharedConnection = cache(
   (type: "client" | "subscriber" | "bclient") => {
+    if (process.env.NODE_ENV === "development") {
+      console.log("Skipping Redis connection in development");
+      return null;
+    }
+
     switch (type) {
       case "client":
         if (!sharedClient) {

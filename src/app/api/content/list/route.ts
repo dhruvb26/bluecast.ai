@@ -19,26 +19,27 @@ export async function POST(
       | string
       | undefined;
 
-    const isPublic = false;
-
     if (!url || !listName) {
       return NextResponse.json(
         { success: false, error: "URL and list name are required" },
         { status: 400 }
       );
     }
-    // 1. Find or create the creator_list
+
+    // 1. Find or create the creator_list with workspace conditions
     let creatorList = await db.query.creatorLists.findFirst({
-      where: (creatorLists, { eq, and }) =>
-        and(
-          eq(creatorLists.name, listName),
-          isPublic
-            ? isNull(creatorLists.userId)
-            : eq(creatorLists.userId, user.id),
-          workspaceId
-            ? eq(creatorLists.workspaceId, workspaceId)
-            : isNull(creatorLists.workspaceId)
-        ),
+      where: (creatorLists, { eq, and }) => {
+        const conditions = [eq(creatorLists.name, listName)];
+
+        if (workspaceId) {
+          conditions.push(eq(creatorLists.workspaceId, workspaceId));
+        } else {
+          conditions.push(eq(creatorLists.userId, user.id));
+          conditions.push(isNull(creatorLists.workspaceId));
+        }
+
+        return and(...conditions);
+      },
     });
 
     let creatorListId;
@@ -47,8 +48,10 @@ export async function POST(
       await db.insert(creatorLists).values({
         id: creatorListId,
         name: listName,
-        userId: isPublic ? null : user.id,
-        workspaceId: isPublic ? null : workspaceId,
+        userId: user.id,
+        workspaceId: workspaceId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
     } else {
       creatorListId = creatorList.id;
@@ -106,6 +109,7 @@ export async function POST(
         id: uuidv4(),
         creatorListId,
         creatorId: creator.id,
+        createdAt: new Date(),
       });
     }
 

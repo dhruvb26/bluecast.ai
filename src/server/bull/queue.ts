@@ -6,6 +6,11 @@ import { getRedisConnection } from "@/utils/redis";
 let queue: Queue | null = null;
 
 export async function initializeQueue() {
+  if (process.env.NODE_ENV === "development") {
+    console.log("Skipping queue initialization in development");
+    return null;
+  }
+
   if (queue) {
     console.log("Reusing existing queue");
     return queue;
@@ -15,7 +20,7 @@ export async function initializeQueue() {
 
   const redisConnection = await getRedisConnection("client");
   queue = new Queue("linkedin-posts", {
-    connection: redisConnection,
+    connection: redisConnection as any,
     defaultJobOptions: {
       attempts: 3,
       backoff: {
@@ -46,7 +51,9 @@ export async function closeConnections() {
     console.log("Queue closed");
   }
   const redisConnection = await getRedisConnection("client");
-  await redisConnection.quit();
-  console.log("Redis connection closed");
+  if (redisConnection) {
+    await redisConnection.quit();
+    console.log("Redis connection closed");
+  }
   console.log("All connections closed");
 }

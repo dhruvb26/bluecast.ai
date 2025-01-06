@@ -70,14 +70,11 @@ export async function getInstruction(
       | string
       | undefined;
 
-    const conditions = [
-      eq(instructions.id, id),
-      eq(instructions.userId, userId),
-    ];
-
+    const conditions = [eq(instructions.id, id)];
     if (workspaceId) {
       conditions.push(eq(instructions.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(instructions.userId, userId));
       conditions.push(isNull(instructions.workspaceId));
     }
 
@@ -119,14 +116,11 @@ export async function updateInstruction(
       | string
       | undefined;
 
-    const conditions = [
-      eq(instructions.id, id),
-      eq(instructions.userId, userId),
-    ];
-
+    const conditions = [eq(instructions.id, id)];
     if (workspaceId) {
       conditions.push(eq(instructions.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(instructions.userId, userId));
       conditions.push(isNull(instructions.workspaceId));
     }
 
@@ -159,14 +153,11 @@ export async function deleteInstruction(
       | string
       | undefined;
 
-    const conditions = [
-      eq(instructions.id, id),
-      eq(instructions.userId, userId),
-    ];
-
+    const conditions = [eq(instructions.id, id)];
     if (workspaceId) {
       conditions.push(eq(instructions.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(instructions.userId, userId));
       conditions.push(isNull(instructions.workspaceId));
     }
 
@@ -203,11 +194,11 @@ export async function listInstructions(): Promise<
       };
     }
 
-    const conditions = [eq(instructions.userId, userId)];
-
+    const conditions = [];
     if (workspaceId) {
       conditions.push(eq(instructions.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(instructions.userId, userId));
       conditions.push(isNull(instructions.workspaceId));
     }
 

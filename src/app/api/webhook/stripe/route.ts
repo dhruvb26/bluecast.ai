@@ -83,53 +83,29 @@ export async function POST(req: Request) {
     switch (eventType) {
       case "checkout.session.completed": {
         let session = data as Stripe.Checkout.Session;
-        console.log("Checkout session completed:", session.id);
 
         if (!session.customer || typeof session.customer !== "string") {
-          console.log("Invalid customer ID");
           return NextResponse.json(
             { error: "Invalid customer ID" },
             { status: 400 }
           );
         }
 
-        console.log(
-          "Searching for active user with email:",
-          session.customer_details
-        );
         const activeUser = await db.query.users.findFirst({
           where: eq(users.email, session.customer_details?.email as string),
         });
-        console.log("Active user found:", activeUser);
 
         if (activeUser?.stripeCustomerId && activeUser?.stripeSubscriptionId) {
-          console.log(
-            "Found existing stripe customer:",
-            activeUser.stripeCustomerId
-          );
           const activeCustomerId = activeUser.stripeCustomerId;
 
-          console.log(
-            "Fetching active subscriptions for customer:",
-            activeCustomerId
-          );
           const activeSubscriptions = await stripe.subscriptions.list({
             customer: activeCustomerId,
           });
 
-          console.log("Active subscriptions:", activeSubscriptions);
-
           if (activeSubscriptions.data.length > 0) {
             const activeSubscription = activeSubscriptions.data[0];
-            console.log(
-              "Cancelling existing subscription:",
-              activeSubscription.id
-            );
+
             await stripe.subscriptions.cancel(activeSubscription.id);
-            console.log(
-              "Successfully cancelled subscription:",
-              activeSubscription.id
-            );
           } else {
             console.log("No active subscriptions found to cancel");
           }
@@ -138,16 +114,13 @@ export async function POST(req: Request) {
         }
 
         const customerId = session.customer;
-        console.log("Customer ID:", customerId);
 
         const customer = await stripe.customers.retrieve(customerId);
-        console.log("Customer retrieved:", customer.id);
 
         if (!session.line_items) {
           session = await stripe.checkout.sessions.retrieve(session.id, {
             expand: ["line_items"],
           });
-          console.log("Session retrieved with line items");
         }
 
         const priceId = session.line_items?.data[0]?.price?.id;
@@ -158,7 +131,6 @@ export async function POST(req: Request) {
             { status: 400 }
           );
         }
-        console.log("Price ID:", priceId);
 
         const plan = plans.find((p) => p.priceId === priceId);
         if (!plan) {
@@ -168,7 +140,6 @@ export async function POST(req: Request) {
             { status: 404 }
           );
         }
-        console.log("Plan found:", plan.priceId);
 
         if ("deleted" in customer && customer.deleted) {
           console.log("Customer has been deleted");
@@ -247,32 +218,34 @@ export async function POST(req: Request) {
           );
         }
 
-        const user = await db.query.users.findFirst({
+        const usersWithSameCustomerId = await db.query.users.findMany({
           where: eq(users.stripeCustomerId, subscription.customer),
         });
 
-        if (!user) {
+        if (!usersWithSameCustomerId) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
           );
         }
 
-        await db
-          .update(users)
-          .set({
-            stripeCustomerId: null,
-            priceId: null,
-            hasAccess: false,
-            stripeSubscriptionId: null,
-          })
-          .where(eq(users.id, user.id));
+        for (const user of usersWithSameCustomerId) {
+          await db
+            .update(users)
+            .set({
+              stripeCustomerId: null,
+              priceId: null,
+              hasAccess: false,
+              stripeSubscriptionId: null,
+            })
+            .where(eq(users.id, user.id));
 
-        await clerkClient().users.updateUserMetadata(user.id, {
-          publicMetadata: {
-            hasAccess: false,
-          },
-        });
+          await clerkClient().users.updateUserMetadata(user.id, {
+            publicMetadata: {
+              hasAccess: false,
+            },
+          });
+        }
 
         break;
       }
@@ -284,11 +257,11 @@ export async function POST(req: Request) {
             subscriptionId
           );
 
-          const user = await db.query.users.findFirst({
+          const usersWithSameCustomerId = await db.query.users.findMany({
             where: eq(users.stripeCustomerId, subscription.customer as string),
           });
 
-          if (user) {
+          for (const user of usersWithSameCustomerId) {
             await db
               .update(users)
               .set({
@@ -319,32 +292,31 @@ export async function POST(req: Request) {
           );
         }
 
-        const user = await db.query.users.findFirst({
+        const usersWithSameCustomerId = await db.query.users.findMany({
           where: eq(users.stripeCustomerId, subscription.customer),
         });
 
-        if (!user) {
+        if (!usersWithSameCustomerId) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
           );
         }
 
-        // Update user access based on subscription status
-        await db
-          .update(users)
-          .set({
-            hasAccess: subscription.status === "active",
-          })
-          .where(eq(users.id, user.id));
+        for (const user of usersWithSameCustomerId) {
+          await db
+            .update(users)
+            .set({
+              hasAccess: subscription.status === "active",
+            })
+            .where(eq(users.id, user.id));
 
-        await clerkClient().users.updateUserMetadata(user.id, {
-          publicMetadata: {
-            hasAccess: subscription.status === "active",
-          },
-        });
-
-        console.log(`Updated user ${user.id} access`);
+          await clerkClient().users.updateUserMetadata(user.id, {
+            publicMetadata: {
+              hasAccess: subscription.status === "active",
+            },
+          });
+        }
 
         break;
       }
@@ -355,11 +327,11 @@ export async function POST(req: Request) {
           subscriptionId
         );
 
-        const user = await db.query.users.findFirst({
+        const usersWithSameCustomerId = await db.query.users.findMany({
           where: eq(users.stripeCustomerId, subscription.customer as string),
         });
 
-        if (user) {
+        for (const user of usersWithSameCustomerId) {
           await db
             .update(users)
             .set({
@@ -385,34 +357,34 @@ export async function POST(req: Request) {
           );
         }
 
-        const user = await db.query.users.findFirst({
+        const usersWithSameCustomerId = await db.query.users.findMany({
           where: eq(users.stripeCustomerId, charge.customer),
         });
 
-        if (!user) {
+        if (!usersWithSameCustomerId) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
           );
         }
 
-        await db
-          .update(users)
-          .set({
-            hasAccess: false,
-            stripeCustomerId: null,
-            stripeSubscriptionId: null,
-            priceId: null,
-          })
-          .where(eq(users.id, user.id));
+        for (const user of usersWithSameCustomerId) {
+          await db
+            .update(users)
+            .set({
+              hasAccess: false,
+              stripeCustomerId: null,
+              stripeSubscriptionId: null,
+              priceId: null,
+            })
+            .where(eq(users.id, user.id));
 
-        await clerkClient().users.updateUserMetadata(user.id, {
-          publicMetadata: {
-            hasAccess: false,
-          },
-        });
-
-        console.log(`Removed access for user ${user.id} due to refund`);
+          await clerkClient().users.updateUserMetadata(user.id, {
+            publicMetadata: {
+              hasAccess: false,
+            },
+          });
+        }
         break;
       }
       default:

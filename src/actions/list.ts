@@ -56,12 +56,13 @@ export async function getCreatorLists(
         },
       });
     } else {
-      const conditions = [eq(creatorLists.userId, user.id)];
+      const conditions = [];
 
       if (workspaceId) {
         conditions.push(eq(creatorLists.workspaceId, workspaceId));
       } else {
         conditions.push(isNull(creatorLists.workspaceId));
+        conditions.push(eq(creatorLists.userId, user.id));
       }
 
       lists = await db.query.creatorLists.findMany({
@@ -147,15 +148,13 @@ export async function deleteCreatorList(
       return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [
-      eq(creatorLists.id, listId),
-      eq(creatorLists.userId, user.id),
-    ];
+    const conditions = [eq(creatorLists.id, listId), ,];
 
     if (workspaceId) {
       conditions.push(eq(creatorLists.workspaceId, workspaceId));
     } else {
       conditions.push(isNull(creatorLists.workspaceId));
+      conditions.push(eq(creatorLists.userId, user.id));
     }
 
     const deletedList = await db
@@ -192,15 +191,13 @@ export async function removeCreatorFromList(
       return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [
-      eq(creatorLists.id, listId),
-      eq(creatorLists.userId, user.id),
-    ];
+    const conditions = [eq(creatorLists.id, listId)];
 
     if (workspaceId) {
       conditions.push(eq(creatorLists.workspaceId, workspaceId));
     } else {
       conditions.push(isNull(creatorLists.workspaceId));
+      conditions.push(eq(creatorLists.userId, user.id));
     }
 
     // Check if the list belongs to the user

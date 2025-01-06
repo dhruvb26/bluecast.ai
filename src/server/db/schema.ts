@@ -10,6 +10,7 @@ import {
   text,
   jsonb,
   bigint,
+  uuid,
 } from "drizzle-orm/pg-core";
 
 /**
@@ -260,6 +261,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   forYouAnswers: many(forYouAnswers),
   generatedPosts: many(generatedPosts),
   instructions: many(instructions),
+  tempTable: many(tempTable),
 }));
 
 export const accounts = createTable(
@@ -499,4 +501,41 @@ export const workspaceMemberRelations = relations(
 export const workspaceRelations = relations(workspaces, ({ many, one }) => ({
   members: many(workspaceMembers),
   owner: one(users, { fields: [workspaces.userId], references: [users.id] }),
+  tempTable: many(tempTable),
+}));
+
+export const tempTable = createTable("temp_table", {
+  id: uuid("id").primaryKey().notNull(),
+  email: varchar("email", { length: 256 }).notNull(),
+  inviterUserId: varchar("inviter_user_id", { length: 256 }).references(
+    () => users.id,
+    {
+      onDelete: "cascade",
+    }
+  ),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    {
+      onDelete: "cascade",
+    }
+  ),
+  role: workspaceRoleEnum("role").notNull().default("org:member"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+});
+
+export const tempTableRelations = relations(tempTable, ({ one }) => ({
+  user: one(users, {
+    fields: [tempTable.inviterUserId],
+    references: [users.id],
+  }),
+  workspace: one(workspaces, {
+    fields: [tempTable.workspaceId],
+    references: [workspaces.id],
+  }),
 }));

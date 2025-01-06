@@ -30,17 +30,14 @@ export async function saveIdea(
       | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [eq(ideas.id, id), eq(ideas.userId, userId)];
-
+    const conditions = [eq(ideas.id, id)];
     if (workspaceId) {
       conditions.push(eq(ideas.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(ideas.userId, userId));
       conditions.push(isNull(ideas.workspaceId));
     }
 
@@ -96,17 +93,14 @@ export async function getIdeas(): Promise<ServerActionResponse<Idea[]>> {
       | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [eq(ideas.userId, userId)];
-
+    const conditions = [];
     if (workspaceId) {
       conditions.push(eq(ideas.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(ideas.userId, userId));
       conditions.push(isNull(ideas.workspaceId));
     }
 
@@ -140,17 +134,14 @@ export async function deleteIdea(
       | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [eq(ideas.id, ideaId), eq(ideas.userId, userId)];
-
+    const conditions = [eq(ideas.id, ideaId)];
     if (workspaceId) {
       conditions.push(eq(ideas.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(ideas.userId, userId));
       conditions.push(isNull(ideas.workspaceId));
     }
 

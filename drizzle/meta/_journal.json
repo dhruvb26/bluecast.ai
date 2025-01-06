@@ -281,6 +281,13 @@
       "when": 1735666797674,
       "tag": "0039_ordinary_bucky",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1735689269955,
+      "tag": "0040_jittery_white_tiger",
+      "breakpoints": true
     }
   ]
 }

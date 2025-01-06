@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { getUser, migrateToDefaultWorkspace } from "./user";
 import { users, workspaceMembers, workspaces } from "@/server/db/schema";
@@ -275,6 +275,15 @@ export async function switchWorkspace(workspaceId: string) {
     };
   }
 
+  if (workspaceId === "") {
+    await clerkClient().users.updateUserMetadata(userId, {
+      publicMetadata: {
+        activeWorkspaceId: null,
+      },
+    });
+    return { success: true, data: undefined };
+  }
+
   await clerkClient().users.updateUserMetadata(userId, {
     publicMetadata: {
       activeWorkspaceId: workspaceId,
@@ -303,6 +312,36 @@ export async function updateWorkspaceLinkedInName(
 
     if (!userId) {
       return { success: false, error: "User not authenticated" };
+    }
+
+    const { sessionClaims } = auth();
+    const activeWorkspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    // Only check ownership if there's an active workspace
+    if (activeWorkspaceId) {
+      if (activeWorkspaceId !== workspaceId) {
+        return {
+          success: false,
+          error: "You are not an admin of this workspace.",
+        };
+      }
+
+      const ownership = await db.query.workspaceMembers.findMany({
+        where: and(
+          eq(workspaceMembers.userId, userId),
+          eq(workspaceMembers.workspaceId, workspaceId),
+          eq(workspaceMembers.role, "org:admin")
+        ),
+      });
+
+      if (ownership.length === 0) {
+        return {
+          success: false,
+          error: "You are not an admin of this workspace.",
+        };
+      }
     }
 
     const updatedWorkspace = await db
@@ -354,11 +393,8 @@ export async function inviteUserToWorkspace(
     .from(users)
     .where(eq(users.email, email));
   let redirectUrl = "";
-  if (existingUser.length > 0) {
-    redirectUrl = `${env.NEXT_PUBLIC_BASE_URL}/sign-in?invited=true`;
-  } else {
-    redirectUrl = `${env.NEXT_PUBLIC_BASE_URL}/sign-up?invited=true`;
-  }
+  console.log("User already exists");
+  redirectUrl = `${env.NEXT_PUBLIC_BASE_URL}/sign-in?invited=true`;
 
   const response =
     await clerkClient().organizations.createOrganizationInvitation({
@@ -584,4 +620,16 @@ export async function getUserAccessInWorkspace() {
     .limit(1);
 
   return { success: true, data: role[0]?.role };
+}
+
+export async function getNumberOfOwnerWorkspaces() {
+  const user = await getUser();
+  const userId = user.id;
+
+  const result = await db
+    .select()
+    .from(workspaces)
+    .where(eq(workspaces.userId, userId));
+
+  return result.length;
 }

@@ -78,10 +78,7 @@ export async function getContentStyles(
       | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
     }
 
     let userContentStyles;
@@ -91,11 +88,11 @@ export async function getContentStyles(
         .from(contentStyles)
         .where(isNull(contentStyles.userId));
     } else {
-      const conditions = [eq(contentStyles.userId, userId)];
-
+      const conditions = [];
       if (workspaceId) {
         conditions.push(eq(contentStyles.workspaceId, workspaceId));
       } else {
+        conditions.push(eq(contentStyles.userId, userId));
         conditions.push(isNull(contentStyles.workspaceId));
       }
 
@@ -111,10 +108,7 @@ export async function getContentStyles(
     };
   } catch (error) {
     console.error("Error fetching content styles:", error);
-    return {
-      success: false,
-      error: "Failed to fetch content styles",
-    };
+    return { success: false, error: "Failed to fetch content styles" };
   }
 }
 
@@ -130,15 +124,11 @@ export async function getContentStyle(
       | undefined;
 
     const conditions = [eq(contentStyles.id, styleId)];
-
-    if (!isNull(contentStyles.userId)) {
+    if (workspaceId) {
+      conditions.push(eq(contentStyles.workspaceId, workspaceId));
+    } else {
       conditions.push(eq(contentStyles.userId, userId));
-
-      if (workspaceId) {
-        conditions.push(eq(contentStyles.workspaceId, workspaceId));
-      } else {
-        conditions.push(isNull(contentStyles.workspaceId));
-      }
+      conditions.push(isNull(contentStyles.workspaceId));
     }
 
     const contentStyle = await db
@@ -148,22 +138,13 @@ export async function getContentStyle(
       .limit(1);
 
     if (contentStyle.length === 0) {
-      return {
-        success: false,
-        error: "Content style not found",
-      };
+      return { success: false, error: "Content style not found" };
     }
 
-    return {
-      success: true,
-      data: contentStyle[0] as ContentStyle,
-    };
+    return { success: true, data: contentStyle[0] as ContentStyle };
   } catch (error) {
     console.error("Error fetching content style:", error);
-    return {
-      success: false,
-      error: "Failed to fetch content style",
-    };
+    return { success: false, error: "Failed to fetch content style" };
   }
 }
 
@@ -178,14 +159,11 @@ export async function deleteContentStyle(
       | string
       | undefined;
 
-    const conditions = [
-      eq(contentStyles.id, styleId),
-      eq(contentStyles.userId, userId),
-    ];
-
+    const conditions = [eq(contentStyles.id, styleId)];
     if (workspaceId) {
       conditions.push(eq(contentStyles.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(contentStyles.userId, userId));
       conditions.push(isNull(contentStyles.workspaceId));
     }
 
@@ -201,16 +179,10 @@ export async function deleteContentStyle(
       };
     }
 
-    return {
-      success: true,
-      data: undefined,
-    };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error("Error deleting content style:", error);
-    return {
-      success: false,
-      error: "Failed to delete content style",
-    };
+    return { success: false, error: "Failed to delete content style" };
   }
 }
 
@@ -229,20 +201,14 @@ export async function updateStyleExample(
       | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [
-      eq(contentStyles.id, styleId),
-      eq(contentStyles.userId, userId),
-    ];
-
+    const conditions = [eq(contentStyles.id, styleId)];
     if (workspaceId) {
       conditions.push(eq(contentStyles.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(contentStyles.userId, userId));
       conditions.push(isNull(contentStyles.workspaceId));
     }
 

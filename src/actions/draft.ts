@@ -38,11 +38,11 @@ export async function getDraft(
       | string
       | undefined;
 
-    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
-
+    const conditions = [eq(drafts.id, draftId)];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
@@ -81,11 +81,11 @@ export async function getDrafts(
       return { success: false, error: "User not authenticated" };
     }
 
-    const conditions = [eq(drafts.userId, userId)];
-
+    const conditions = [];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
@@ -119,11 +119,11 @@ export async function deleteDraft(
       | string
       | undefined;
 
-    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
-
+    const conditions = [eq(drafts.id, draftId)];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
@@ -152,11 +152,11 @@ export async function updateDraftField<K extends keyof Draft>(
       | string
       | undefined;
 
-    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
-
+    const conditions = [eq(drafts.id, draftId)];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
@@ -187,11 +187,11 @@ export async function getDraftField<K extends keyof Draft>(
       | string
       | undefined;
 
-    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
-
+    const conditions = [eq(drafts.id, draftId)];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
@@ -232,11 +232,11 @@ export async function removeDraftField<K extends keyof Draft>(
       | string
       | undefined;
 
-    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
-
+    const conditions = [eq(drafts.id, draftId)];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
@@ -292,11 +292,11 @@ export async function saveDraft(
       serializedContent = JSON.stringify(content);
     }
 
-    const conditions = [eq(drafts.id, draftId), eq(drafts.userId, userId)];
-
+    const conditions = [eq(drafts.id, draftId)];
     if (workspaceId) {
       conditions.push(eq(drafts.workspaceId, workspaceId));
     } else {
+      conditions.push(eq(drafts.userId, userId));
       conditions.push(isNull(drafts.workspaceId));
     }
 
