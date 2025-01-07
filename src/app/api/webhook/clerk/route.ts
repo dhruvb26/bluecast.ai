@@ -2,11 +2,12 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
-import { users, workspaceMembers, workspaces } from "@/server/db/schema";
+import { users, workspaceMembers } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import { v4 as uuidv4 } from "uuid";
 import { env } from "@/env";
+import { migrateToDefaultWorkspace } from "@/actions/user";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.WEBHOOK_SECRET;
@@ -132,43 +133,6 @@ export async function POST(req: Request) {
         break;
       }
 
-      case "organization.created": {
-        const { id, name, slug, created_by } = evt.data;
-        const user = await db
-          .select()
-          .from(users)
-          .where(eq(users.id, created_by));
-
-        await db.insert(workspaces).values({
-          id,
-          name,
-          userId: user[0].id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-        break;
-      }
-
-      case "organization.updated": {
-        const { id, name } = evt.data;
-        await db.update(workspaces).set({ name }).where(eq(workspaces.id, id));
-        break;
-      }
-
-      case "organization.deleted": {
-        const { id } = evt.data;
-        await db
-          .delete(workspaceMembers)
-          .where(eq(workspaceMembers.workspaceId, id || ""));
-        break;
-      }
-
-      case "organizationInvitation.created": {
-        const { public_metadata } = evt.data;
-        console.log(public_metadata);
-        break;
-      }
-
       case "organizationInvitation.accepted": {
         const { public_metadata, role, email_address } = evt.data;
 
@@ -181,11 +145,11 @@ export async function POST(req: Request) {
         });
 
         const updateData = {
-          priceId: isInvited ? inviter?.priceId : undefined,
-          stripeCustomerId: isInvited ? inviter?.stripeCustomerId : undefined,
-          stripeSubscriptionId: isInvited
-            ? inviter?.stripeSubscriptionId
-            : undefined,
+          // priceId: isInvited ? inviter?.priceId : undefined,
+          // stripeCustomerId: isInvited ? inviter?.stripeCustomerId : undefined,
+          // stripeSubscriptionId: isInvited
+          //   ? inviter?.stripeSubscriptionId
+          //   : undefined,
           trialEndsAt: isInvited
             ? null
             : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -201,6 +165,8 @@ export async function POST(req: Request) {
         const user = await db.query.users.findFirst({
           where: eq(users.email, email_address),
         });
+
+        await migrateToDefaultWorkspace(user?.id);
 
         await db
           .update(users)

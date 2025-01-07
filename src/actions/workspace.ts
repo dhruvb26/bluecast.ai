@@ -254,26 +254,26 @@ export async function switchWorkspace(workspaceId: string) {
     throw new Error("User not authenticated");
   }
 
-  const monthlyGrowPlan =
-    env.NEXT_PUBLIC_NODE_ENV === "development"
-      ? "price_1QLXONRrqqSKPUNW7s5FxANR" // Pro plan dev price
-      : "price_1QN9JoRrqqSKPUNWuTZBJWS1"; // Pro plan prod price
+  // const monthlyGrowPlan =
+  //   env.NEXT_PUBLIC_NODE_ENV === "development"
+  //     ? "price_1QLXONRrqqSKPUNW7s5FxANR" // Pro plan dev price
+  //     : "price_1QN9JoRrqqSKPUNWuTZBJWS1"; // Pro plan prod price
 
-  const annualGrowPlan =
-    env.NEXT_PUBLIC_NODE_ENV === "development"
-      ? "price_1QMOYXRrqqSKPUNWcFVWJIs4" // Grow plan dev price
-      : "price_1QN9NyRrqqSKPUNWWwB1zAXa"; // Grow plan prod price
+  // const annualGrowPlan =
+  //   env.NEXT_PUBLIC_NODE_ENV === "development"
+  //     ? "price_1QMOYXRrqqSKPUNWcFVWJIs4" // Grow plan dev price
+  //     : "price_1QN9NyRrqqSKPUNWWwB1zAXa"; // Grow plan prod price
 
-  if (
-    !user.priceId ||
-    !user.stripeSubscriptionId ||
-    (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
-  ) {
-    return {
-      success: false,
-      error: "Upgrade to Grow Plan to switch workspaces.",
-    };
-  }
+  // if (
+  //   !user.priceId ||
+  //   !user.stripeSubscriptionId ||
+  //   (user.priceId !== monthlyGrowPlan && user.priceId !== annualGrowPlan)
+  // ) {
+  //   return {
+  //     success: false,
+  //     error: "Upgrade to Grow Plan to switch workspaces.",
+  //   };
+  // }
 
   if (workspaceId === "") {
     await clerkClient().users.updateUserMetadata(userId, {
@@ -393,7 +393,7 @@ export async function inviteUserToWorkspace(
     .from(users)
     .where(eq(users.email, email));
   let redirectUrl = "";
-  console.log("User already exists");
+
   redirectUrl = `${env.NEXT_PUBLIC_BASE_URL}/sign-in?invited=true`;
 
   const response =
@@ -487,25 +487,41 @@ export async function deleteMemberFromWorkspace(
         )
       );
 
-    await db
-      .update(users)
-      .set({
-        hasAccess: false,
-        priceId: null,
-        stripeSubscriptionId: null,
-        stripeCustomerId: null,
-        metadata: null,
-        specialAccess: false,
-        trialEndsAt: null,
-      })
-      .where(eq(users.id, userId));
-
-    await clerkClient().users.updateUserMetadata(userId, {
-      publicMetadata: {
-        activeWorkspaceId: null,
-        hasAccess: false,
-      },
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
     });
+
+    if (
+      user?.priceId === null &&
+      user?.stripeSubscriptionId === null &&
+      user?.stripeCustomerId === null
+    ) {
+      await db
+        .update(users)
+        .set({
+          hasAccess: false,
+          priceId: null,
+          stripeSubscriptionId: null,
+          stripeCustomerId: null,
+          metadata: null,
+          specialAccess: false,
+          trialEndsAt: null,
+        })
+        .where(eq(users.id, userId));
+
+      await clerkClient().users.updateUserMetadata(userId, {
+        publicMetadata: {
+          activeWorkspaceId: null,
+          hasAccess: false,
+        },
+      });
+    } else {
+      await clerkClient().users.updateUserMetadata(userId, {
+        publicMetadata: {
+          activeWorkspaceId: null,
+        },
+      });
+    }
 
     return { success: true, data: undefined };
   } catch (error) {

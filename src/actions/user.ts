@@ -645,15 +645,16 @@ export async function getActiveWorkspace() {
   }
 }
 
-export async function migrateToDefaultWorkspace() {
+export async function migrateToDefaultWorkspace(userId?: string) {
   try {
-    const userClerk = await currentUser();
-
-    if (!userClerk) {
-      throw new Error("No user found.");
+    console.log("Migrating to default workspace");
+    if (!userId) {
+      const userClerk = await currentUser();
+      if (!userClerk) {
+        throw new Error("No user found.");
+      }
+      userId = userClerk.id;
     }
-
-    const userId = userClerk.id;
 
     // 1. Create default workspace
     const orgResponse = await clerkClient().organizations.createOrganization({

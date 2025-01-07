@@ -11,22 +11,35 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BarLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
+import { useOrganization } from "@clerk/nextjs";
 
 export default function WorkspacePage() {
+  const router = useRouter();
+  const { organization } = useOrganization();
   const [workspaces, setWorkspaces] = useState<any[]>([]);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const router = useRouter();
-
+  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     fetchWorkspaces();
   }, []);
 
   const fetchWorkspaces = async () => {
-    const response = await getWorkspaces();
-    if (response.success) {
-      setWorkspaces(response.data);
+    try {
+      const response = await getWorkspaces();
+      if (response?.success && Array.isArray(response.data)) {
+        setWorkspaces(response.data);
+      } else {
+        setWorkspaces([]);
+        toast.error("Failed to fetch workspaces");
+      }
+    } catch (error) {
+      setWorkspaces([]);
+      toast.error("An error occurred while fetching workspaces");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -47,6 +60,14 @@ export default function WorkspacePage() {
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleManageWorkspace = (workspaceId: string) => {
+    if (organization?.id !== workspaceId) {
+      toast.error("Please switch to the correct workspace before managing it.");
+      return;
+    }
+    router.push(`/settings/workspace/${workspaceId}`);
   };
 
   return (
@@ -73,32 +94,40 @@ export default function WorkspacePage() {
         </form>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {workspaces.map((workspace) => (
-            <Card key={workspace.id}>
-              <CardHeader>
-                <CardTitle className="text-base font-semibold tracking-tight">
-                  {workspace.name}
-                </CardTitle>
-                <CardDescription className="flex justify-between items-center">
-                  <span>
-                    Created at{" "}
-                    {new Date(workspace.createdAt).toLocaleDateString()}
-                  </span>
-                  <Link href={`/settings/workspace/${workspace.id}`}>
-                    <Button variant="outline" size="sm">
+          {workspaces.length > 0 &&
+            workspaces.map((workspace) => (
+              <Card key={workspace.id}>
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold tracking-tight">
+                    {workspace.name}
+                  </CardTitle>
+                  <CardDescription className="flex justify-between items-center">
+                    <span>
+                      Created at{" "}
+                      {new Date(workspace.createdAt).toLocaleDateString()}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleManageWorkspace(workspace.id)}
+                    >
                       Manage
                     </Button>
-                  </Link>
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            ))}
         </div>
 
-        {workspaces.length === 0 && (
+        {!isLoading && workspaces.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">
             No workspaces found. Create your first workspace above.
           </p>
+        )}
+        {isLoading && (
+          <div className="flex justify-center items-center py-8">
+            <BarLoader color="#2563eb" height={3} width={300} />
+          </div>
         )}
       </div>
     </main>

@@ -20,18 +20,22 @@ export default async function WorkspaceSettingsLayout({
 
   const workspaceId = sessionClaims?.metadata?.activeWorkspaceId;
 
-  const workspaceMember = await db.query.workspaceMembers.findFirst({
-    where: and(
-      eq(workspaceMembers.workspaceId, workspaceId as string),
-      eq(workspaceMembers.userId, userId as string)
-    ),
-  });
-
-  const role = workspaceMember?.role;
-
-  if (role !== "org:admin") {
-    return <ErrorToast />;
+  if (!workspaceId) {
+    return <>{children}</>;
   }
+
+  // const workspaceMember = await db.query.workspaceMembers.findFirst({
+  //   where: and(
+  //     eq(workspaceMembers.workspaceId, workspaceId as string),
+  //     eq(workspaceMembers.userId, userId as string)
+  //   ),
+  // });
+
+  // const role = workspaceMember?.role;
+
+  // if (role !== "org:admin") {
+  //   return <ErrorToast />;
+  // }
 
   return <>{children}</>;
 }

@@ -19,7 +19,7 @@ import Image from "next/image";
 import { useOrganizationList, useOrganization } from "@clerk/nextjs";
 import { StackSimple } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
-import { migrateToDefaultWorkspace, User } from "@/actions/user";
+import { User } from "@/actions/user";
 import { useEffect } from "react";
 import {
   getNumberOfOwnerWorkspaces,
@@ -120,7 +120,7 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            {numberOfOwnerWorkspaces === 0 && (
+            {workspaceCount === 0 && (
               <DropdownMenuItem
                 onClick={() => handleOrganizationSwitch("")}
                 className={`text-muted-foreground flex items-center ${
@@ -138,7 +138,7 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
                   }`}
                   size={16}
                 />
-                DEFAULT
+                DEFAULT*
               </DropdownMenuItem>
             )}
             {userMemberships.data?.map((mem) => (
