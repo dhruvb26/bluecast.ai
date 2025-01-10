@@ -1,5 +1,3 @@
-"use client";
-
 import AvatarCircles from "@/components/magicui/avatar-circles";
 import { SignUp } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
