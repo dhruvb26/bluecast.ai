@@ -2,14 +2,15 @@ import { NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import { users } from "@/server/db/schema";
-import { eq } from "drizzle-orm";
+import { users, workspaceMembers, workspaces } from "@/server/db/schema";
+import { and, eq } from "drizzle-orm";
 import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const plans = [
   // Pro Monthly
   {
+    name: "Pro Monthly",
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
@@ -23,6 +24,7 @@ const plans = [
   },
   // Pro Annual
   {
+    name: "Pro Annual",
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "https://buy.stripe.com/test_fZeeVG2tR1B625y7st"
@@ -36,6 +38,7 @@ const plans = [
   },
   // Grow Monthly
   {
+    name: "Grow Monthly",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
@@ -45,6 +48,7 @@ const plans = [
   },
   // Grow Annual
   {
+    name: "Grow Annual",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "price_1QLXONRrqqSKPUNW7s5FxANR"
@@ -141,13 +145,9 @@ export async function POST(req: Request) {
           );
         }
 
-        if ("deleted" in customer && customer.deleted) {
-          console.log("Customer has been deleted");
-          return NextResponse.json(
-            { error: "Customer not found" },
-            { status: 404 }
-          );
-        }
+        const isPro = plan.name === "Pro Monthly" || plan.name === "Pro Annual";
+        const isGrow =
+          plan.name === "Grow Monthly" || plan.name === "Grow Annual";
 
         if ("email" in customer && customer.email) {
           console.log("Searching for user with email:", customer.email);
@@ -173,6 +173,16 @@ export async function POST(req: Request) {
           console.log("Subscription retrieved:", subscription.id);
 
           try {
+            const adminWorkspaces = await db.query.workspaceMembers.findMany({
+              where: and(
+                eq(workspaceMembers.userId, user.id),
+                eq(workspaceMembers.role, "org:admin")
+              ),
+              ...(isPro && {
+                orderBy: (workspaces, { asc }) => [asc(workspaces.createdAt)],
+              }),
+            });
+
             await db
               .update(users)
               .set({
@@ -191,6 +201,29 @@ export async function POST(req: Request) {
                 hasAccess: true,
               },
             });
+
+            if (adminWorkspaces.length > 0) {
+              if (isPro && adminWorkspaces.length > 1) {
+                await db
+                  .update(workspaces)
+                  .set({ hasAccess: true })
+                  .where(eq(workspaces.id, adminWorkspaces[0].workspaceId));
+
+                for (let i = 1; i < adminWorkspaces.length; i++) {
+                  await db
+                    .update(workspaces)
+                    .set({ hasAccess: false })
+                    .where(eq(workspaces.id, adminWorkspaces[i].workspaceId));
+                }
+              } else if (isGrow) {
+                for (const workspace of adminWorkspaces) {
+                  await db
+                    .update(workspaces)
+                    .set({ hasAccess: true })
+                    .where(eq(workspaces.id, workspace.workspaceId));
+                }
+              }
+            }
 
             console.log("Database updated successfully");
           } catch (error) {
@@ -218,65 +251,134 @@ export async function POST(req: Request) {
           );
         }
 
-        const usersWithSameCustomerId = await db.query.users.findMany({
+        const userWithCustomerId = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, subscription.customer),
         });
 
-        if (!usersWithSameCustomerId) {
+        const userId = userWithCustomerId?.id;
+
+        if (!userId) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
           );
         }
 
-        for (const user of usersWithSameCustomerId) {
-          await db
-            .update(users)
-            .set({
-              stripeCustomerId: null,
-              priceId: null,
-              hasAccess: false,
-              stripeSubscriptionId: null,
-            })
-            .where(eq(users.id, user.id));
+        await db
+          .update(users)
+          .set({
+            stripeCustomerId: null,
+            priceId: null,
+            hasAccess: false,
+            stripeSubscriptionId: null,
+          })
+          .where(eq(users.id, userId));
 
-          await clerkClient().users.updateUserMetadata(user.id, {
-            publicMetadata: {
-              hasAccess: false,
-            },
-          });
+        await clerkClient().users.updateUserMetadata(userId, {
+          publicMetadata: {
+            hasAccess: false,
+          },
+        });
+
+        const adminWorkspaces = await db.query.workspaceMembers.findMany({
+          where: and(
+            eq(workspaceMembers.userId, userId),
+            eq(workspaceMembers.role, "org:admin")
+          ),
+        });
+
+        if (adminWorkspaces.length > 0) {
+          for (const workspace of adminWorkspaces) {
+            await db
+              .update(workspaces)
+              .set({
+                hasAccess: false,
+              })
+              .where(eq(workspaces.id, workspace.workspaceId));
+          }
         }
 
         break;
       }
       case "invoice.payment_succeeded": {
         const invoice = data as Stripe.Invoice;
-        if (invoice.billing_reason === "subscription_cycle") {
-          const subscriptionId = invoice.subscription as string;
-          const subscription = await stripe.subscriptions.retrieve(
-            subscriptionId
+        if (invoice.billing_reason !== "subscription_cycle") break;
+
+        const subscription = await stripe.subscriptions.retrieve(
+          invoice.subscription as string
+        );
+
+        const userWithCustomerId = await db.query.users.findFirst({
+          where: eq(users.stripeCustomerId, subscription.customer as string),
+        });
+
+        const userId = userWithCustomerId?.id;
+        if (!userId) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
           );
+        }
 
-          const usersWithSameCustomerId = await db.query.users.findMany({
-            where: eq(users.stripeCustomerId, subscription.customer as string),
-          });
+        const priceId = subscription.items.data[0].price.id;
+        const plan = plans.find((p) => p.priceId === priceId);
 
-          for (const user of usersWithSameCustomerId) {
+        const isPro =
+          plan?.name === "Pro Monthly" || plan?.name === "Pro Annual";
+        const isGrow =
+          plan?.name === "Grow Monthly" || plan?.name === "Grow Annual";
+
+        const adminWorkspaces = await db.query.workspaceMembers.findMany({
+          where: and(
+            eq(workspaceMembers.userId, userId),
+            eq(workspaceMembers.role, "org:admin")
+          ),
+          ...(isPro && {
+            orderBy: (workspaces, { asc }) => [asc(workspaces.createdAt)],
+          }),
+        });
+
+        // Update user access
+        await db
+          .update(users)
+          .set({
+            hasAccess: true,
+            ...(isPro && { trialEndsAt: null }),
+          })
+          .where(eq(users.id, userId));
+
+        await clerkClient().users.updateUserMetadata(userId, {
+          publicMetadata: {
+            hasAccess: true,
+          },
+        });
+
+        // Update workspace access
+        if (adminWorkspaces.length > 0) {
+          if (isPro && adminWorkspaces.length > 1) {
+            // First workspace gets access, rest don't
             await db
-              .update(users)
-              .set({
-                trialEndsAt: null,
-                hasAccess: true,
-              })
+              .update(workspaces)
+              .set({ hasAccess: true })
+              .where(eq(workspaces.id, adminWorkspaces[0].workspaceId));
 
-              .where(eq(users.id, user.id));
-            await clerkClient().users.updateUserMetadata(user.id, {
-              publicMetadata: {
-                hasAccess: true,
-              },
-            });
+            for (let i = 1; i < adminWorkspaces.length; i++) {
+              await db
+                .update(workspaces)
+                .set({ hasAccess: false })
+                .where(eq(workspaces.id, adminWorkspaces[i].workspaceId));
+            }
+          } else if (isGrow) {
+            // All workspaces get access
+            for (const workspace of adminWorkspaces) {
+              await db
+                .update(workspaces)
+                .set({ hasAccess: true })
+                .where(eq(workspaces.id, workspace.workspaceId));
+            }
           }
         }
+
         break;
       }
       case "customer.subscription.updated": {
@@ -327,23 +429,48 @@ export async function POST(req: Request) {
           subscriptionId
         );
 
-        const usersWithSameCustomerId = await db.query.users.findMany({
+        const userWithCustomerId = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, subscription.customer as string),
         });
 
-        for (const user of usersWithSameCustomerId) {
-          await db
-            .update(users)
-            .set({
-              hasAccess: false,
-            })
-            .where(eq(users.id, user.id));
+        const userId = userWithCustomerId?.id;
 
-          await clerkClient().users.updateUserMetadata(user.id, {
-            publicMetadata: {
-              hasAccess: false,
-            },
-          });
+        if (!userId) {
+          return NextResponse.json(
+            { error: "User not found" },
+            { status: 404 }
+          );
+        }
+
+        await db
+          .update(users)
+          .set({
+            hasAccess: false,
+          })
+          .where(eq(users.id, userId));
+
+        await clerkClient().users.updateUserMetadata(userId, {
+          publicMetadata: {
+            hasAccess: false,
+          },
+        });
+
+        const adminWorkspaces = await db.query.workspaceMembers.findMany({
+          where: and(
+            eq(workspaceMembers.userId, userId),
+            eq(workspaceMembers.role, "org:admin")
+          ),
+        });
+
+        if (adminWorkspaces.length > 0) {
+          for (const workspace of adminWorkspaces) {
+            await db
+              .update(workspaces)
+              .set({
+                hasAccess: false,
+              })
+              .where(eq(workspaces.id, workspace.workspaceId));
+          }
         }
         break;
       }
@@ -357,33 +484,51 @@ export async function POST(req: Request) {
           );
         }
 
-        const usersWithSameCustomerId = await db.query.users.findMany({
+        const userWithCustomerId = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, charge.customer),
         });
 
-        if (!usersWithSameCustomerId) {
+        const userId = userWithCustomerId?.id;
+
+        if (!userId) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
           );
         }
 
-        for (const user of usersWithSameCustomerId) {
-          await db
-            .update(users)
-            .set({
-              hasAccess: false,
-              stripeCustomerId: null,
-              stripeSubscriptionId: null,
-              priceId: null,
-            })
-            .where(eq(users.id, user.id));
+        await db
+          .update(users)
+          .set({
+            hasAccess: false,
+            stripeCustomerId: null,
+            stripeSubscriptionId: null,
+            priceId: null,
+          })
+          .where(eq(users.id, userId));
 
-          await clerkClient().users.updateUserMetadata(user.id, {
-            publicMetadata: {
-              hasAccess: false,
-            },
-          });
+        await clerkClient().users.updateUserMetadata(userId, {
+          publicMetadata: {
+            hasAccess: false,
+          },
+        });
+
+        const adminWorkspaces = await db.query.workspaceMembers.findMany({
+          where: and(
+            eq(workspaceMembers.userId, userId),
+            eq(workspaceMembers.role, "org:admin")
+          ),
+        });
+
+        if (adminWorkspaces.length > 0) {
+          for (const workspace of adminWorkspaces) {
+            await db
+              .update(workspaces)
+              .set({
+                hasAccess: false,
+              })
+              .where(eq(workspaces.id, workspace.workspaceId));
+          }
         }
         break;
       }

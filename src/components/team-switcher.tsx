@@ -20,13 +20,11 @@ import { useOrganizationList, useOrganization } from "@clerk/nextjs";
 import { StackSimple } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { User } from "@/actions/user";
-import { useEffect } from "react";
 import {
   getNumberOfOwnerWorkspaces,
   getWorkspaceMemberships,
   switchWorkspace,
 } from "@/actions/workspace";
-import { getWorkspaces } from "@/actions/workspace";
 interface TeamSwitcherProps {
   user: User | null;
   teams: {

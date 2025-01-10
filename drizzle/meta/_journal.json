@@ -288,6 +288,13 @@
       "when": 1735689269955,
       "tag": "0040_jittery_white_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1736544824749,
+      "tag": "0041_nice_eddie_brock",
+      "breakpoints": true
     }
   ]
 }

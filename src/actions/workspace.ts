@@ -86,8 +86,6 @@ export async function createWorkspace(
       role: "org:admin",
     });
 
-    await switchWorkspace(response.id);
-
     return { success: true, data: workspace[0] as Workspace };
   } catch (error) {
     console.error("Error in createWorkspace:", error);
@@ -248,7 +246,6 @@ export async function updateWorkspace(
 
 export async function switchWorkspace(workspaceId: string) {
   const { userId } = auth();
-  const user = await getUser();
 
   if (!userId) {
     throw new Error("User not authenticated");
@@ -276,20 +273,32 @@ export async function switchWorkspace(workspaceId: string) {
   // }
 
   if (workspaceId === "") {
+    console.log("switching to personal");
+    const getUserAccess = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+
     await clerkClient().users.updateUserMetadata(userId, {
       publicMetadata: {
+        hasAccess: getUserAccess?.hasAccess,
         activeWorkspaceId: null,
       },
     });
     return { success: true, data: undefined };
-  }
+  } else {
+    console.log("switching to workspace", workspaceId);
+    const workspaceAccess = await db.query.workspaces.findFirst({
+      where: and(eq(workspaces.id, workspaceId)),
+    });
 
-  await clerkClient().users.updateUserMetadata(userId, {
-    publicMetadata: {
-      activeWorkspaceId: workspaceId,
-    },
-  });
-  return { success: true, data: undefined };
+    await clerkClient().users.updateUserMetadata(userId, {
+      publicMetadata: {
+        hasAccess: workspaceAccess?.hasAccess,
+        activeWorkspaceId: workspaceId,
+      },
+    });
+    return { success: true, data: undefined };
+  }
 }
 
 export async function getActiveWorkspaceId() {

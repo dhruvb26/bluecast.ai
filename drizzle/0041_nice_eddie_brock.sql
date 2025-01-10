@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_workspace" ADD COLUMN "has_access" boolean DEFAULT true;

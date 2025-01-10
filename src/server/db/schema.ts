@@ -45,6 +45,7 @@ export const workspaces = createTable("workspace", {
     mode: "date",
     precision: 3,
   }).$onUpdate(() => new Date()),
+  hasAccess: boolean("has_access").default(true),
 });
 
 // Content

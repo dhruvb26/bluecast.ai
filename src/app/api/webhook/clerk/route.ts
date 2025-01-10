@@ -2,7 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
-import { users, workspaceMembers } from "@/server/db/schema";
+import { users, workspaceMembers, workspaces } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import { v4 as uuidv4 } from "uuid";
@@ -140,16 +140,7 @@ export async function POST(req: Request) {
         const invitedToWorkspace = public_metadata?.invitedToWorkspace;
         const inviterUserId = public_metadata?.inviterUserId;
 
-        const inviter = await db.query.users.findFirst({
-          where: eq(users.id, inviterUserId as string),
-        });
-
         const updateData = {
-          // priceId: isInvited ? inviter?.priceId : undefined,
-          // stripeCustomerId: isInvited ? inviter?.stripeCustomerId : undefined,
-          // stripeSubscriptionId: isInvited
-          //   ? inviter?.stripeSubscriptionId
-          //   : undefined,
           trialEndsAt: isInvited
             ? null
             : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -166,16 +157,26 @@ export async function POST(req: Request) {
           where: eq(users.email, email_address),
         });
 
-        await migrateToDefaultWorkspace(user?.id);
+        const userWorkspaces = await db.query.workspaceMembers.findMany({
+          where: eq(workspaceMembers.userId, user?.id || ""),
+        });
+
+        if (userWorkspaces.length === 0) {
+          await migrateToDefaultWorkspace(user?.id);
+        }
 
         await db
           .update(users)
           .set(updateData)
           .where(eq(users.email, email_address));
 
+        const workspaceAccess = await db.query.workspaces.findFirst({
+          where: eq(workspaces.id, invitedToWorkspace as string),
+        });
+
         await clerkClient().users.updateUserMetadata(user?.id || "", {
           publicMetadata: {
-            hasAccess: true,
+            hasAccess: workspaceAccess?.hasAccess || false,
             activeWorkspaceId: invitedToWorkspace as string,
           },
         });
