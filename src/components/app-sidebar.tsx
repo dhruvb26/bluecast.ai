@@ -81,11 +81,11 @@ const data = {
     },
   ],
   footer: [
-    // {
-    //   name: "Feedback",
-    //   url: "https://bluecast.canny.io/feedback",
-    //   icon: <MsgBubbleUser />,
-    // },
+    {
+      name: "Feedback",
+      url: "https://bluecast.canny.io/feedback",
+      icon: <MsgBubbleUser />,
+    },
     {
       name: "Logout",
       url: "https://bluecast.ai/",

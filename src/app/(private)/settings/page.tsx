@@ -33,10 +33,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  getWorkspaceMemberships,
-  getUserAccessInWorkspace,
-} from "@/actions/workspace";
+
+export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
   const user = await getUser();
@@ -54,11 +52,9 @@ const SettingsPage = async () => {
       })
     : null;
 
-  // const userWorkspaces = await db.query.workspaces.findMany({
-  //   where: eq(workspaces.userId, user.id),
-  // });
-
-  const userWorkspaces = await getWorkspaceMemberships();
+  const userWorkspaces = await db.query.workspaces.findMany({
+    where: eq(workspaces.userId, user.id),
+  });
 
   const hasSubscription =
     user.hasAccess &&
@@ -88,7 +84,7 @@ const SettingsPage = async () => {
   );
 
   // Determine usage and limits based on context
-  const wordLimit = userWorkspaces > 0 ? 75000 : 50000;
+  const wordLimit = userWorkspaces.length > 0 ? 75000 : 50000;
   const currentUsage = user.specialAccess
     ? user.generatedPosts || 0
     : workspace
@@ -98,10 +94,6 @@ const SettingsPage = async () => {
   const usageText = user.specialAccess
     ? `${currentUsage} / 10 posts`
     : `${currentUsage} / ${wordLimit} words`;
-
-  const { data: userRole } = await getUserAccessInWorkspace();
-  const canManageSubscription =
-    userRole === "personal" || userRole === "org:admin";
 
   return (
     <main className="p-8">
@@ -185,6 +177,45 @@ const SettingsPage = async () => {
                 )}
               </div>
             </div>
+            <div>
+              <label htmlFor="name" className="mb-1 block text-sm font-medium">
+                Workspace
+              </label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  disabled
+                  type="text"
+                  id="name"
+                  defaultValue={workspace ? workspace.name || "" : ""}
+                  className="text-sm"
+                  placeholder="Default"
+                />
+                {workspaceId && (
+                  <>
+                    <WorkspaceDialog
+                      workspaceId={workspaceId || ""}
+                      currentName={workspace ? workspace.name || "" : ""}
+                    />
+                    <DeleteWorkspaceDialog
+                      workspaceId={workspaceId || ""}
+                      workspaceName={workspace ? workspace.name || "" : ""}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+            {/* <div>
+              <label htmlFor="email" className="mb-1 block text-sm font-medium">
+                Email
+              </label>
+              <Input
+                disabled
+                type="email"
+                id="email"
+                defaultValue={user.email || ""}
+                className="text-sm"
+              />
+            </div> */}
           </div>
         </section>
 
@@ -252,25 +283,22 @@ const SettingsPage = async () => {
           </div>
         </section>
 
-        {canManageSubscription && (
-          <section className="flex space-x-4">
-            <div className="w-1/3">
-              <h2 className="text-base font-semibold tracking-tight text-foreground">
-                Pricing
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Check out our different plans and what we offer.
-              </p>
-            </div>
-            <div className="flex w-2/3 items-center justify-start">
-              <Link href={"/pricing"}>
-                <Button variant={"outline"}>Pricing and Plans</Button>
-              </Link>
-            </div>
-          </section>
-        )}
-
-        {hasSubscription && canManageSubscription && (
+        <section className="flex space-x-4">
+          <div className="w-1/3">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Pricing
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Check out our different plans and what we offer.
+            </p>
+          </div>
+          <div className="flex w-2/3 items-center justify-start">
+            <Link href={"/pricing"}>
+              <Button variant={"outline"}>Pricing and Plans</Button>
+            </Link>
+          </div>
+        </section>
+        {hasSubscription && (
           <section className="flex space-x-4">
             <div className="w-1/3">
               <h2 className="text-base font-semibold tracking-tight text-foreground">
@@ -281,31 +309,18 @@ const SettingsPage = async () => {
               </p>
             </div>
             <div className="flex w-2/3 items-center justify-start">
-              <Link href={customerPortalLink}>
+              <Link
+                href={
+                  env.NEXT_PUBLIC_NODE_ENV === "development"
+                    ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
+                    : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
+                }
+              >
                 <Button variant={"outline"}>Manage Subscription</Button>
               </Link>
             </div>
           </section>
         )}
-
-        {workspaceId && canManageSubscription && (
-          <section className="flex space-x-4">
-            <div className="w-1/3">
-              <h2 className="text-base font-semibold tracking-tight text-foreground">
-                Workspace
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Manage your workspaces.
-              </p>
-            </div>
-            <div className="flex w-2/3 items-center justify-start">
-              <Link href={`/settings/workspace`}>
-                <Button variant={"outline"}> Workspace Settings </Button>
-              </Link>
-            </div>
-          </section>
-        )}
-
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-base font-semibold tracking-tight text-foreground">

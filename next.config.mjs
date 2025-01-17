@@ -4,6 +4,13 @@ await import("./src/env.js");
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push({
+        canvas: "commonjs canvas",
+        // "@sparticuz/chromium": "commonjs @sparticuz/chromium",
+      });
+    }
+
     return config;
   },
   experimental: {
@@ -23,10 +30,9 @@ const nextConfig = {
       },
     ],
   },
-  reactStrictMode: false,
 };
 
 export default MillionLint.next({
   enabled: true,
-  rsc: true,
+  rsc: true
 })(nextConfig);

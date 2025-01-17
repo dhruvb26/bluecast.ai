@@ -1,12 +1,10 @@
-"use client";
 import AvatarCircles from "@/components/magicui/avatar-circles";
-import { useSearchParams } from "next/navigation";
 import { SignIn } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Metadata } from "next";
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: "LinkedIn Growth Made Easy | Bluecast Sign In",
   description:
     "Sign in to Bluecast to enhance your LinkedIn presence with AI-powered tools. Sign in now to streamline your LinkedIn strategy and grow your network effortlessly.",
@@ -15,9 +13,6 @@ const metadata: Metadata = {
 };
 
 export default function SignInPage() {
-  const searchParams = useSearchParams();
-  const isInvited = searchParams.get("invited") === "true";
-
   const avatarUrls = [
     "https://utfs.io/f/Hny9aU7MkSTDiiOBuu37vEqg4NkAFcsWxz1D9T6u2yLldmRt",
     "https://utfs.io/f/Hny9aU7MkSTDIMFr0VALb1UPgqefS7Jc58iIph4o9waMTCGx",
@@ -27,13 +22,14 @@ export default function SignInPage() {
 
   return (
     <>
+      {/* <head>
+        <title>Bluecast - Sign in</title>
+      </head> */}
       <div className="flex min-h-screen flex-col md:flex-row">
         <div className="flex w-full flex-col md:flex-row">
           <div className="flex flex-1 flex-col justify-center bg-brand-blue-secondary px-4 py-8 md:px-8 md:py-12">
             <h1 className="mb-4 text-3xl md:text-5xl text-center md:text-left font-bold tracking-tight text-white">
-              {isInvited
-                ? "You've been invited to join a workspace"
-                : "Boost your LinkedIn presence with AI"}
+              Boost your LinkedIn presence with AI
             </h1>
             <p className="mb-8 text-sm md:text-base md:text-left text-center font-normal text-blue-200">
               Bluecast's AI-powered tools streamline your LinkedIn strategy,

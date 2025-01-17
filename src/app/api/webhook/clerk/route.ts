@@ -2,10 +2,9 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
-import { users, workspaceMembers, workspaces } from "@/server/db/schema";
+import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
-import { v4 as uuidv4 } from "uuid";
 import { env } from "@/env";
 import { migrateToDefaultWorkspace } from "@/actions/user";
 
@@ -49,13 +48,22 @@ export async function POST(req: Request) {
     });
   }
 
-  try {
-    const eventType = evt.type;
+  // Process the webhook event
+  const eventType = evt.type;
 
-    switch (eventType) {
-      case "user.created": {
-        const { id, first_name, last_name, image_url, email_addresses } =
-          evt.data;
+  // Update user data in the database
+  if (eventType === "user.created") {
+    const { id, first_name, last_name, image_url, email_addresses } = evt.data;
+
+    // // Check if a user with the given email already exists
+    // const existingUser = await db.query.users.findFirst({
+    //   where: eq(users.email, email_addresses[0].email_address),
+    // });
+
+    // if (existingUser) {
+    //   // Redirect to access denied page
+    //   return NextResponse.redirect(new URL("/blocked", req.url));
+    // }
 
         await clerkClient().users.updateUserMetadata(id, {
           publicMetadata: {
@@ -78,118 +86,41 @@ export async function POST(req: Request) {
         break;
       }
 
-      case "user.updated": {
-        const { id, first_name, last_name, image_url, email_addresses } =
-          evt.data;
+  if (eventType === "user.updated") {
+    const { id, first_name, last_name, image_url, email_addresses } = evt.data;
 
-        const existingUser = await db
-          .select({
-            image: users.image,
-            priceId: users.priceId,
-            stripeCustomerId: users.stripeCustomerId,
-            stripeSubscriptionId: users.stripeSubscriptionId,
-            trialEndsAt: users.trialEndsAt,
-            metadata: users.metadata,
-          })
-          .from(users)
-          .where(eq(users.id, id))
-          .limit(1);
+    const updateData: Partial<typeof users.$inferInsert> = {
+      name: `${first_name} ${last_name}`.trim(),
+      email: email_addresses[0].email_address,
+    };
 
-        const updateData: Partial<typeof users.$inferInsert> = {
-          name: `${first_name} ${last_name}`.trim(),
-          email: email_addresses[0].email_address,
-        };
+    const existingUser = await db
+      .select({ image: users.image })
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
 
-        if (existingUser[0]?.metadata?.isInvited) {
-          updateData.priceId = existingUser[0].priceId;
-          updateData.stripeCustomerId = existingUser[0].stripeCustomerId;
-          updateData.stripeSubscriptionId =
-            existingUser[0].stripeSubscriptionId;
-          updateData.trialEndsAt = existingUser[0].trialEndsAt;
-          updateData.metadata = existingUser[0].metadata;
-        }
+    const currentImage = existingUser[0]?.image;
 
-        if (image_url && image_url.startsWith("https://img.clerk.com/")) {
-          const currentImage = existingUser[0]?.image;
-          if (
-            !currentImage ||
-            currentImage.startsWith("https://img.clerk.com/")
-          ) {
-            updateData.image = image_url;
-          }
-        }
+    if (image_url && image_url.startsWith("https://img.clerk.com/")) {
+      if (!currentImage || currentImage.startsWith("https://img.clerk.com/")) {
+        updateData.image = image_url;
+      }
+    }
 
         await db.update(users).set(updateData).where(eq(users.id, id));
         break;
       }
 
-      case "user.deleted": {
-        const { id } = evt.data;
-        if (typeof id === "string") {
-          await db.delete(users).where(eq(users.id, id));
-        } else {
-          console.error("Invalid user ID for deletion:", id);
-        }
-        break;
-      }
+  if (eventType === "user.deleted") {
+    const { id } = evt.data;
 
-      case "organizationInvitation.accepted": {
-        const { public_metadata, role, email_address } = evt.data;
-
-        const isInvited = public_metadata?.isInvited === true;
-        const invitedToWorkspace = public_metadata?.invitedToWorkspace;
-        const inviterUserId = public_metadata?.inviterUserId;
-
-        const updateData = {
-          trialEndsAt: isInvited
-            ? null
-            : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          specialAccess: false,
-          hasAccess: true,
-          metadata: {
-            isInvited: isInvited || false,
-            invitedToWorkspace: invitedToWorkspace || "",
-            inviterUserId: inviterUserId || "",
-            role: role as "org:admin" | "org:member" | "org:client",
-          },
-        };
-        const user = await db.query.users.findFirst({
-          where: eq(users.email, email_address),
-        });
-
-        const userWorkspaces = await db.query.workspaceMembers.findMany({
-          where: eq(workspaceMembers.userId, user?.id || ""),
-        });
-
-        if (userWorkspaces.length === 0) {
-          await migrateToDefaultWorkspace(user?.id);
-        }
-
-        await db
-          .update(users)
-          .set(updateData)
-          .where(eq(users.email, email_address));
-
-        const workspaceAccess = await db.query.workspaces.findFirst({
-          where: eq(workspaces.id, invitedToWorkspace as string),
-        });
-
-        await clerkClient().users.updateUserMetadata(user?.id || "", {
-          publicMetadata: {
-            hasAccess: workspaceAccess?.hasAccess || false,
-            activeWorkspaceId: invitedToWorkspace as string,
-          },
-        });
-
-        await db.insert(workspaceMembers).values({
-          id: uuidv4(),
-          userId: user?.id || "",
-          workspaceId: invitedToWorkspace as string,
-          role: role as "org:admin" | "org:member" | "org:client",
-        });
-        break;
-      }
+    if (typeof id === "string") {
+      await db.delete(users).where(eq(users.id, id));
+    } else {
+      console.error("Invalid user ID for deletion:", id);
     }
+  }
 
     return new Response("", { status: 200 });
   } catch (error) {

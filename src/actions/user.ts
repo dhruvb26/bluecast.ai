@@ -2,18 +2,7 @@
 
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/server/db";
-import {
-  ideas,
-  drafts,
-  contentStyles,
-  creatorLists,
-  accounts,
-  forYouAnswers,
-  instructions,
-  users,
-  workspaceMembers,
-  workspaces,
-} from "@/server/db/schema";
+import { accounts, forYouAnswers, users, workspaces } from "@/server/db/schema";
 import { currentUser } from "@clerk/nextjs/server";
 import { auth } from "@clerk/nextjs/server";
 import { clerkClient } from "@clerk/nextjs/server";
@@ -223,6 +212,7 @@ export async function setGeneratedWords(words: number) {
 
         usePostStore.getState().setWordsGenerated(1);
       } else {
+        // Handle workspace-specific or personal usage
         if (workspaceId) {
           await db
             .update(workspaces)

@@ -1,1 +1,0 @@
-ALTER TABLE "bluecast.ai_user" ADD COLUMN "metadata" jsonb;

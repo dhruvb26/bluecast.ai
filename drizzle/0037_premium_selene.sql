@@ -1,1 +1,0 @@
-ALTER TABLE "bluecast.ai_user" ADD COLUMN "is_invited" boolean DEFAULT false;

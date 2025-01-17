@@ -246,55 +246,6 @@
       "when": 1731915734422,
       "tag": "0034_tiny_ultimates",
       "breakpoints": true
-    },
-    {
-      "idx": 35,
-      "version": "7",
-      "when": 1735622507067,
-      "tag": "0035_wealthy_professor_monster",
-      "breakpoints": true
-    },
-    {
-      "idx": 36,
-      "version": "7",
-      "when": 1735623133901,
-      "tag": "0036_ancient_starhawk",
-      "breakpoints": true
-    },
-    {
-      "idx": 37,
-      "version": "7",
-      "when": 1735626494466,
-      "tag": "0037_premium_selene",
-      "breakpoints": true
-    },
-    {
-      "idx": 38,
-      "version": "7",
-      "when": 1735666789217,
-      "tag": "0038_foamy_drax",
-      "breakpoints": true
-    },
-    {
-      "idx": 39,
-      "version": "7",
-      "when": 1735666797674,
-      "tag": "0039_ordinary_bucky",
-      "breakpoints": true
-    },
-    {
-      "idx": 40,
-      "version": "7",
-      "when": 1735689269955,
-      "tag": "0040_jittery_white_tiger",
-      "breakpoints": true
-    },
-    {
-      "idx": 41,
-      "version": "7",
-      "when": 1736544824749,
-      "tag": "0041_nice_eddie_brock",
-      "breakpoints": true
     }
   ]
 }

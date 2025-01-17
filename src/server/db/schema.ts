@@ -217,8 +217,7 @@ export const instructions = createTable("instruction", {
     precision: 3,
   }).$onUpdate(() => new Date()),
   workspaceId: varchar("workspace_id", { length: 256 }).references(
-    () => workspaces.id,
-    { onDelete: "cascade" }
+    () => workspaces.id
   ),
 });
 
@@ -250,7 +249,6 @@ export const users = createTable("user", {
   generatedPosts: integer("generated_posts").default(0).notNull(),
   onboardingData: jsonb("onboarding_data"),
   specialAccess: boolean("special_access").default(true),
-  metadata: jsonb("metadata").$type<Record<string, any> | null>(),
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -458,85 +456,3 @@ export const authenticators = createTable(
     }),
   })
 );
-
-export const workspaceRoleEnum = pgEnum("workspace_role", [
-  "org:admin",
-  "org:member",
-  "org:client",
-]);
-
-// Add this new table for workspace members
-export const workspaceMembers = createTable("workspace_member", {
-  id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  workspaceId: varchar("workspace_id", { length: 256 })
-    .references(() => workspaces.id, { onDelete: "cascade" })
-    .notNull(),
-  userId: varchar("user_id", { length: 256 })
-    .references(() => users.id, { onDelete: "cascade" })
-    .notNull(),
-  role: workspaceRoleEnum("role").notNull().default("org:member"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", {
-    mode: "date",
-    precision: 3,
-  }).$onUpdate(() => new Date()),
-});
-
-export const workspaceMemberRelations = relations(
-  workspaceMembers,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [workspaceMembers.userId],
-      references: [users.id],
-    }),
-    workspace: one(workspaces, {
-      fields: [workspaceMembers.workspaceId],
-      references: [workspaces.id],
-    }),
-  })
-);
-
-// Update workspace relations to include members
-export const workspaceRelations = relations(workspaces, ({ many, one }) => ({
-  members: many(workspaceMembers),
-  owner: one(users, { fields: [workspaces.userId], references: [users.id] }),
-  tempTable: many(tempTable),
-}));
-
-export const tempTable = createTable("temp_table", {
-  id: uuid("id").primaryKey().notNull(),
-  email: varchar("email", { length: 256 }).notNull(),
-  inviterUserId: varchar("inviter_user_id", { length: 256 }).references(
-    () => users.id,
-    {
-      onDelete: "cascade",
-    }
-  ),
-  workspaceId: varchar("workspace_id", { length: 256 }).references(
-    () => workspaces.id,
-    {
-      onDelete: "cascade",
-    }
-  ),
-  role: workspaceRoleEnum("role").notNull().default("org:member"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", {
-    mode: "date",
-    precision: 3,
-  }).$onUpdate(() => new Date()),
-});
-
-export const tempTableRelations = relations(tempTable, ({ one }) => ({
-  user: one(users, {
-    fields: [tempTable.inviterUserId],
-    references: [users.id],
-  }),
-  workspace: one(workspaces, {
-    fields: [tempTable.workspaceId],
-    references: [workspaces.id],
-  }),
-}));

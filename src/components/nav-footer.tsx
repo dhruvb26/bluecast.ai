@@ -37,8 +37,8 @@ export function NavFooter({
           <TooltipTrigger asChild>
             <SidebarMenuButton className="hover:cursor-pointer" asChild>
               {isSignOut ? (
-                <SignOutButton>
-                  <div className="flex items-center gap-2 w-full">
+                <SignOutButton redirectUrl={item.url}>
+                  <div className="flex items-center gap-2">
                     {item.icon}
                     {!isCollapsed && (
                       <span className="text-sm font-normal">{item.name}</span>
@@ -68,7 +68,7 @@ export function NavFooter({
   return (
     <SidebarGroup>
       <SidebarMenu>
-        {footerItems.map((item, index) => renderMenuItem(item, index === 0))}
+        {footerItems.map((item, index) => renderMenuItem(item, index === 1))}
       </SidebarMenu>
     </SidebarGroup>
   );

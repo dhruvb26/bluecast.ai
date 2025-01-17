@@ -16,57 +16,109 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import Image from "next/image";
-import { useOrganizationList, useOrganization } from "@clerk/nextjs";
-import { StackSimple } from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
-import { User } from "@/actions/user";
 import {
-  getNumberOfOwnerWorkspaces,
-  getWorkspaceMemberships,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Label } from "./ui/label";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import {
+  createWorkspace,
+  getActiveWorkspaceId,
   switchWorkspace,
 } from "@/actions/workspace";
-interface TeamSwitcherProps {
-  user: User | null;
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import {
+  HourglassSimpleHigh,
+  Sparkle,
+  StackSimple,
+} from "@phosphor-icons/react";
+import { Badge } from "./ui/badge";
+
+export function TeamSwitcher({
+  teams,
+  loading = false,
+  user,
+}: {
   teams: {
     id: string | null;
     name: string;
     plan: string;
   }[];
-  loading: boolean;
-}
-
-export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
+  loading?: boolean;
+  user?: {
+    id: string;
+    name?: string | null;
+    email: string;
+  } | null;
+}) {
   const router = useRouter();
   const { isMobile, state } = useSidebar();
-  const { isLoaded, setActive, userMemberships } = useOrganizationList({
-    userMemberships: {
-      infinite: true,
-    },
-  });
-  const { organization } = useOrganization();
-  const [workspaceCount, setWorkspaceCount] = React.useState(0);
-  const [numberOfOwnerWorkspaces, setNumberOfOwnerWorkspaces] =
-    React.useState(0);
+  const [workspaceName, setWorkspaceName] = React.useState("");
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = React.useState(false);
+  const [activeWorkspace, setActiveWorkspaceState] = React.useState<
+    (typeof teams)[0] | null
+  >(null);
 
+  // Set default workspace if none is active
   React.useEffect(() => {
-    const fetchWorkspaces = async () => {
-      const response = await getWorkspaceMemberships();
-      const numberOfOwnerWorkspaces = await getNumberOfOwnerWorkspaces();
-      setWorkspaceCount(response);
-      setNumberOfOwnerWorkspaces(numberOfOwnerWorkspaces);
-      console.log(response);
+    const initWorkspace = async () => {
+      const activeId = await getActiveWorkspaceId();
+      if (!activeId && teams.length > 0) {
+        setActiveWorkspaceState(teams[0]);
+        await switchWorkspace(teams[0].id!);
+      } else if (activeId) {
+        const activeTeam = teams.find((team) => team.id === activeId);
+        if (activeTeam) {
+          setActiveWorkspaceState(activeTeam);
+        }
+      }
     };
-    fetchWorkspaces();
-  }, []);
+    initWorkspace();
+  }, [teams]);
 
-  if (!isLoaded) {
-    return null;
-  }
+  const handleWorkspaceChange = async (workspace: (typeof teams)[0]) => {
+    // Check if current URL contains /draft/
+    if (window.location.pathname.includes("/draft/")) {
+      toast.error("Cannot switch workspace while editing a draft");
+      return;
+    }
 
-  const handleOrganizationSwitch = async (orgId: string) => {
-    await setActive({ organization: orgId });
-    await switchWorkspace(orgId);
+    const response = await switchWorkspace(workspace.id!);
+    if (!response?.success) {
+      toast.error("Failed to switch workspace");
+      return;
+    }
+
     window.location.reload();
+    console.log("Selected workspace ID:", workspace.id);
+  };
+
+  const handleCreateWorkspace = async () => {
+    try {
+      setIsCreatingWorkspace(true);
+      const response = await createWorkspace(workspaceName);
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+      toast.success("Workspace created successfully");
+      router.refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create workspace"
+      );
+    } finally {
+      setIsCreatingWorkspace(false);
+      setWorkspaceName("");
+    }
   };
 
   return (
@@ -105,6 +157,13 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
                         height={30}
                         className="w-25 h-7 object-contain"
                       />
+                      {/* <span className="truncate text-xs text-muted-foreground">
+                        {loading ? (
+                          <div className="h-4 w-20 bg-gray-200 rounded animate-pulse" />
+                        ) : (
+                          activeWorkspace?.plan
+                        )}
+                      </span> */}
                     </div>
                     <ChevronsUpDown className="ml-auto size-4" />
                   </>
@@ -118,73 +177,85 @@ export function TeamSwitcher({ user, teams, loading }: TeamSwitcherProps) {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            {workspaceCount === 0 && (
+            {teams.map((team) => (
               <DropdownMenuItem
-                onClick={() => handleOrganizationSwitch("")}
-                className={`text-muted-foreground flex items-center ${
-                  !organization?.id
-                    ? "font-medium text-foreground bg-accent"
-                    : "font-normal text-muted-foreground"
-                }`}
+                key={team.name}
+                onClick={() => handleWorkspaceChange(team)}
+                className={
+                  activeWorkspace?.name === team.name
+                    ? "bg-accent text-accent-foreground font-medium"
+                    : "text-muted-foreground"
+                }
               >
-                <StackSimple
-                  weight={!organization?.id ? "fill" : "duotone"}
-                  className={`mr-2 ${
-                    !organization?.id
-                      ? "text-blue-600"
-                      : "text-muted-foreground"
-                  }`}
-                  size={16}
-                />
-                DEFAULT*
-              </DropdownMenuItem>
-            )}
-            {userMemberships.data?.map((mem) => (
-              <DropdownMenuItem
-                key={mem.id}
-                onClick={() => handleOrganizationSwitch(mem.organization.id)}
-                className={`text-muted-foreground flex items-center ${
-                  organization?.id === mem.organization.id
-                    ? "font-medium text-foreground bg-accent"
-                    : "font-normal text-muted-foreground"
-                }`}
-              >
-                <StackSimple
-                  weight={
-                    organization?.id === mem.organization.id
-                      ? "fill"
-                      : "duotone"
-                  }
-                  className={`mr-2 ${
-                    organization?.id === mem.organization.id
-                      ? "text-blue-600"
-                      : "text-muted-foreground"
-                  }`}
-                  size={16}
-                />
-                {mem.organization.name}
+                <div className="flex items-center">
+                  {activeWorkspace?.name === team.name ? (
+                    <StackSimple
+                      weight="fill"
+                      className="mr-2 text-blue-600"
+                      size={16}
+                    />
+                  ) : (
+                    <StackSimple
+                      weight="duotone"
+                      className="mr-2 text-muted-foreground"
+                      size={16}
+                    />
+                  )}
+                  {team.name}
+                </div>
               </DropdownMenuItem>
             ))}
-            {userMemberships.hasNextPage && (
-              <DropdownMenuItem
-                onClick={() => userMemberships.fetchNext()}
-                className="text-muted-foreground flex items-center"
-              >
-                <StackSimple
-                  weight="duotone"
-                  className="mr-2 text-muted-foreground"
-                  size={16}
-                />
-                Load More
-              </DropdownMenuItem>
-            )}
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => router.push("/settings/workspace")}
-              className="focus:bg-accent transition-all"
-            >
-              Manage Workspaces
-            </DropdownMenuItem>
+            <Dialog>
+              <DialogTrigger asChild>
+                <DropdownMenuItem
+                  onSelect={(e) => e.preventDefault()}
+                  className="focus:bg-accent  transition-all  flex justify-between items-center"
+                >
+                  <div className="flex items-center">
+                    <Plus className="inline mr-1" size={16} />
+                    Add Workspace
+                  </div>
+                  <Badge className="opacity-80 font-normal text-xs text-indigo-600 bg-indigo-100">
+                    <Sparkle weight="duotone" className="inline mr-1 w-3 h-3" />
+                    New{" "}
+                  </Badge>
+                </DropdownMenuItem>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Workspace</DialogTitle>
+                  <DialogDescription>
+                    Add a new workspace to organize your content.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Workspace name</Label>
+                    <Input
+                      id="name"
+                      value={workspaceName}
+                      onChange={(e) => setWorkspaceName(e.target.value)}
+                      placeholder="Enter workspace name"
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                  </DialogClose>
+
+                  <Button
+                    loading={isCreatingWorkspace}
+                    onClick={handleCreateWorkspace}
+                    type="submit"
+                  >
+                    Create
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
