@@ -635,64 +635,64 @@ export async function getActiveWorkspace() {
   }
 }
 
-export async function migrateToDefaultWorkspace(userId?: string) {
-  try {
-    console.log("Migrating to default workspace");
-    if (!userId) {
-      const userClerk = await currentUser();
-      if (!userClerk) {
-        throw new Error("No user found.");
-      }
-      userId = userClerk.id;
-    }
+// export async function migrateToDefaultWorkspace(userId?: string) {
+//   try {
+//     console.log("Migrating to default workspace");
+//     if (!userId) {
+//       const userClerk = await currentUser();
+//       if (!userClerk) {
+//         throw new Error("No user found.");
+//       }
+//       userId = userClerk.id;
+//     }
 
-    // 1. Create default workspace
-    const orgResponse = await clerkClient().organizations.createOrganization({
-      name: "DEFAULT",
-      createdBy: userId,
-    });
+//     // 1. Create default workspace
+//     const orgResponse = await clerkClient().organizations.createOrganization({
+//       name: "DEFAULT",
+//       createdBy: userId,
+//     });
 
-    const workspace = await db
-      .insert(workspaces)
-      .values({
-        id: orgResponse.id,
-        name: orgResponse.name,
-        userId: orgResponse.createdBy,
-      })
-      .returning();
+//     const workspace = await db
+//       .insert(workspaces)
+//       .values({
+//         id: orgResponse.id,
+//         name: orgResponse.name,
+//         userId: orgResponse.createdBy,
+//       })
+//       .returning();
 
-    // 2. Create workspace membership
-    await db.insert(workspaceMembers).values({
-      id: uuidv4(),
-      workspaceId: workspace[0].id,
-      userId: userId,
-      role: "org:admin",
-    });
+//     // 2. Create workspace membership
+//     await db.insert(workspaceMembers).values({
+//       id: uuidv4(),
+//       workspaceId: workspace[0].id,
+//       userId: userId,
+//       role: "org:admin",
+//     });
 
-    // 3. Update all relevant tables
-    const tables = [
-      { table: ideas, column: ideas.workspaceId },
-      { table: drafts, column: drafts.workspaceId },
-      { table: accounts, column: accounts.workspaceId },
-      { table: forYouAnswers, column: forYouAnswers.workspaceId },
-      { table: generatedPosts, column: generatedPosts.workspaceId },
-      { table: contentStyles, column: contentStyles.workspaceId },
-      { table: creatorLists, column: creatorLists.workspaceId },
-      { table: instructions, column: instructions.workspaceId },
-    ];
+//     // 3. Update all relevant tables
+//     const tables = [
+//       { table: ideas, column: ideas.workspaceId },
+//       { table: drafts, column: drafts.workspaceId },
+//       { table: accounts, column: accounts.workspaceId },
+//       { table: forYouAnswers, column: forYouAnswers.workspaceId },
+//       { table: generatedPosts, column: generatedPosts.workspaceId },
+//       { table: contentStyles, column: contentStyles.workspaceId },
+//       { table: creatorLists, column: creatorLists.workspaceId },
+//       { table: instructions, column: instructions.workspaceId },
+//     ];
 
-    for (const { table, column } of tables) {
-      await db
-        .update(table)
-        .set({
-          workspaceId: workspace[0].id,
-        })
-        .where(and(eq(table.userId, userId), isNull(column)));
-    }
+//     for (const { table, column } of tables) {
+//       await db
+//         .update(table)
+//         .set({
+//           workspaceId: workspace[0].id,
+//         })
+//         .where(and(eq(table.userId, userId), isNull(column)));
+//     }
 
-    return { success: true, workspaceId: workspace[0].id };
-  } catch (error) {
-    console.error("Error in migrateToDefaultWorkspace:", error);
-    throw error;
-  }
-}
+//     return { success: true, workspaceId: workspace[0].id };
+//   } catch (error) {
+//     console.error("Error in migrateToDefaultWorkspace:", error);
+//     throw error;
+//   }
+// }
