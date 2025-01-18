@@ -2,15 +2,14 @@ import { NextResponse } from "next/server";
 import { db } from "@/server/db";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import { users, workspaceMembers, workspaces } from "@/server/db/schema";
-import { and, eq } from "drizzle-orm";
+import { users } from "@/server/db/schema";
+import { eq } from "drizzle-orm";
 import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const plans = [
   // Pro Monthly
   {
-    name: "Pro Monthly",
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "https://buy.stripe.com/test_fZe5l61pNfrWdOg7ss"
@@ -24,7 +23,6 @@ const plans = [
   },
   // Pro Annual
   {
-    name: "Pro Annual",
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "https://buy.stripe.com/test_fZeeVG2tR1B625y7st"
@@ -38,7 +36,6 @@ const plans = [
   },
   // Grow Monthly
   {
-    name: "Grow Monthly",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
@@ -48,7 +45,6 @@ const plans = [
   },
   // Grow Annual
   {
-    name: "Grow Annual",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
         ? "price_1QLXONRrqqSKPUNW7s5FxANR"
@@ -87,29 +83,53 @@ export async function POST(req: Request) {
     switch (eventType) {
       case "checkout.session.completed": {
         let session = data as Stripe.Checkout.Session;
+        console.log("Checkout session completed:", session.id);
 
         if (!session.customer || typeof session.customer !== "string") {
+          console.log("Invalid customer ID");
           return NextResponse.json(
             { error: "Invalid customer ID" },
             { status: 400 }
           );
         }
 
+        console.log(
+          "Searching for active user with email:",
+          session.customer_details
+        );
         const activeUser = await db.query.users.findFirst({
           where: eq(users.email, session.customer_details?.email as string),
         });
+        console.log("Active user found:", activeUser);
 
         if (activeUser?.stripeCustomerId && activeUser?.stripeSubscriptionId) {
+          console.log(
+            "Found existing stripe customer:",
+            activeUser.stripeCustomerId
+          );
           const activeCustomerId = activeUser.stripeCustomerId;
 
+          console.log(
+            "Fetching active subscriptions for customer:",
+            activeCustomerId
+          );
           const activeSubscriptions = await stripe.subscriptions.list({
             customer: activeCustomerId,
           });
 
+          console.log("Active subscriptions:", activeSubscriptions);
+
           if (activeSubscriptions.data.length > 0) {
             const activeSubscription = activeSubscriptions.data[0];
-
+            console.log(
+              "Cancelling existing subscription:",
+              activeSubscription.id
+            );
             await stripe.subscriptions.cancel(activeSubscription.id);
+            console.log(
+              "Successfully cancelled subscription:",
+              activeSubscription.id
+            );
           } else {
             console.log("No active subscriptions found to cancel");
           }
@@ -118,13 +138,16 @@ export async function POST(req: Request) {
         }
 
         const customerId = session.customer;
+        console.log("Customer ID:", customerId);
 
         const customer = await stripe.customers.retrieve(customerId);
+        console.log("Customer retrieved:", customer.id);
 
         if (!session.line_items) {
           session = await stripe.checkout.sessions.retrieve(session.id, {
             expand: ["line_items"],
           });
+          console.log("Session retrieved with line items");
         }
 
         const priceId = session.line_items?.data[0]?.price?.id;
@@ -135,6 +158,7 @@ export async function POST(req: Request) {
             { status: 400 }
           );
         }
+        console.log("Price ID:", priceId);
 
         const plan = plans.find((p) => p.priceId === priceId);
         if (!plan) {
@@ -144,10 +168,15 @@ export async function POST(req: Request) {
             { status: 404 }
           );
         }
+        console.log("Plan found:", plan.priceId);
 
-        const isPro = plan.name === "Pro Monthly" || plan.name === "Pro Annual";
-        const isGrow =
-          plan.name === "Grow Monthly" || plan.name === "Grow Annual";
+        if ("deleted" in customer && customer.deleted) {
+          console.log("Customer has been deleted");
+          return NextResponse.json(
+            { error: "Customer not found" },
+            { status: 404 }
+          );
+        }
 
         if ("email" in customer && customer.email) {
           console.log("Searching for user with email:", customer.email);
@@ -173,16 +202,6 @@ export async function POST(req: Request) {
           console.log("Subscription retrieved:", subscription.id);
 
           try {
-            const adminWorkspaces = await db.query.workspaceMembers.findMany({
-              where: and(
-                eq(workspaceMembers.userId, user.id),
-                eq(workspaceMembers.role, "org:admin")
-              ),
-              ...(isPro && {
-                orderBy: (workspaces, { asc }) => [asc(workspaces.createdAt)],
-              }),
-            });
-
             await db
               .update(users)
               .set({
@@ -201,29 +220,6 @@ export async function POST(req: Request) {
                 hasAccess: true,
               },
             });
-
-            if (adminWorkspaces.length > 0) {
-              if (isPro && adminWorkspaces.length > 1) {
-                await db
-                  .update(workspaces)
-                  .set({ hasAccess: true })
-                  .where(eq(workspaces.id, adminWorkspaces[0].workspaceId));
-
-                for (let i = 1; i < adminWorkspaces.length; i++) {
-                  await db
-                    .update(workspaces)
-                    .set({ hasAccess: false })
-                    .where(eq(workspaces.id, adminWorkspaces[i].workspaceId));
-                }
-              } else if (isGrow) {
-                for (const workspace of adminWorkspaces) {
-                  await db
-                    .update(workspaces)
-                    .set({ hasAccess: true })
-                    .where(eq(workspaces.id, workspace.workspaceId));
-                }
-              }
-            }
 
             console.log("Database updated successfully");
           } catch (error) {
@@ -251,13 +247,11 @@ export async function POST(req: Request) {
           );
         }
 
-        const userWithCustomerId = await db.query.users.findFirst({
+        const user = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, subscription.customer),
         });
 
-        const userId = userWithCustomerId?.id;
-
-        if (!userId) {
+        if (!user) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
@@ -272,113 +266,44 @@ export async function POST(req: Request) {
             hasAccess: false,
             stripeSubscriptionId: null,
           })
-          .where(eq(users.id, userId));
+          .where(eq(users.id, user.id));
 
-        await clerkClient().users.updateUserMetadata(userId, {
+        await clerkClient().users.updateUserMetadata(user.id, {
           publicMetadata: {
             hasAccess: false,
           },
         });
 
-        const adminWorkspaces = await db.query.workspaceMembers.findMany({
-          where: and(
-            eq(workspaceMembers.userId, userId),
-            eq(workspaceMembers.role, "org:admin")
-          ),
-        });
-
-        if (adminWorkspaces.length > 0) {
-          for (const workspace of adminWorkspaces) {
-            await db
-              .update(workspaces)
-              .set({
-                hasAccess: false,
-              })
-              .where(eq(workspaces.id, workspace.workspaceId));
-          }
-        }
-
         break;
       }
       case "invoice.payment_succeeded": {
         const invoice = data as Stripe.Invoice;
-        if (invoice.billing_reason !== "subscription_cycle") break;
-
-        const subscription = await stripe.subscriptions.retrieve(
-          invoice.subscription as string
-        );
-
-        const userWithCustomerId = await db.query.users.findFirst({
-          where: eq(users.stripeCustomerId, subscription.customer as string),
-        });
-
-        const userId = userWithCustomerId?.id;
-        if (!userId) {
-          return NextResponse.json(
-            { error: "User not found" },
-            { status: 404 }
+        if (invoice.billing_reason === "subscription_cycle") {
+          const subscriptionId = invoice.subscription as string;
+          const subscription = await stripe.subscriptions.retrieve(
+            subscriptionId
           );
-        }
 
-        const priceId = subscription.items.data[0].price.id;
-        const plan = plans.find((p) => p.priceId === priceId);
+          const user = await db.query.users.findFirst({
+            where: eq(users.stripeCustomerId, subscription.customer as string),
+          });
 
-        const isPro =
-          plan?.name === "Pro Monthly" || plan?.name === "Pro Annual";
-        const isGrow =
-          plan?.name === "Grow Monthly" || plan?.name === "Grow Annual";
-
-        const adminWorkspaces = await db.query.workspaceMembers.findMany({
-          where: and(
-            eq(workspaceMembers.userId, userId),
-            eq(workspaceMembers.role, "org:admin")
-          ),
-          ...(isPro && {
-            orderBy: (workspaces, { asc }) => [asc(workspaces.createdAt)],
-          }),
-        });
-
-        // Update user access
-        await db
-          .update(users)
-          .set({
-            hasAccess: true,
-            ...(isPro && { trialEndsAt: null }),
-          })
-          .where(eq(users.id, userId));
-
-        await clerkClient().users.updateUserMetadata(userId, {
-          publicMetadata: {
-            hasAccess: true,
-          },
-        });
-
-        // Update workspace access
-        if (adminWorkspaces.length > 0) {
-          if (isPro && adminWorkspaces.length > 1) {
-            // First workspace gets access, rest don't
+          if (user) {
             await db
-              .update(workspaces)
-              .set({ hasAccess: true })
-              .where(eq(workspaces.id, adminWorkspaces[0].workspaceId));
+              .update(users)
+              .set({
+                trialEndsAt: null,
+                hasAccess: true,
+              })
 
-            for (let i = 1; i < adminWorkspaces.length; i++) {
-              await db
-                .update(workspaces)
-                .set({ hasAccess: false })
-                .where(eq(workspaces.id, adminWorkspaces[i].workspaceId));
-            }
-          } else if (isGrow) {
-            // All workspaces get access
-            for (const workspace of adminWorkspaces) {
-              await db
-                .update(workspaces)
-                .set({ hasAccess: true })
-                .where(eq(workspaces.id, workspace.workspaceId));
-            }
+              .where(eq(users.id, user.id));
+            await clerkClient().users.updateUserMetadata(user.id, {
+              publicMetadata: {
+                hasAccess: true,
+              },
+            });
           }
         }
-
         break;
       }
       case "customer.subscription.updated": {
@@ -394,31 +319,32 @@ export async function POST(req: Request) {
           );
         }
 
-        const usersWithSameCustomerId = await db.query.users.findMany({
+        const user = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, subscription.customer),
         });
 
-        if (!usersWithSameCustomerId) {
+        if (!user) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
           );
         }
 
-        for (const user of usersWithSameCustomerId) {
-          await db
-            .update(users)
-            .set({
-              hasAccess: subscription.status === "active",
-            })
-            .where(eq(users.id, user.id));
+        // Update user access based on subscription status
+        await db
+          .update(users)
+          .set({
+            hasAccess: subscription.status === "active",
+          })
+          .where(eq(users.id, user.id));
 
-          await clerkClient().users.updateUserMetadata(user.id, {
-            publicMetadata: {
-              hasAccess: subscription.status === "active",
-            },
-          });
-        }
+        await clerkClient().users.updateUserMetadata(user.id, {
+          publicMetadata: {
+            hasAccess: subscription.status === "active",
+          },
+        });
+
+        console.log(`Updated user ${user.id} access`);
 
         break;
       }
@@ -429,48 +355,23 @@ export async function POST(req: Request) {
           subscriptionId
         );
 
-        const userWithCustomerId = await db.query.users.findFirst({
+        const user = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, subscription.customer as string),
         });
 
-        const userId = userWithCustomerId?.id;
+        if (user) {
+          await db
+            .update(users)
+            .set({
+              hasAccess: false,
+            })
+            .where(eq(users.id, user.id));
 
-        if (!userId) {
-          return NextResponse.json(
-            { error: "User not found" },
-            { status: 404 }
-          );
-        }
-
-        await db
-          .update(users)
-          .set({
-            hasAccess: false,
-          })
-          .where(eq(users.id, userId));
-
-        await clerkClient().users.updateUserMetadata(userId, {
-          publicMetadata: {
-            hasAccess: false,
-          },
-        });
-
-        const adminWorkspaces = await db.query.workspaceMembers.findMany({
-          where: and(
-            eq(workspaceMembers.userId, userId),
-            eq(workspaceMembers.role, "org:admin")
-          ),
-        });
-
-        if (adminWorkspaces.length > 0) {
-          for (const workspace of adminWorkspaces) {
-            await db
-              .update(workspaces)
-              .set({
-                hasAccess: false,
-              })
-              .where(eq(workspaces.id, workspace.workspaceId));
-          }
+          await clerkClient().users.updateUserMetadata(user.id, {
+            publicMetadata: {
+              hasAccess: false,
+            },
+          });
         }
         break;
       }
@@ -484,13 +385,11 @@ export async function POST(req: Request) {
           );
         }
 
-        const userWithCustomerId = await db.query.users.findFirst({
+        const user = await db.query.users.findFirst({
           where: eq(users.stripeCustomerId, charge.customer),
         });
 
-        const userId = userWithCustomerId?.id;
-
-        if (!userId) {
+        if (!user) {
           return NextResponse.json(
             { error: "User not found" },
             { status: 404 }
@@ -505,31 +404,15 @@ export async function POST(req: Request) {
             stripeSubscriptionId: null,
             priceId: null,
           })
-          .where(eq(users.id, userId));
+          .where(eq(users.id, user.id));
 
-        await clerkClient().users.updateUserMetadata(userId, {
+        await clerkClient().users.updateUserMetadata(user.id, {
           publicMetadata: {
             hasAccess: false,
           },
         });
 
-        const adminWorkspaces = await db.query.workspaceMembers.findMany({
-          where: and(
-            eq(workspaceMembers.userId, userId),
-            eq(workspaceMembers.role, "org:admin")
-          ),
-        });
-
-        if (adminWorkspaces.length > 0) {
-          for (const workspace of adminWorkspaces) {
-            await db
-              .update(workspaces)
-              .set({
-                hasAccess: false,
-              })
-              .where(eq(workspaces.id, workspace.workspaceId));
-          }
-        }
+        console.log(`Removed access for user ${user.id} due to refund`);
         break;
       }
       default:

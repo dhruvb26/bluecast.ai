@@ -260,7 +260,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   forYouAnswers: many(forYouAnswers),
   generatedPosts: many(generatedPosts),
   instructions: many(instructions),
-  tempTable: many(tempTable),
 }));
 
 export const accounts = createTable(

@@ -3,7 +3,7 @@
 import { and, count, eq } from "drizzle-orm";
 import { db } from "@/server/db";
 import { getUser } from "./user";
-import { workspaces } from "@/server/db/schema";
+import { users, workspaces } from "@/server/db/schema";
 import { ServerActionResponse } from "@/types";
 import { v4 as uuid } from "uuid";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -283,36 +283,6 @@ export async function updateWorkspaceLinkedInName(
 
     if (!userId) {
       return { success: false, error: "User not authenticated" };
-    }
-
-    const { sessionClaims } = auth();
-    const activeWorkspaceId = sessionClaims?.metadata?.activeWorkspaceId as
-      | string
-      | undefined;
-
-    // Only check ownership if there's an active workspace
-    if (activeWorkspaceId) {
-      if (activeWorkspaceId !== workspaceId) {
-        return {
-          success: false,
-          error: "You are not an admin of this workspace.",
-        };
-      }
-
-      const ownership = await db.query.workspaceMembers.findMany({
-        where: and(
-          eq(workspaceMembers.userId, userId),
-          eq(workspaceMembers.workspaceId, workspaceId),
-          eq(workspaceMembers.role, "org:admin")
-        ),
-      });
-
-      if (ownership.length === 0) {
-        return {
-          success: false,
-          error: "You are not an admin of this workspace.",
-        };
-      }
     }
 
     const updatedWorkspace = await db

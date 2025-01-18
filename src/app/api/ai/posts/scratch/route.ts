@@ -42,8 +42,6 @@ export async function POST(req: Request) {
 
     const user = await getUser();
 
-    console.log("Examples:\n", examples);
-
     const stream = await anthropic.messages.create({
       model: env.MODEL,
       max_tokens: 1024,

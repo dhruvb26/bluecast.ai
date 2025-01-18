@@ -55,36 +55,25 @@ export async function POST(req: Request) {
   if (eventType === "user.created") {
     const { id, first_name, last_name, image_url, email_addresses } = evt.data;
 
-    // // Check if a user with the given email already exists
-    // const existingUser = await db.query.users.findFirst({
-    //   where: eq(users.email, email_addresses[0].email_address),
-    // });
+    await clerkClient().users.updateUserMetadata(id, {
+      publicMetadata: {
+        hasAccess: true,
+      },
+    });
 
-    // if (existingUser) {
-    //   // Redirect to access denied page
-    //   return NextResponse.redirect(new URL("/blocked", req.url));
-    // }
+    const updateData = {
+      id,
+      name: `${first_name} ${last_name}`.trim(),
+      email: email_addresses[0].email_address,
+      image: image_url,
+      trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    };
 
-        await clerkClient().users.updateUserMetadata(id, {
-          publicMetadata: {
-            hasAccess: true,
-          },
-        });
-
-        const updateData = {
-          id,
-          name: `${first_name} ${last_name}`.trim(),
-          email: email_addresses[0].email_address,
-          image: image_url,
-          trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        };
-
-        await db.insert(users).values(updateData).onConflictDoUpdate({
-          target: users.id,
-          set: updateData,
-        });
-        break;
-      }
+    await db.insert(users).values(updateData).onConflictDoUpdate({
+      target: users.id,
+      set: updateData,
+    });
+  }
 
   if (eventType === "user.updated") {
     const { id, first_name, last_name, image_url, email_addresses } = evt.data;
@@ -108,9 +97,8 @@ export async function POST(req: Request) {
       }
     }
 
-        await db.update(users).set(updateData).where(eq(users.id, id));
-        break;
-      }
+    await db.update(users).set(updateData).where(eq(users.id, id));
+  }
 
   if (eventType === "user.deleted") {
     const { id } = evt.data;
@@ -122,9 +110,5 @@ export async function POST(req: Request) {
     }
   }
 
-    return new Response("", { status: 200 });
-  } catch (error) {
-    console.error("Error processing webhook:", error);
-    return new Response("Error processing webhook", { status: 500 });
-  }
+  return new Response("", { status: 200 });
 }

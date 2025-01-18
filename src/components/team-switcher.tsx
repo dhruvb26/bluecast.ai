@@ -217,10 +217,6 @@ export function TeamSwitcher({
                     <Plus className="inline mr-1" size={16} />
                     Add Workspace
                   </div>
-                  <Badge className="opacity-80 font-normal text-xs text-indigo-600 bg-indigo-100">
-                    <Sparkle weight="duotone" className="inline mr-1 w-3 h-3" />
-                    New{" "}
-                  </Badge>
                 </DropdownMenuItem>
               </DialogTrigger>
               <DialogContent>

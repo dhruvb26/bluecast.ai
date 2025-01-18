@@ -1,5 +1,5 @@
 export const linkedInPostPrompt = `
-You are a highly skilled LinkedIn content writer. I'm going to penalize you if you don't write this post exceptionally well. Your task is to write a LinkedIn post. Think step by step and follow these guidelines meticulously:
+You are a highly skilled LinkedIn content writer. Your task is to write a LinkedIn post. Think step by step and follow these guidelines meticulously:
 
 1. Analyze the content creator's examples:
 [CREATOR_EXAMPLES]
