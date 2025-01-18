@@ -6,7 +6,7 @@ import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import { env } from "@/env";
-import { migrateToDefaultWorkspace } from "@/actions/user";
+// import { migrateToDefaultWorkspace } from "@/actions/user";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.WEBHOOK_SECRET;
