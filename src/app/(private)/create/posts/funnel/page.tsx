@@ -1,13 +1,11 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { ArrowLeft } from "@phosphor-icons/react";
 import { FunnelTemplateForm } from "@/components/forms/funnel-template-form";
 import { GeneratedContent } from "@/components/global/generated-content";
-import { ChevronLeft } from "lucide-react";
 
-const FunnelPage = () => {
+const FunnelPageContent = () => {
+
   return (
     <main className="w-full">
       <div className="mb-8">
@@ -20,7 +18,7 @@ const FunnelPage = () => {
       </div>
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">
         <div className="w-full lg:w-1/2">
-          <FunnelTemplateForm />
+          <FunnelTemplateForm  />
         </div>
         <div className="w-full lg:w-1/2">
           <GeneratedContent />
@@ -29,4 +27,4 @@ const FunnelPage = () => {
     </main>
   );
 };
-export default FunnelPage;
+export default FunnelPageContent;

@@ -23,12 +23,22 @@ import {
   InstructionsField,
 } from "./form-fields";
 import { Textarea } from "../ui/textarea";
+import { useFunnelStore } from "@/store/funnel";
+import { FunnelPromptSelector } from "../ideas/funnel-prompt-selector";
+
+interface PromptTemplate {
+  name: string;
+  prompt: string;
+  funnel_location: string;
+  example: string;
+}
 
 export const FunnelTemplateFormSchema = z.object({
   instructions: z.string().optional(),
   formatTemplate: z.string().optional(),
   contentStyle: z.string().optional(),
-  postContent: z.string().optional(),
+  question: z.string(),
+  answer: z.string(),
 });
 
 export function FunnelTemplateForm() {
@@ -38,7 +48,8 @@ export function FunnelTemplateForm() {
       instructions: "",
       formatTemplate: "",
       contentStyle: "",
-      postContent: "",
+      question: "",
+      answer: "",
     },
   });
 
@@ -50,6 +61,14 @@ export function FunnelTemplateForm() {
     linkedInPostInstructions,
     isLoading,
   } = usePostStore();
+
+  const funnelTemplate = useFunnelStore((state) => state.funnelTemplate);
+
+  useEffect(() => {
+    if (funnelTemplate) {
+      form.setValue("question", funnelTemplate.prompt);
+    }
+  }, [funnelTemplate, form]);
 
   useEffect(() => {
     form.setValue("formatTemplate", selectedFormat || "");
@@ -80,6 +99,10 @@ export function FunnelTemplateForm() {
     storeHandleSubmit("posts/funnel", data);
   };
 
+  const handleSelectPrompt = (prompt: PromptTemplate) => {
+    form.setValue("question", prompt.prompt);
+  };
+
   return (
     <Form {...form}>
       <form
@@ -97,19 +120,49 @@ export function FunnelTemplateForm() {
 
         <FormField
           control={form.control}
-          name="postContent"
+          name="question"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Post Topic</FormLabel>
+              <div className="flex items-center justify-between">
+                <FormLabel>Marketing Question</FormLabel>
+                <div className="space-x-2 items-start flex flex-row">
+                  <FunnelPromptSelector
+                    onSelectPrompt={handleSelectPrompt}
+                    triggerDialog={false}
+                  />
+                </div>
+              </div>
+
               <FormControl>
                 <Textarea
-                  placeholder="Describe the main topic and key points of your post."
+                  placeholder="Enter your question based on funnel stage"
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                Provide a detailed outline of your post's content. The more
-                specific you are, the better the generated result will be.
+                Your question should match your marketing funnel stage to
+                generate targeted content.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="answer"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Answer</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Provide your answer matching the funnel stage"
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Align your answer with the funnel stage for better content
+                generation.
               </FormDescription>
               <FormMessage />
             </FormItem>

@@ -58,7 +58,7 @@ export function IdeaForm() {
                 />
               </FormControl>
               <FormDescription>
-                Enter a topic you want to generate post ideas for.
+                Enter a topic you want to generate post ideas for
               </FormDescription>
               <FormMessage />
             </FormItem>
