@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkAccess } from "@/actions/user";
+import { env } from "@/env";
 
 export async function POST(req: Request) {
   //   const hasAccess = await checkAccess();
@@ -13,9 +14,7 @@ export async function POST(req: Request) {
 
   // Fetch the CSV file
   try {
-    const response = await fetch(
-      "https://ff2w1im896.ufs.sh/f/Hny9aU7MkSTDQgziEolHBtcXJLyKUgbZi3dYeVz7wSR4TOhr"
-    );
+    const response = await fetch(env.FILE_URL);
     const csvData = await response.text();
 
     const body = await req.json();

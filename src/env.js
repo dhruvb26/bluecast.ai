@@ -42,6 +42,7 @@ export const env = createEnv({
 
     CLERK_SECRET_KEY: z.string(),
     WEBHOOK_SECRET: z.string(),
+    FILE_URL: z.string(),
   },
 
   /**
@@ -80,6 +81,7 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     MODEL: process.env.MODEL,
     UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
+    FILE_URL: process.env.FILE_URL,
     UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
     AIGATEWAY_ACCOUNT_ID: process.env.AIGATEWAY_ACCOUNT_ID,
     AIGATEWAY_ID: process.env.AIGATEWAY_ID,
