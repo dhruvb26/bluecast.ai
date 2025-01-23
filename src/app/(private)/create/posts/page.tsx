@@ -142,6 +142,28 @@ const PostsPage = () => {
           </h2>
         </>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Link href={"/create/posts/funnel"}>
+            <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
+                <CardTitle className="text-base font-semibold tracking-tight">
+                  <Funnel className="inline mr-2 text-foreground" />
+                  Build Your Content Funnel
+                  <Badge className="absolute top-2 right-2 font-normal bg-purple-50 border border-purple-100 text-purple-600">
+                    <Sparkle
+                      weight="duotone"
+                      className="inline mr-1"
+                      size={12}
+                    />
+                    New
+                  </Badge>
+                </CardTitle>
+                <p className="mt-2 flex-grow text-sm text-muted-foreground">
+                  Create targeted content for each stage of your marketing
+                  funnel to effectively guide and convert your audience.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href={"/create/posts/refresh"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
@@ -216,28 +238,6 @@ const PostsPage = () => {
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
                   Craft concise, powerful tips that provide immediate value to
                   your audience, boosting engagement.
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href={"/create/posts/funnel"}>
-            <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
-              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
-                <CardTitle className="text-base font-semibold tracking-tight">
-                  <Funnel className="inline mr-2 text-foreground" />
-                  Build Your Content Funnel
-                  <Badge className="absolute top-2 right-2 font-normal bg-purple-50 border border-purple-100 text-purple-600">
-                    <Sparkle
-                      weight="duotone"
-                      className="inline mr-1"
-                      size={12}
-                    />
-                    New
-                  </Badge>
-                </CardTitle>
-                <p className="mt-2 flex-grow text-sm text-muted-foreground">
-                  Create targeted content for each stage of your marketing
-                  funnel to effectively guide and convert your audience.
                 </p>
               </CardContent>
             </Card>
