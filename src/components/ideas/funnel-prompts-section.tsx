@@ -85,7 +85,7 @@ export function FunnelPromptsSection() {
         <Label>Stage</Label>
         <div className="w-full flex flex-row items-center justify-start space-x-2">
           <Select onValueChange={setSelectedStage} value={selectedStage}>
-            <SelectTrigger>
+            <SelectTrigger className="mt-1 h-10">
               <SelectValue placeholder="Select funnel stage" className="mt-1" />
             </SelectTrigger>
             <SelectContent>
@@ -120,7 +120,7 @@ export function FunnelPromptsSection() {
               size={42}
             />
             <span className="text-sm text-muted-foreground">
-              Select a stage and generate templates
+              Nothing to see here yet.
             </span>
           </div>
         ) : (
