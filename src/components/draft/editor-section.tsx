@@ -25,6 +25,7 @@ import ScheduleDialog from "@/components/scheduler/schedule-dialog";
 import { toast } from "sonner";
 import EmojiPicker, { SkinTonePickerLocation } from "emoji-picker-react";
 import {
+  MagicWand,
   Smiley,
   Sparkle,
   TextB,
@@ -42,7 +43,13 @@ import {
   CircleCheckBig,
   IndentDecrease,
   IndentIncrease,
+  Pencil,
+  PenSquare,
+  Save,
   Send,
+  Sparkles,
+  Trash,
+  Trash2,
 } from "lucide-react";
 import { HistoryEditor } from "slate-history";
 import { deserializeContent } from "@/utils/editor-utils";
@@ -52,6 +59,28 @@ import LinkedInConnect from "../global/connect-linkedin";
 import { usePostStore } from "@/store/post";
 
 import { useRouter } from "next/navigation";
+import { deleteDraft, updateDraftField } from "@/actions/draft";
+import { Input } from "../ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../ui/alert-dialog";
 
 export type ParagraphElement = {
   type: "paragraph";
@@ -145,6 +174,9 @@ interface EditorSectionProps {
   setFileType: any;
   initialDocumentUrn: string | null;
   updateAt: Date | null;
+  initialName: string | null;
+  workspaceId: string | undefined;
+  status: string | null;
 }
 
 function EditorSection({
@@ -154,8 +186,11 @@ function EditorSection({
   editor,
   handleSave,
   initialDocumentUrn,
+  status,
   setFileType,
   updateAt,
+  initialName,
+  workspaceId,
 }: EditorSectionProps) {
   const [value, setInternalValue] = useState<Descendant[]>(() => {
     if (typeof initialValue === "string") {
@@ -168,6 +203,38 @@ function EditorSection({
     }
     return initialValue;
   });
+  const [name, setName] = useState(initialName);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const saveName = async () => {
+    try {
+      const response = await updateDraftField(id, "name", name || "");
+      if (!response.success) {
+        toast.error("Failed to update draft name");
+        return;
+      }
+      setIsOpen(false);
+      toast.success("Draft name updated successfully.");
+    } catch (error) {
+      console.error("Error updating draft name:", error);
+      toast.error("Failed to update draft name");
+    }
+  };
+
+  const handleDeleteDraft = async () => {
+    try {
+      const response = await deleteDraft(id);
+      if (!response.success) {
+        toast.error("Failed to delete draft");
+        return;
+      }
+      toast.success("Draft deleted successfully");
+      router.push("/saved/posts"); // Redirect to drafts list
+    } catch (error) {
+      console.error("Error deleting draft:", error);
+      toast.error("Failed to delete draft");
+    }
+  };
 
   const renderElement = useCallback((props: any) => {
     switch (props.element.type) {
@@ -297,6 +364,7 @@ function EditorSection({
       const publishData: any = {
         postId: id,
         userId: user?.id,
+        workspaceId: workspaceId,
       };
 
       const response = await fetch("/api/linkedin/post", {
@@ -320,11 +388,11 @@ function EditorSection({
         const link = `https://www.linkedin.com/feed/update/${result.urn}/`;
 
         toast.success(
-          <span>
+          <span className="flex items-center text-sm space-x-1">
             Post published successfully.{" "}
             <a
               href={link}
-              className="font-semibold text-green-900"
+              className="font-semibold text-green-700 ml-1"
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -519,6 +587,54 @@ function EditorSection({
           }}
         >
           <div className="m-2 flex space-x-1">
+            <Input
+              className="text-sm max-w-[250px] ml-2"
+              value={name || "Untitled"}
+              disabled
+            />
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  onClick={() => setIsOpen(true)}
+                  variant="ghost"
+                  size="icon"
+                  className="mx-2"
+                >
+                  <PenSquare className="stroke-1 h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Draft</DialogTitle>
+                  <DialogDescription>
+                    Update your draft name or delete the draft.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder="Enter draft name"
+                    value={name || ""}
+                    onChange={(e) => setName(e.target.value)}
+                    className="mb-4"
+                  />
+                </div>
+                <DialogFooter className="flex justify-between">
+                  <div className="space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setName(initialName);
+                        setIsOpen(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={saveName}>Save</Button>
+                  </div>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <ToolbarButton format="bold" icon={<TextB className="h-4 w-4" />} />
             <ToolbarButton
               format="italic"
@@ -545,11 +661,11 @@ function EditorSection({
                     className="rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   >
-                    <Smiley weight="duotone" className="h-4 w-4" />
+                    <Smiley className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Add Emoji</p>
+                  <p>Emoji</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -558,8 +674,9 @@ function EditorSection({
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
+                  size="icon"
                   className="rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-600"
-                  disabled={isRewriting}
+                  loading={isRewriting}
                   onMouseDown={(e) => {
                     e.preventDefault();
                     const { selection } = editor;
@@ -568,12 +685,7 @@ function EditorSection({
                     }
                   }}
                 >
-                  {isRewriting ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Sparkle weight="duotone" className="mr-1 h-4 w-4" />
-                  )}
-                  AI
+                  <MagicWand weight="duotone" className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent
@@ -675,7 +787,7 @@ function EditorSection({
             />
           </div>
         </Slate>
-        <div className="mt-2 mb-10 flex w-full justify-between text-xs text-gray-500 px-4">
+        <div className="mt-2 mb-8 flex w-full justify-between text-xs text-gray-500 px-4">
           <span>
             {updateAt ? (
               `Last saved at: ${updateAt.toLocaleString()} (${
@@ -690,21 +802,45 @@ function EditorSection({
           <span>{charCount}/3000 characters</span>
         </div>
       </div>
+
       <div className="flex items-center justify-between border-gray-200 px-4 py-2">
-        <Button onClick={handleSave} disabled={isPublishing}>
-          Save Draft
-        </Button>
-        <div className="flex space-x-2">
-          <ScheduleDialog id={id} disabled={isPublishing} />
-          <Button onClick={handlePublish} disabled={isPublishing}>
-            {isPublishing ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Send className="mr-1 h-4 w-4" />
-            )}
-            {isPublishing ? "Publishing" : "Publish"}
-          </Button>
-        </div>
+        {status !== "published" && (
+          <>
+            <div className="flex space-x-2">
+              <Button onClick={handleSave} disabled={isPublishing}>
+                Save Draft
+              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline">Delete</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-lg font-semibold tracking-tight">
+                      Are you sure?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete
+                      your draft.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDeleteDraft()}>
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+            <div className="flex space-x-2">
+              <ScheduleDialog id={id} disabled={isPublishing} />
+              <Button onClick={handlePublish} loading={isPublishing}>
+                {isPublishing ? "Publishing" : "Publish"}
+              </Button>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

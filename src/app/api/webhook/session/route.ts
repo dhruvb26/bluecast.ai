@@ -34,11 +34,12 @@ export async function POST(req: Request) {
         },
       ],
       mode: "subscription",
-      success_url: `${env.BASE_URL}/dashboard`,
+      success_url: `${env.BASE_URL}/create/posts`,
       cancel_url: `${env.BASE_URL}/pricing`,
-      // metadata: {
-      //   dbId: user.id,
-      // },
+      allow_promotion_codes: true,
+      metadata: {
+        dbId: user.id,
+      },
     });
 
     console.log("Session ID: ", session.id);

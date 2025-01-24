@@ -3,8 +3,9 @@
 import { db } from "@/server/db";
 import { ideas } from "@/server/db/schema";
 import { getUser } from "./user";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { ServerActionResponse } from "@/types";
+import { auth } from "@clerk/nextjs/server";
 
 // Define the Idea type
 export type Idea = {
@@ -13,6 +14,7 @@ export type Idea = {
   createdAt: Date;
   updatedAt: Date;
   userId: string;
+  workspaceId?: string;
 };
 
 export async function saveIdea(
@@ -22,12 +24,21 @@ export async function saveIdea(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const conditions = [eq(ideas.id, id)];
+    if (workspaceId) {
+      conditions.push(eq(ideas.workspaceId, workspaceId));
+    } else {
+      conditions.push(eq(ideas.userId, userId));
+      conditions.push(isNull(ideas.workspaceId));
     }
 
     const updatedIdea = await db
@@ -36,7 +47,7 @@ export async function saveIdea(
         content: content,
         updatedAt: new Date(),
       })
-      .where(eq(ideas.id, id))
+      .where(and(...conditions))
       .returning();
 
     if (updatedIdea.length === 0) {
@@ -46,6 +57,7 @@ export async function saveIdea(
         .values({
           id: id,
           userId: userId,
+          workspaceId: workspaceId,
           content: content,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -75,18 +87,27 @@ export async function getIdeas(): Promise<ServerActionResponse<Idea[]>> {
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const conditions = [];
+    if (workspaceId) {
+      conditions.push(eq(ideas.workspaceId, workspaceId));
+    } else {
+      conditions.push(eq(ideas.userId, userId));
+      conditions.push(isNull(ideas.workspaceId));
     }
 
     const userIdeas = await db
       .select()
       .from(ideas)
-      .where(eq(ideas.userId, userId));
+      .where(and(...conditions));
 
     return {
       success: true,
@@ -107,17 +128,26 @@ export async function deleteIdea(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const conditions = [eq(ideas.id, ideaId)];
+    if (workspaceId) {
+      conditions.push(eq(ideas.workspaceId, workspaceId));
+    } else {
+      conditions.push(eq(ideas.userId, userId));
+      conditions.push(isNull(ideas.workspaceId));
     }
 
     const deletedIdea = await db
       .delete(ideas)
-      .where(eq(ideas.id, ideaId))
+      .where(and(...conditions))
       .returning();
 
     if (deletedIdea.length === 0) {

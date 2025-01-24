@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Tour } from "@frigade/react";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { AddFormatButton } from "../buttons/add-format-button";
 
 export interface PostFormat {
   templates: string[];
@@ -33,6 +34,7 @@ export function PostFormatSelector({
   const [customCategory, setCustomCategory] = useState("");
   const [publicFormats, setPublicFormats] = useState<PostFormat[]>([]);
   const [privateFormats, setPrivateFormats] = useState<PostFormat[]>([]);
+  const [selectedTab, setSelectedTab] = useState<string>(""); // Track selected tab
 
   useEffect(() => {
     if (triggerDialog) {
@@ -46,6 +48,10 @@ export function PostFormatSelector({
     const result = await getPostFormats(true);
     if (result.success) {
       setPublicFormats(result.data || []);
+      // Set default selected tab to first category when formats load
+      if (result.data && result.data.length > 0) {
+        setSelectedTab(result.data[0].category);
+      }
     } else {
       toast.error(result.error);
     }
@@ -89,7 +95,7 @@ export function PostFormatSelector({
 
   const publicCategories = Array.from(
     new Set(publicFormats.map((format) => format.category))
-  );
+  ).sort();
 
   return (
     <>
@@ -122,10 +128,18 @@ export function PostFormatSelector({
               and use it to structure your content.
             </DialogDescription>
           </DialogHeader>
-          <Tabs defaultValue={publicCategories[0]} className="w-full">
+          <Tabs
+            value={selectedTab}
+            defaultValue={selectedTab}
+            className="w-full"
+          >
             <TabsList className="mb-4 w-full">
               {publicCategories.map((category) => (
-                <TabsTrigger key={category} value={category}>
+                <TabsTrigger
+                  key={category}
+                  value={category}
+                  onClick={() => setSelectedTab(category)}
+                >
                   {category}
                 </TabsTrigger>
               ))}
@@ -179,6 +193,7 @@ export function PostFormatSelector({
                 Save Custom Format
               </Button>
             )}
+            {/* <AddFormatButton /> */}
             <Button
               onClick={() => {
                 if (editedFormat) {

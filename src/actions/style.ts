@@ -3,9 +3,9 @@
 import { db } from "@/server/db";
 import { contentStyles } from "@/server/db/schema";
 import { getUser } from "./user";
-import { eq, isNull } from "drizzle-orm";
-import { v4 as uuid } from "uuid";
+import { and, eq, isNull } from "drizzle-orm";
 import { ServerActionResponse } from "@/types";
+import { auth } from "@clerk/nextjs/server";
 
 // Define the ContentStyle type
 export type ContentStyle = {
@@ -16,6 +16,7 @@ export type ContentStyle = {
   examples: string[];
   createdAt: Date;
   updatedAt: Date;
+  workspaceId?: string;
 };
 
 export async function saveContentStyle(
@@ -27,6 +28,10 @@ export async function saveContentStyle(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userId) {
       return {
@@ -42,6 +47,7 @@ export async function saveContentStyle(
         userId: isPublic ? null : userId,
         name,
         examples,
+        workspaceId: isPublic ? null : workspaceId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -66,12 +72,13 @@ export async function getContentStyles(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!userId) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+      return { success: false, error: "User not authenticated" };
     }
 
     let userContentStyles;
@@ -81,10 +88,18 @@ export async function getContentStyles(
         .from(contentStyles)
         .where(isNull(contentStyles.userId));
     } else {
+      const conditions = [];
+      if (workspaceId) {
+        conditions.push(eq(contentStyles.workspaceId, workspaceId));
+      } else {
+        conditions.push(eq(contentStyles.userId, userId));
+        conditions.push(isNull(contentStyles.workspaceId));
+      }
+
       userContentStyles = await db
         .select()
         .from(contentStyles)
-        .where(eq(contentStyles.userId, userId));
+        .where(and(...conditions));
     }
 
     return {
@@ -93,10 +108,7 @@ export async function getContentStyles(
     };
   } catch (error) {
     console.error("Error fetching content styles:", error);
-    return {
-      success: false,
-      error: "Failed to fetch content styles",
-    };
+    return { success: false, error: "Failed to fetch content styles" };
   }
 }
 
@@ -104,29 +116,35 @@ export async function getContentStyle(
   styleId: string
 ): Promise<ServerActionResponse<ContentStyle>> {
   try {
+    const user = await getUser();
+    const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    const conditions = [eq(contentStyles.id, styleId)];
+    if (workspaceId) {
+      conditions.push(eq(contentStyles.workspaceId, workspaceId));
+    } else {
+      conditions.push(eq(contentStyles.userId, userId));
+      conditions.push(isNull(contentStyles.workspaceId));
+    }
+
     const contentStyle = await db
       .select()
       .from(contentStyles)
-      .where(eq(contentStyles.id, styleId))
+      .where(and(...conditions))
       .limit(1);
 
     if (contentStyle.length === 0) {
-      return {
-        success: false,
-        error: "Content style not found",
-      };
+      return { success: false, error: "Content style not found" };
     }
 
-    return {
-      success: true,
-      data: contentStyle[0] as ContentStyle,
-    };
+    return { success: true, data: contentStyle[0] as ContentStyle };
   } catch (error) {
     console.error("Error fetching content style:", error);
-    return {
-      success: false,
-      error: "Failed to fetch content style",
-    };
+    return { success: false, error: "Failed to fetch content style" };
   }
 }
 
@@ -134,9 +152,24 @@ export async function deleteContentStyle(
   styleId: string
 ): Promise<ServerActionResponse<void>> {
   try {
+    const user = await getUser();
+    const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    const conditions = [eq(contentStyles.id, styleId)];
+    if (workspaceId) {
+      conditions.push(eq(contentStyles.workspaceId, workspaceId));
+    } else {
+      conditions.push(eq(contentStyles.userId, userId));
+      conditions.push(isNull(contentStyles.workspaceId));
+    }
+
     const deletedContentStyle = await db
       .delete(contentStyles)
-      .where(eq(contentStyles.id, styleId))
+      .where(and(...conditions))
       .returning();
 
     if (deletedContentStyle.length === 0) {
@@ -146,16 +179,10 @@ export async function deleteContentStyle(
       };
     }
 
-    return {
-      success: true,
-      data: undefined,
-    };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error("Error deleting content style:", error);
-    return {
-      success: false,
-      error: "Failed to delete content style",
-    };
+    return { success: false, error: "Failed to delete content style" };
   }
 }
 
@@ -167,17 +194,28 @@ export async function updateStyleExample(
 ): Promise<ServerActionResponse<ContentStyle>> {
   try {
     const user = await getUser();
-    if (!user.id) {
-      return {
-        success: false,
-        error: "User not authenticated",
-      };
+    const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    if (!userId) {
+      return { success: false, error: "User not authenticated" };
+    }
+
+    const conditions = [eq(contentStyles.id, styleId)];
+    if (workspaceId) {
+      conditions.push(eq(contentStyles.workspaceId, workspaceId));
+    } else {
+      conditions.push(eq(contentStyles.userId, userId));
+      conditions.push(isNull(contentStyles.workspaceId));
     }
 
     const existingStyle = await db
       .select()
       .from(contentStyles)
-      .where(eq(contentStyles.id, styleId))
+      .where(and(...conditions))
       .limit(1);
 
     if (existingStyle.length === 0) {
@@ -218,7 +256,7 @@ export async function updateStyleExample(
     const updatedStyle = await db
       .update(contentStyles)
       .set({ examples: updatedExamples, updatedAt: new Date() })
-      .where(eq(contentStyles.id, styleId))
+      .where(and(...conditions))
       .returning();
 
     return {

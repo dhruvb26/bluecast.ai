@@ -8,6 +8,7 @@ import { env } from "@/env";
 import { clerkClient } from "@clerk/nextjs/server";
 
 const plans = [
+  // Pro Monthly
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
@@ -20,6 +21,7 @@ const plans = [
     price: 29,
     duration: "/month",
   },
+  // Pro Annual
   {
     link:
       env.NEXT_PUBLIC_NODE_ENV === "development"
@@ -27,10 +29,28 @@ const plans = [
         : "https://buy.stripe.com/6oEdTh6VV2QH0kU9AB",
     priceId:
       env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1Q32GdRrqqSKPUNWN1sG48XI"
-        : "price_1Q1VQ4RrqqSKPUNWMMbGj3yh",
-    price: 200,
-    duration: "/year",
+        ? "price_1QMOWRRrqqSKPUNWRV27Uiv7"
+        : "price_1QN9MVRrqqSKPUNWHqv3bcMM",
+    price: 23,
+    duration: "/month",
+  },
+  // Grow Monthly
+  {
+    priceId:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QMOYXRrqqSKPUNWcFVWJIs4"
+        : "price_1QN9NyRrqqSKPUNWWwB1zAXa",
+    price: 49,
+    duration: "/month",
+  },
+  // Grow Annual
+  {
+    priceId:
+      env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QLXONRrqqSKPUNW7s5FxANR"
+        : "price_1QN9JoRrqqSKPUNWuTZBJWS1",
+    price: 39,
+    duration: "/month",
   },
 ];
 
@@ -71,6 +91,50 @@ export async function POST(req: Request) {
             { error: "Invalid customer ID" },
             { status: 400 }
           );
+        }
+
+        console.log(
+          "Searching for active user with email:",
+          session.customer_details
+        );
+        const activeUser = await db.query.users.findFirst({
+          where: eq(users.email, session.customer_details?.email as string),
+        });
+        console.log("Active user found:", activeUser);
+
+        if (activeUser?.stripeCustomerId && activeUser?.stripeSubscriptionId) {
+          console.log(
+            "Found existing stripe customer:",
+            activeUser.stripeCustomerId
+          );
+          const activeCustomerId = activeUser.stripeCustomerId;
+
+          console.log(
+            "Fetching active subscriptions for customer:",
+            activeCustomerId
+          );
+          const activeSubscriptions = await stripe.subscriptions.list({
+            customer: activeCustomerId,
+          });
+
+          console.log("Active subscriptions:", activeSubscriptions);
+
+          if (activeSubscriptions.data.length > 0) {
+            const activeSubscription = activeSubscriptions.data[0];
+            console.log(
+              "Cancelling existing subscription:",
+              activeSubscription.id
+            );
+            await stripe.subscriptions.cancel(activeSubscription.id);
+            console.log(
+              "Successfully cancelled subscription:",
+              activeSubscription.id
+            );
+          } else {
+            console.log("No active subscriptions found to cancel");
+          }
+        } else {
+          console.log("No existing stripe customer or subscription found");
         }
 
         const customerId = session.customer;
@@ -141,6 +205,7 @@ export async function POST(req: Request) {
             await db
               .update(users)
               .set({
+                forYouGeneratedPosts: 0,
                 stripeCustomerId: customerId,
                 priceId: priceId,
                 trialEndsAt: null,

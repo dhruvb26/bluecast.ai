@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/env";
-import { currentUser } from "@clerk/nextjs/server";
+import { currentUser, auth } from "@clerk/nextjs/server";
 import { db } from "@/server/db";
-import { accounts, users } from "@/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { accounts, users, workspaces } from "@/server/db/schema";
+import { eq, and, isNull } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const user = await currentUser();
-  console.log("User: ", user);
+  const { sessionClaims } = auth();
+  const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+    | string
+    | undefined;
+
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
 
-  // Verify state to prevent CSRF attacks
   if (state !== "foobar") {
     return NextResponse.json({ error: "Invalid state" }, { status: 400 });
   }
@@ -46,7 +49,6 @@ export async function GET(request: NextRequest) {
 
     const tokenData: any = await tokenResponse.json();
 
-    console.log("Response from LinkedIn: ", tokenData);
     const access_token = tokenData.access_token;
     const expires_in = tokenData.expires_in;
     const expires_at = Date.now() + tokenData.expires_in * 1000;
@@ -75,6 +77,7 @@ export async function GET(request: NextRequest) {
     const fullName = `${firstName} ${lastName}`;
     const headline = profileData.localizedHeadline;
     const linkedInId = profileData.id;
+    const email = profileData.emailAddress;
 
     // Fetch profile picture URL
     let profilePictureUrl = null;
@@ -102,47 +105,55 @@ export async function GET(request: NextRequest) {
     }
 
     if (user) {
-      // Update user information in the database
-      await db
-        .update(users)
-        .set({
-          name: fullName,
-          headline: headline,
-          linkedInId: linkedInId,
-          image: profilePictureUrl,
-        })
-        .where(eq(users.id, user.id));
-
-      // Check if the account already exists
+      // First check if this LinkedIn account is already connected to another user
       const existingAccount = await db
         .select()
         .from(accounts)
         .where(
           and(
-            eq(accounts.userId, user.id),
             eq(accounts.provider, "linkedin"),
-            eq(accounts.providerAccountId, linkedInId)
+            eq(accounts.providerAccountId, linkedInId),
+            workspaceId
+              ? eq(accounts.workspaceId, workspaceId)
+              : isNull(accounts.workspaceId)
           )
         )
         .limit(1);
 
-      if (existingAccount.length === 0) {
-        // If the account doesn't exist, insert it
-        await db.insert(accounts).values({
-          userId: user.id,
-          provider: "linkedin",
-          providerAccountId: linkedInId,
-          access_token,
-          expires_in,
-          refresh_token,
-          refresh_token_expires_in,
-          scope,
-          expires_at,
-          token_type,
-          id_token,
-        });
+      if (existingAccount.length > 0 && existingAccount[0].userId !== user.id) {
+        return NextResponse.json(
+          {
+            error: "This LinkedIn account is already connected to another user",
+          },
+          { status: 403 }
+        );
+      }
+
+      // Only proceed with updates if the account is not connected or belongs to current user
+      if (!workspaceId) {
+        await db
+          .update(users)
+          .set({
+            name: fullName,
+            headline: headline,
+            linkedInId: linkedInId,
+            image: profilePictureUrl,
+          })
+          .where(eq(users.id, user.id));
       } else {
-        // If the account exists, update it
+        await db
+          .update(workspaces)
+          .set({
+            linkedInName: fullName,
+            linkedInImageUrl: profilePictureUrl,
+            linkedInHeadline: headline,
+          })
+          .where(eq(workspaces.userId, user.id));
+      }
+
+      // Proceed with account connection/update
+      if (existingAccount.length > 0) {
+        // Update existing account
         await db
           .update(accounts)
           .set({
@@ -159,9 +170,28 @@ export async function GET(request: NextRequest) {
             and(
               eq(accounts.userId, user.id),
               eq(accounts.provider, "linkedin"),
-              eq(accounts.providerAccountId, linkedInId)
+              eq(accounts.providerAccountId, linkedInId),
+              workspaceId
+                ? eq(accounts.workspaceId, workspaceId)
+                : isNull(accounts.workspaceId)
             )
           );
+      } else {
+        // Create new account
+        await db.insert(accounts).values({
+          userId: user.id,
+          provider: "linkedin",
+          providerAccountId: linkedInId,
+          access_token,
+          expires_in,
+          refresh_token,
+          refresh_token_expires_in,
+          scope,
+          expires_at,
+          token_type,
+          id_token,
+          workspaceId: workspaceId || null,
+        });
       }
     }
 

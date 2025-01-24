@@ -22,7 +22,6 @@ import { toast } from "sonner";
 import { DatePicker } from "./date-picker";
 import { CalendarBlank, Moon, Sun } from "@phosphor-icons/react";
 import { CalendarPlus } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { usePostStore } from "@/store/post";
 import { getLinkedInId } from "@/actions/user";
@@ -125,6 +124,7 @@ const ScheduleDialog: React.FC<ScheduleDialogProps> = ({ id, disabled }) => {
 
       if (response.ok) {
         toast.success(data.message);
+        setIsOpen(false);
       } else {
         toast.error("Failed to schedule draft.");
       }

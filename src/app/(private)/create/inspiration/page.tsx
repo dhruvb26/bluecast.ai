@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import PostCard from "@/components/inspiration/post-card";
 import { getCreatorLists } from "@/actions/list";
-import { getPostsByCreatorId, Post } from "@/actions/post";
+import { getPostsByCreatorId } from "@/actions/post";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -26,16 +26,40 @@ export default function Home() {
     threshold: 0,
   });
 
+  // Define the order of public lists
+  const publicListOrder = [
+    "Marketing",
+    "Sales",
+    "Startups",
+    "Personal Brand",
+    "AI",
+    "Leadership",
+    "Storytelling",
+  ];
+
   useEffect(() => {
     async function fetchData() {
       try {
         const publicListsResult = await getCreatorLists(true);
         const privateListsResult = await getCreatorLists(false);
         if (publicListsResult.success && privateListsResult.success) {
-          const allLists = [
-            ...publicListsResult.data,
-            ...privateListsResult.data,
-          ];
+          // Sort public lists according to defined order
+          const sortedPublicLists = [...publicListsResult.data].sort((a, b) => {
+            const indexA = publicListOrder.indexOf(a.name);
+            const indexB = publicListOrder.indexOf(b.name);
+            if (indexA === -1 && indexB === -1)
+              return a.name.localeCompare(b.name);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+          });
+
+          // Sort private lists alphabetically
+          const sortedPrivateLists = [...privateListsResult.data].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          );
+
+          const allLists = [...sortedPublicLists, ...sortedPrivateLists];
           setLists(allLists);
           setActiveTab(allLists[0]?.id || null);
 
@@ -70,6 +94,7 @@ export default function Home() {
 
     fetchData();
   }, []);
+
   useEffect(() => {
     if (activeTab && lists.length > 0) {
       if (posts[activeTab].length === 0) {
@@ -98,16 +123,40 @@ export default function Home() {
       })
     );
 
-    // Flatten, filter out undefined, and sort all posts by relative time
-    const allPosts: any[] = newPosts.flat().sort((a: any, b: any) => {
-      const timeA = parseRelativeTime(a.time || "");
-      const timeB = parseRelativeTime(b.time || "");
-      return timeB.getTime() - timeA.getTime();
+    // Flatten and filter out undefined posts
+    const allPosts: any[] = newPosts.flat();
+
+    // Group posts by time period (month, week, day, hour)
+    const groupedPosts: { [key: string]: any[] } = {};
+
+    allPosts.forEach((post) => {
+      const time = parseRelativeTime(post.time || "");
+      const key = time.toISOString().split("T")[0]; // Use date as key
+      if (!groupedPosts[key]) {
+        groupedPosts[key] = [];
+      }
+      groupedPosts[key].push(post);
     });
+
+    // Shuffle posts within each time period
+    Object.keys(groupedPosts).forEach((key) => {
+      for (let i = groupedPosts[key].length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [groupedPosts[key][i], groupedPosts[key][j]] = [
+          groupedPosts[key][j],
+          groupedPosts[key][i],
+        ];
+      }
+    });
+
+    // Combine all posts maintaining chronological order between groups
+    const sortedPosts = Object.keys(groupedPosts)
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+      .flatMap((key) => groupedPosts[key]);
 
     setPosts((prev) => ({
       ...prev,
-      [listId]: [...prev[listId], ...allPosts],
+      [listId]: [...prev[listId], ...sortedPosts],
     }));
     setCurrentPage((prev) => ({
       ...prev,

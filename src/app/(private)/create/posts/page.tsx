@@ -13,6 +13,8 @@ import PenWriting from "@/components/icons/pen-writing";
 import Book from "@/components/icons/book";
 import CircleInfo from "@/components/icons/circle-info";
 import Keyboard from "@/components/icons/keyboard";
+import { Funnel } from "@phosphor-icons/react";
+import NewBadge from "@/components/global/new-badge";
 
 const PostsPage = () => {
   const resetPostFields = usePostStore((state) => state.resetPostData);
@@ -141,20 +143,35 @@ const PostsPage = () => {
           </h2>
         </>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <Link href={"/create/posts/funnel"}>
+            <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
+              <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
+                <CardTitle className="text-base font-semibold tracking-tight">
+                  <Funnel className="inline mr-2 text-foreground" />
+                  Build Your Content Funnel
+                  <NewBadge />
+                </CardTitle>
+                <p className="mt-2 flex-grow text-sm text-muted-foreground">
+                  Create targeted content for each stage of your marketing
+                  funnel to effectively guide and convert your audience.
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
           <Link href={"/create/posts/refresh"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight items-end">
                   <Refresh2 className="inline mr-2 text-foreground" />
                   Refresh Writing Style{" "}
-                  <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500 font-normal ml-1">
+                  {/* <Badge className="bg-indigo-50 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500 font-normal ml-1">
                     <Sparkle
                       weight="duotone"
                       className="inline mr-1"
                       size={16}
                     />
                     New
-                  </Badge>
+                  </Badge> */}
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground">
                   Use our AI-powered tool to adapt any post to a new writing

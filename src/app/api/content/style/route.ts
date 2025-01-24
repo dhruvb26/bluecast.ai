@@ -6,6 +6,7 @@ import { RouteHandlerResponse } from "@/types";
 import { eq } from "drizzle-orm";
 import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/user";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(
   req: Request
@@ -13,6 +14,10 @@ export async function POST(
   try {
     const user = await getUser();
     const userId = user.id;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
     const { url } = (await req.json()) as { url: string };
 
     if (!url) {
@@ -39,6 +44,7 @@ export async function POST(
         id: uuidv4(),
         creatorId: existingCreator.id,
         userId,
+        workspaceId,
         name: existingCreator.fullName ?? "",
         examples,
       });
@@ -105,22 +111,20 @@ export async function POST(
       console.error("Error updating posts table:", await postsResponse.text());
     }
 
-    // Fetch posts for the creator
     const creatorPosts = await db.query.posts.findMany({
       where: eq(posts.creatorId, data.profile_id),
       limit: 10,
     });
 
-    // Extract text from posts for examples
     const examples = creatorPosts
       .map((post) => post.text)
       .filter((text): text is string => Boolean(text));
 
-    // Save content style
     const newContentStyle = await db.insert(contentStyles).values({
       id: uuidv4(),
       creatorId: data.profile_id,
       userId,
+      workspaceId,
       name: data.full_name,
       examples,
     });

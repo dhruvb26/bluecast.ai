@@ -6,7 +6,7 @@ import { users } from "@/server/db/schema";
 import { eq } from "drizzle-orm";
 import { clerkClient } from "@clerk/nextjs/server";
 import { env } from "@/env";
-import { NextResponse } from "next/server";
+// import { migrateToDefaultWorkspace } from "@/actions/user";
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = env.WEBHOOK_SECRET;
@@ -17,29 +17,24 @@ export async function POST(req: Request) {
     );
   }
 
-  // Get the headers
   const headerPayload = headers();
   const svix_id = headerPayload.get("svix-id");
   const svix_timestamp = headerPayload.get("svix-timestamp");
   const svix_signature = headerPayload.get("svix-signature");
 
-  // If there are no headers, error out
   if (!svix_id || !svix_timestamp || !svix_signature) {
     return new Response("Error occured -- no svix headers", {
       status: 400,
     });
   }
 
-  // Get the body
   const payload = await req.json();
   const body = JSON.stringify(payload);
 
-  // Create a new Svix instance with your secret.
   const wh = new Webhook(WEBHOOK_SECRET);
 
   let evt: WebhookEvent;
 
-  // Verify the payload with the headers
   try {
     evt = wh.verify(body, {
       "svix-id": svix_id,
@@ -59,16 +54,6 @@ export async function POST(req: Request) {
   // Update user data in the database
   if (eventType === "user.created") {
     const { id, first_name, last_name, image_url, email_addresses } = evt.data;
-
-    // // Check if a user with the given email already exists
-    // const existingUser = await db.query.users.findFirst({
-    //   where: eq(users.email, email_addresses[0].email_address),
-    // });
-
-    // if (existingUser) {
-    //   // Redirect to access denied page
-    //   return NextResponse.redirect(new URL("/blocked", req.url));
-    // }
 
     await clerkClient().users.updateUserMetadata(id, {
       publicMetadata: {

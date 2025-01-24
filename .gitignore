@@ -44,3 +44,5 @@ next-env.d.ts
 .dev.vars
 
 .trigger
+# Million Lint
+.million

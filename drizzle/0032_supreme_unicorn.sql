@@ -1,0 +1,1 @@
+ALTER TABLE "bluecast.ai_workspace" ADD COLUMN "usage" integer DEFAULT 0 NOT NULL;

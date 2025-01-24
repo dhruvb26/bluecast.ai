@@ -3,7 +3,7 @@ import Link from "next/link";
 import {
   UserCircleCheck,
   ClockCounterClockwise,
-  ArrowUpRight,
+  Info,
 } from "@phosphor-icons/react/dist/ssr";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
@@ -19,15 +19,21 @@ import {
 } from "@/components/ui/select";
 import LinkedInSignInButton from "@/components/auth/linkedin-signin-button";
 import { db } from "@/server/db";
-import { accounts } from "@/server/db/schema";
+import { workspaces } from "@/server/db/schema";
 import { env } from "@/env";
 import { Button } from "@/components/ui/button";
-import DeleteAccountButton from "@/components/auth/delete-account-button";
-import { Money } from "@phosphor-icons/react/dist/ssr";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { UploadButton } from "@/utils/uploadthing";
-import { toast } from "sonner";
 import UpdateProfilePictureButton from "@/components/buttons/update-profile-picture-button";
+import { auth } from "@clerk/nextjs/server";
+import WorkspaceDialog from "@/components/auth/workspace-dialog";
+import DeleteWorkspaceDialog from "@/components/auth/delete-workspace-dialog";
+import WorkspaceUserNameDialog from "@/components/auth/workspace-user-name-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 export const dynamic = "force-dynamic";
 
 const SettingsPage = async () => {
@@ -35,11 +41,20 @@ const SettingsPage = async () => {
   const endsAt = (await checkValidity()) as Date;
   if (!user) return null;
 
-  const account = await db.query.accounts.findFirst({
-    where: eq(accounts.userId, user.id),
-  });
+  const { sessionClaims } = auth();
+  const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+    | string
+    | undefined;
 
-  const provider = account?.provider;
+  const workspace = workspaceId
+    ? await db.query.workspaces.findFirst({
+        where: eq(workspaces.id, workspaceId),
+      })
+    : null;
+
+  const userWorkspaces = await db.query.workspaces.findMany({
+    where: eq(workspaces.userId, user.id),
+  });
 
   const hasSubscription =
     user.hasAccess &&
@@ -68,9 +83,21 @@ const SettingsPage = async () => {
     </Badge>
   );
 
+  // Determine usage and limits based on context
+  const wordLimit = userWorkspaces.length > 0 ? 75000 : 50000;
+  const currentUsage = user.specialAccess
+    ? user.generatedPosts || 0
+    : workspace
+    ? workspace.usage || 0
+    : user.generatedWords || 0;
+  const usageLimit = user.specialAccess ? 10 : wordLimit;
+  const usageText = user.specialAccess
+    ? `${currentUsage} / 10 posts`
+    : `${currentUsage} / ${wordLimit} words`;
+
   return (
     <main className="p-8">
-      <div className="space-y-12">
+      <div className="space-y-10">
         <div className="text-left">
           <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Account Settings
@@ -89,33 +116,95 @@ const SettingsPage = async () => {
               We have obtained your name and email through your login.
             </p>
           </div>
-          <div className="w-2/3 space-y-4">
+          <div className="w-1/3 space-y-4">
             <div>
               <label htmlFor="name" className="mb-1 block text-sm font-medium">
                 Image
               </label>
               <div className="flex items-center space-x-4">
                 <Avatar>
-                  <AvatarImage src={user.image || ""} alt={user.name || ""} />
-                  <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
+                  <AvatarImage
+                    src={
+                      workspace
+                        ? workspace.linkedInImageUrl || ""
+                        : user.image || ""
+                    }
+                    alt={user.name || ""}
+                  />
+                  <AvatarFallback>
+                    {workspace
+                      ? workspace.linkedInName?.charAt(0) || ""
+                      : user.name?.charAt(0) || ""}
+                  </AvatarFallback>
                 </Avatar>
                 <UpdateProfilePictureButton />
               </div>
             </div>
             <div>
-              <label htmlFor="name" className="mb-1 block text-sm font-medium">
+              <label
+                htmlFor="name"
+                className="mb-1 flex items-center space-x-1 text-sm font-medium"
+              >
                 Name
+                <Tooltip>
+                  <TooltipTrigger
+                    className="ml-1 text-muted-foreground"
+                    asChild
+                  >
+                    <Info className="w-4 h-4" />
+                  </TooltipTrigger>
+                  <TooltipContent>Name used to display posts.</TooltipContent>
+                </Tooltip>
               </label>
-              <Input
-                disabled
-                type="text"
-                id="name"
-                defaultValue={user.name || ""}
-                className="text-sm"
-                placeholder="example.com/janesmith"
-              />
+              <div className="flex items-center space-x-2">
+                <Input
+                  disabled
+                  type="text"
+                  id="name"
+                  defaultValue={
+                    workspace ? workspace.linkedInName || "" : user.name || ""
+                  }
+                  className="text-sm"
+                  placeholder="Example: Tommy Clark"
+                />
+                {workspaceId && (
+                  <WorkspaceUserNameDialog
+                    workspaceId={workspaceId || ""}
+                    currentLinkedInName={
+                      workspace ? workspace.linkedInName || "" : ""
+                    }
+                  />
+                )}
+              </div>
             </div>
             <div>
+              <label htmlFor="name" className="mb-1 block text-sm font-medium">
+                Workspace
+              </label>
+              <div className="flex items-center space-x-2">
+                <Input
+                  disabled
+                  type="text"
+                  id="name"
+                  defaultValue={workspace ? workspace.name || "" : ""}
+                  className="text-sm"
+                  placeholder="Default"
+                />
+                {workspaceId && (
+                  <>
+                    <WorkspaceDialog
+                      workspaceId={workspaceId || ""}
+                      currentName={workspace ? workspace.name || "" : ""}
+                    />
+                    <DeleteWorkspaceDialog
+                      workspaceId={workspaceId || ""}
+                      workspaceName={workspace ? workspace.name || "" : ""}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+            {/* <div>
               <label htmlFor="email" className="mb-1 block text-sm font-medium">
                 Email
               </label>
@@ -126,7 +215,7 @@ const SettingsPage = async () => {
                 defaultValue={user.email || ""}
                 className="text-sm"
               />
-            </div>
+            </div> */}
           </div>
         </section>
 
@@ -150,12 +239,18 @@ const SettingsPage = async () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Active">
-                    {user.priceId === "price_1Q32GdRrqqSKPUNWN1sG48XI" ||
-                    user.priceId === "price_1Q1VQ4RrqqSKPUNWMMbGj3yh"
-                      ? "Annual Plan"
+                    {user.priceId === "price_1QMOWRRrqqSKPUNWRV27Uiv7" ||
+                    user.priceId === "price_1QN9MVRrqqSKPUNWHqv3bcMM"
+                      ? "Annual Pro Plan"
                       : user.priceId === "price_1Q32F1RrqqSKPUNWkMQXCrVC" ||
                         user.priceId === "price_1Pb0w5RrqqSKPUNWGX1T2G3O"
-                      ? "Monthly Plan"
+                      ? "Monthly Pro Plan"
+                      : user.priceId === "price_1QMOYXRrqqSKPUNWcFVWJIs4" ||
+                        user.priceId === "price_1QN9NyRrqqSKPUNWWwB1zAXa"
+                      ? "Annual Grow Plan"
+                      : user.priceId === "price_1QLXONRrqqSKPUNW7s5FxANR" ||
+                        user.priceId === "price_1QN9JoRrqqSKPUNWuTZBJWS1"
+                      ? "Monthly Grow Plan"
                       : "Active"}
                   </SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
@@ -175,20 +270,12 @@ const SettingsPage = async () => {
           </div>
           <div className="w-[30%] space-y-4">
             <div className="flex flex-col">
-              <span className="text-xs text-foreground">
-                {user.specialAccess
-                  ? `${user.generatedPosts || 0} / 10 posts`
-                  : `${user.generatedWords || 0} / 50000 words`}
-              </span>
+              <span className="text-xs text-foreground">{usageText}</span>
               <div className="mt-1 h-1.5 w-full rounded-full bg-gray-200">
                 <div
                   className="h-1.5 rounded-full bg-blue-600 transition-all duration-300 ease-in-out"
                   style={{
-                    width: `${
-                      user.specialAccess
-                        ? ((user.generatedPosts || 0) / 10) * 100
-                        : ((user.generatedWords || 0) / 50000) * 100
-                    }%`,
+                    width: `${(currentUsage / usageLimit) * 100}%`,
                   }}
                 ></div>
               </div>
@@ -199,31 +286,41 @@ const SettingsPage = async () => {
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-base font-semibold tracking-tight text-foreground">
-              {hasSubscription ? "Subscription" : "Pricing"}
+              Pricing
             </h2>
             <p className="text-sm text-muted-foreground">
-              {hasSubscription
-                ? "Manage your current subscription plan."
-                : "Check out our different plans and what they offer."}
+              Check out our different plans and what we offer.
             </p>
           </div>
           <div className="flex w-2/3 items-center justify-start">
-            <Link
-              target="_blank"
-              href={
-                hasSubscription
-                  ? env.NEXT_PUBLIC_NODE_ENV === "development"
-                    ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
-                    : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
-                  : "/pricing"
-              }
-            >
-              <Button variant={"outline"}>
-                {hasSubscription ? "Manage Subscription" : "Pricing and Plans"}
-              </Button>
+            <Link href={"/pricing"}>
+              <Button variant={"outline"}>Pricing and Plans</Button>
             </Link>
           </div>
         </section>
+        {hasSubscription && (
+          <section className="flex space-x-4">
+            <div className="w-1/3">
+              <h2 className="text-base font-semibold tracking-tight text-foreground">
+                Subscription
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Manage your current subscription plan.
+              </p>
+            </div>
+            <div className="flex w-2/3 items-center justify-start">
+              <Link
+                href={
+                  env.NEXT_PUBLIC_NODE_ENV === "development"
+                    ? "https://billing.stripe.com/p/login/test_aEU00F2YO3cF11eeUU"
+                    : "https://billing.stripe.com/p/login/4gw9EzeXq3oe4N2dQQ"
+                }
+              >
+                <Button variant={"outline"}>Manage Subscription</Button>
+              </Link>
+            </div>
+          </section>
+        )}
         <section className="flex space-x-4">
           <div className="w-1/3">
             <h2 className="text-base font-semibold tracking-tight text-foreground">
@@ -235,6 +332,21 @@ const SettingsPage = async () => {
           </div>
           <div className="flex w-2/3 items-center justify-start">
             <LinkedInSignInButton buttonText="Connect LinkedIn" />
+          </div>
+        </section>
+        <section className="flex space-x-4">
+          <div className="w-1/3">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Having issues?
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Contact us at support@bluecast.ai
+            </p>
+          </div>
+          <div className="flex w-2/3 items-center justify-start">
+            <Link href="https://bluecast.canny.io/feedback" target="_blank">
+              <Button variant={"outline"}>Feedback</Button>
+            </Link>
           </div>
         </section>
       </div>

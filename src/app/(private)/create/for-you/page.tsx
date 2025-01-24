@@ -6,7 +6,7 @@ import ForYouCard from "@/components/for-you/for-you-card";
 import Link from "next/link";
 import { ForYouForm } from "@/components/forms/for-you-form";
 import { BarLoader } from "react-spinners";
-import { getForYouAnswers, getForYouPosts } from "@/actions/user";
+import { getForYouAnswers, getForYouPosts, getUser } from "@/actions/user";
 import { toast } from "sonner";
 import {
   ArrowsCounterClockwise,
@@ -19,6 +19,14 @@ import { RefreshCcw } from "lucide-react";
 import { usePostStore } from "@/store/post";
 import SubscriptionCard from "@/components/global/subscription-card";
 import Refresh2 from "@/components/icons/refresh-2";
+import ProgressBar from "@/components/for-you/progress-bar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
 interface Post {
   id: string;
   content: string;
@@ -37,6 +45,8 @@ export default function ForYouPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const { setShowFeatureGate, showFeatureGate } = usePostStore();
+  const [refreshesUsed, setRefreshesUsed] = useState(0);
+  const [maxRefreshes, setMaxRefreshes] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +57,16 @@ export default function ForYouPage() {
         if (answersData) {
           const postsData = (await getForYouPosts()) as Post[];
           setPosts(postsData);
+        }
+
+        const user = await getUser();
+        const refreshes = Math.floor(user.forYouGeneratedPosts / 5);
+        setRefreshesUsed(refreshes);
+
+        if (!user.stripeSubscriptionId && !user.priceId) {
+          setMaxRefreshes(1);
+        } else {
+          setMaxRefreshes(4);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -71,22 +91,53 @@ export default function ForYouPage() {
       });
       if (!response.ok) {
         if (response.status === 403) {
-          setShowFeatureGate(true);
-          throw new Error("You have reached the maximum number of refreshes.");
+          const errorResponse: any = await response.json();
+          if (
+            errorResponse.error ===
+            "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+          ) {
+            setShowFeatureGate(true);
+            throw new Error(
+              "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+            );
+          } else if (
+            errorResponse.error ===
+            "You have reached the maximum number of refreshes. Limit resets every month."
+          ) {
+            throw new Error(
+              "You have reached the maximum number of refreshes. Limit resets every month."
+            );
+          }
         }
         throw new Error("Failed to generate content");
       }
-      const data = await response.json();
       toast.success("Posts generated successfully!");
       const postsData = (await getForYouPosts()) as Post[];
       setPosts(postsData);
-    } catch (error) {
+      setRefreshesUsed((prev) => prev + 1);
+    } catch (error: any) {
       console.error("Error generating content:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate content. Please try again."
-      );
+      if (
+        error.message ===
+        "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+      ) {
+        toast.error(
+          "You have reached the maximum number of refreshes. Upgrade to get more refreshes."
+        );
+      } else if (
+        error.message ===
+        "You have reached the maximum number of refreshes. Limit resets every month."
+      ) {
+        toast.error(
+          "You have reached the maximum number of refreshes. Limit resets every month."
+        );
+      } else {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to generate content. Please try again."
+        );
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -95,7 +146,12 @@ export default function ForYouPage() {
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <BarLoader color="#2563eb" height={3} width={300} />
+        <BarLoader
+          color="#2563eb"
+          height={3}
+          width={300}
+          className="rounded-full"
+        />
       </div>
     );
   }
@@ -134,7 +190,12 @@ export default function ForYouPage() {
 
   return (
     <main className="p-8">
-      <div className="mb-8 flex justify-between items-center">
+      {showFeatureGate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <SubscriptionCard />
+        </div>
+      )}
+      <div className="mb-4 flex justify-between items-center">
         <div>
           <h1 className="text-lg font-semibold tracking-tight text-foreground">
             Posts For You
@@ -145,22 +206,51 @@ export default function ForYouPage() {
             refreshing.
           </p>
         </div>
+
         <div className="flex gap-2">
           {posts.length > 0 && (
-            <Button
-              variant={"outline"}
-              onClick={handleGenerateContent}
-              disabled={isGenerating}
-            >
-              <Refresh2 className="w-4 h-4 mr-1" />
-              Refresh
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    onClick={handleGenerateContent}
+                    disabled={isGenerating}
+                  >
+                    <Refresh2 className="w-4 h-4 mr-1" />
+                    Refresh
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[250px]">
+                  <p className="text-xs">
+                    {maxRefreshes === 1 ? (
+                      <span className="text-xs">
+                        You have {maxRefreshes - refreshesUsed} refresh left on
+                        this trial.{" "}
+                        <a
+                          href="/pricing"
+                          className="text-blue-600 underline hover:text-blue-700"
+                        >
+                          Upgrade
+                        </a>{" "}
+                        to get 4 refreshes per month!
+                      </span>
+                    ) : (
+                      `You have ${
+                        maxRefreshes - refreshesUsed
+                      } refreshes left this month.`
+                    )}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           <Link href="/create/for-you/preferences">
             <Button>Update Preferences</Button>
           </Link>
         </div>
       </div>
+      <ProgressBar />
       {posts.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (

@@ -15,8 +15,10 @@ interface TokenResponse {
 }
 
 export async function GET() {
+  console.log("Starting LinkedIn token refresh cron job");
   try {
     const twoDaysFromNow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+    console.log("Looking for tokens expiring before:", twoDaysFromNow);
 
     const expiringAccounts = await db
       .select()
@@ -28,7 +30,12 @@ export async function GET() {
         )
       );
 
+    console.log(
+      `Found ${expiringAccounts.length} accounts needing token refresh`
+    );
+
     for (const account of expiringAccounts) {
+      console.log(`Processing account for user ${account.userId}`);
       const response = await fetch(
         "https://www.linkedin.com/oauth/v2/accessToken",
         {
@@ -46,10 +53,13 @@ export async function GET() {
       );
 
       if (!response.ok) {
-        console.error(`Failed to refresh token for account ${account.userId}`);
+        console.error(
+          `Failed to refresh token for account ${account.userId}. Status: ${response.status}`
+        );
         continue;
       }
 
+      console.log(`Successfully received new token for user ${account.userId}`);
       const data = (await response.json()) as TokenResponse;
 
       await db
@@ -60,8 +70,11 @@ export async function GET() {
           refresh_token: data.refresh_token || account.refresh_token,
         })
         .where(eq(accounts.userId, account.userId));
+
+      console.log(`Updated database with new token for user ${account.userId}`);
     }
 
+    console.log("Token refresh process completed successfully");
     return NextResponse.json({ message: "Token refresh process completed" });
   } catch (error) {
     console.error("Error in token refresh cron job:", error);

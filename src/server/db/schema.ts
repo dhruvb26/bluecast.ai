@@ -1,6 +1,3 @@
-// Example model schema from the Drizzle docs
-// https://orm.drizzle.team/docs/sql-schema-declaration
-
 import { sql, relations } from "drizzle-orm";
 import {
   boolean,
@@ -13,8 +10,8 @@ import {
   text,
   jsonb,
   bigint,
+  uuid,
 } from "drizzle-orm/pg-core";
-import { type AdapterAccount } from "next-auth/adapters";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -30,6 +27,26 @@ export const statusEnum = pgEnum("status", [
   "published",
   "progress",
 ]);
+
+export const workspaces = createTable("workspace", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  userId: varchar("user_id", { length: 256 })
+    .references(() => users.id, { onDelete: "cascade" })
+    .notNull(),
+  linkedInName: varchar("linked_in_name", { length: 256 }),
+  linkedInImageUrl: varchar("linked_in_image_url", { length: 512 }),
+  linkedInHeadline: varchar("linked_in_headline", { length: 512 }),
+  usage: integer("usage").default(0).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+  hasAccess: boolean("has_access").default(true),
+});
 
 // Content
 export const drafts = createTable("draft", {
@@ -52,6 +69,10 @@ export const drafts = createTable("draft", {
     mode: "date",
     precision: 3,
   }).$onUpdate(() => new Date()),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    { onDelete: "cascade" }
+  ),
 });
 
 export const ideas = createTable("idea", {
@@ -59,7 +80,6 @@ export const ideas = createTable("idea", {
   userId: varchar("user_id", { length: 256 }).references(() => users.id, {
     onDelete: "cascade",
   }),
-
   content: text("content"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
@@ -68,6 +88,33 @@ export const ideas = createTable("idea", {
     mode: "date",
     precision: 3,
   }).$onUpdate(() => new Date()),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    { onDelete: "cascade" }
+  ),
+});
+
+export const contentStyles = createTable("content_style", {
+  id: varchar("id", { length: 256 }).primaryKey().notNull(),
+  userId: varchar("user_id", { length: 256 }).references(() => users.id, {
+    onDelete: "cascade",
+  }),
+  creatorId: varchar("creator_id", { length: 256 }).references(
+    () => creators.id
+  ),
+  name: varchar("name", { length: 256 }).notNull(),
+  examples: jsonb("examples").notNull().$type<string[]>(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+  updatedAt: timestamp("updated_at", {
+    mode: "date",
+    precision: 3,
+  }).$onUpdate(() => new Date()),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    { onDelete: "cascade" }
+  ),
 });
 
 export const postFormats = createTable("post_format", {
@@ -86,32 +133,16 @@ export const postFormats = createTable("post_format", {
   }).$onUpdate(() => new Date()),
 });
 
-export const contentStyles = createTable("content_style", {
-  id: varchar("id", { length: 256 }).primaryKey().notNull(),
-  userId: varchar("user_id", { length: 256 }).references(() => users.id, {
-    onDelete: "cascade",
-  }),
-
-  creatorId: varchar("creator_id", { length: 256 }).references(
-    () => creators.id
-  ),
-  name: varchar("name", { length: 256 }).notNull(),
-  examples: jsonb("examples").notNull().$type<string[]>(),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  updatedAt: timestamp("updated_at", {
-    mode: "date",
-    precision: 3,
-  }).$onUpdate(() => new Date()),
-});
-
 export const postFormatRelations = relations(postFormats, ({ one }) => ({
   user: one(users, { fields: [postFormats.userId], references: [users.id] }),
 }));
 
 export const contentStyleRelations = relations(contentStyles, ({ one }) => ({
   user: one(users, { fields: [contentStyles.userId], references: [users.id] }),
+  workspace: one(workspaces, {
+    fields: [contentStyles.workspaceId],
+    references: [workspaces.id],
+  }),
 }));
 
 // Inspiration
@@ -185,10 +216,17 @@ export const instructions = createTable("instruction", {
     mode: "date",
     precision: 3,
   }).$onUpdate(() => new Date()),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id
+  ),
 });
 
 export const instructionRelations = relations(instructions, ({ one }) => ({
   user: one(users, { fields: [instructions.userId], references: [users.id] }),
+  workspace: one(workspaces, {
+    fields: [instructions.workspaceId],
+    references: [workspaces.id],
+  }),
 }));
 
 // Users & Accounts
@@ -218,6 +256,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   contentStyles: many(contentStyles),
   postFormats: many(postFormats),
   drafts: many(drafts),
+  workspaces: many(workspaces),
   forYouAnswers: many(forYouAnswers),
   generatedPosts: many(generatedPosts),
   instructions: many(instructions),
@@ -239,6 +278,10 @@ export const accounts = createTable(
     token_type: varchar("token_type", { length: 256 }),
     scope: varchar("scope", { length: 256 }),
     id_token: text("id_token"),
+    workspaceId: varchar("workspace_id", { length: 256 }).references(
+      () => workspaces.id,
+      { onDelete: "cascade" }
+    ),
   },
   (account) => ({
     compoundKey: primaryKey({
@@ -249,6 +292,10 @@ export const accounts = createTable(
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] }),
+  workspace: one(workspaces, {
+    fields: [accounts.workspaceId],
+    references: [workspaces.id],
+  }),
 }));
 
 export const creatorLists = createTable("creator_list", {
@@ -264,6 +311,10 @@ export const creatorLists = createTable("creator_list", {
     mode: "date",
     precision: 3,
   }).$onUpdate(() => new Date()),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    { onDelete: "cascade" }
+  ),
 });
 
 export const creatorListItems = createTable("creator_list_item", {
@@ -284,6 +335,10 @@ export const creatorListsRelations = relations(
   ({ one, many }) => ({
     user: one(users, { fields: [creatorLists.userId], references: [users.id] }),
     items: many(creatorListItems),
+    workspace: one(workspaces, {
+      fields: [creatorLists.workspaceId],
+      references: [workspaces.id],
+    }),
   })
 );
 
@@ -319,10 +374,18 @@ export const forYouAnswers = createTable("for_you_answer", {
     mode: "date",
     precision: 3,
   }).$onUpdate(() => new Date()),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    { onDelete: "cascade" }
+  ),
 });
 
 export const forYouAnswersRelations = relations(forYouAnswers, ({ one }) => ({
   user: one(users, { fields: [forYouAnswers.userId], references: [users.id] }),
+  workspace: one(workspaces, {
+    fields: [forYouAnswers.workspaceId],
+    references: [workspaces.id],
+  }),
 }));
 
 export const generatedPosts = createTable("generated_post", {
@@ -330,14 +393,23 @@ export const generatedPosts = createTable("generated_post", {
   userId: varchar("user_id", { length: 256 })
     .references(() => users.id, { onDelete: "cascade" })
     .notNull(),
+  topic: text("topic"),
   content: text("content").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
+  workspaceId: varchar("workspace_id", { length: 256 }).references(
+    () => workspaces.id,
+    { onDelete: "cascade" }
+  ),
 });
 
 export const generatedPostsRelations = relations(generatedPosts, ({ one }) => ({
   user: one(users, { fields: [generatedPosts.userId], references: [users.id] }),
+  workspace: one(workspaces, {
+    fields: [generatedPosts.workspaceId],
+    references: [workspaces.id],
+  }),
 }));
 
 // Auth schemas

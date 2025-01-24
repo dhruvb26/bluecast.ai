@@ -14,7 +14,7 @@ export async function GET(req: NextRequest): Promise<Response> {
     // Update users with subscriptions in the database
     const result = await db
       .update(users)
-      .set({ generatedWords: 0 })
+      .set({ generatedWords: 0, forYouGeneratedPosts: 0 })
       .where(
         and(
           isNotNull(users.stripeSubscriptionId),

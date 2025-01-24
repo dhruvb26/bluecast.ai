@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { RouteHandlerResponse } from "@/types";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
+import { auth } from "@clerk/nextjs/server";
 export const maxDuration = 300; // Increased to 5 minutes for Vercel
 
 interface UploadInstruction {
@@ -37,18 +38,31 @@ export async function POST(
     };
     console.log("Received postId and url from request body");
 
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
+    // Get account based on userId and workspaceId
+    const conditions = [eq(accounts.userId, userId)];
+    if (workspaceId) {
+      conditions.push(eq(accounts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(accounts.workspaceId));
+    }
+
     const account = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.userId, userId))
+      .where(and(...conditions))
       .limit(1);
-    const accessToken = account[0].access_token;
 
-    const linkedInId = await db
-      .select({ providerAccountId: accounts.providerAccountId })
-      .from(accounts)
-      .where(eq(accounts.userId, userId))
-      .limit(1);
+    if (!account || account.length === 0) {
+      throw new Error("No LinkedIn account found");
+    }
+
+    const accessToken = account[0].access_token;
+    const linkedInId = account[0].providerAccountId;
 
     const uploadProcess = async () => {
       // Fetch the file size first
@@ -76,7 +90,7 @@ export async function POST(
           },
           body: JSON.stringify({
             initializeUploadRequest: {
-              owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
+              owner: `urn:li:person:${linkedInId}`,
               fileSizeBytes: fileSizeBytes,
               uploadCaptions: false,
               uploadThumbnail: false,

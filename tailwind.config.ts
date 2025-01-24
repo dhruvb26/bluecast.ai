@@ -92,10 +92,16 @@ export default withUt({
       keyframes: {
         shine: {
           "0%": {
-            backgroundPosition: "-200% center",
+            "background-position": "0% 0%",
           },
           "100%": {
             backgroundPosition: "200% center",
+          },
+          "50%": {
+            "background-position": "100% 100%",
+          },
+          to: {
+            "background-position": "0% 0%",
           },
         },
         "fade-in": {
@@ -118,8 +124,12 @@ export default withUt({
           },
         },
         rotate: {
-          "0%": { transform: "rotate(0deg) scale(10)" },
-          "100%": { transform: "rotate(-360deg) scale(10)" },
+          "0%": {
+            transform: "rotate(0deg) scale(10)",
+          },
+          "100%": {
+            transform: "rotate(-360deg) scale(10)",
+          },
         },
         "border-beam": {
           "100%": {
@@ -145,12 +155,11 @@ export default withUt({
       },
       animation: {
         "fade-in": "fade-in 0.3s ease-out",
-        shine: "shine 2s linear infinite",
+        shine: "shine var(--duration) infinite linear",
         float: "float 3s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         rotate: "rotate 10s linear infinite",
-        "border-beam": "border-beam 4s linear infinite",
-
+        "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       backgroundImage: {

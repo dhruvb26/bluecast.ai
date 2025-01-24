@@ -1,9 +1,6 @@
 "use client";
-import { useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import {
   TooltipProvider,
   Tooltip,
@@ -17,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { PenSquare } from "lucide-react";
 import { Button } from "./button";
+import { Eye } from "@phosphor-icons/react";
 
 export const ParallaxScroll = ({
   posts,
@@ -25,6 +23,7 @@ export const ParallaxScroll = ({
 }: {
   posts: {
     id: string;
+    name: string;
     content: any;
     status: string;
     updatedAt: Date;
@@ -33,14 +32,6 @@ export const ParallaxScroll = ({
   onDeleteDraft: (id: string) => void;
 }) => {
   const gridRef = useRef<any>(null);
-  const { scrollYProgress } = useScroll({
-    container: gridRef,
-    offset: ["start start", "end start"],
-  });
-
-  const translateFirst = useTransform(scrollYProgress, [0, 1], [0, -200]);
-  const translateSecond = useTransform(scrollYProgress, [0, 1], [0, 200]);
-  const translateThird = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const router = useRouter();
 
   const third = Math.ceil(posts.length / 3);
@@ -94,21 +85,22 @@ export const ParallaxScroll = ({
       console.error("Error cancelling schedule:", error);
     }
   };
-  const PostCard = ({ post, translateY }: { post: any; translateY: any }) => (
-    <motion.div
-      style={{ y: translateY }}
-      className="mb-6 rounded-md border border-input hover:-translate-y-1 transition-all bg-white p-4 hover:shadow-sm h-[175px] flex flex-col justify-between"
-    >
+
+  const PostCard = ({ post }: { post: any }) => (
+    <div className="mb-6 rounded-md border border-input hover:-translate-y-1 transition-all bg-white p-4 hover:shadow-sm h-[175px] flex flex-col justify-between">
       <div>
-        <div className="mb-3 flex items-center">
-          <div>
-            <p className="text-xs text-muted-foreground">
-              Updated • {post.updatedAt.toLocaleString()}
-            </p>
-          </div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-sm text-foreground">
+              {post.name}
+            </span>{" "}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            {post.updatedAt.toLocaleString()}
+          </p>
         </div>
 
-        <div className="mb-4 text-sm text-brand-gray-900 overflow-hidden">
+        <div className="mb-4 text-sm text-muted-foreground overflow-hidden">
           {renderContent(post.content)}
         </div>
       </div>
@@ -128,67 +120,83 @@ export const ParallaxScroll = ({
           >
             {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
           </Badge>
-          {post.status !== "published" && (
-            <div className="flex space-x-2">
+
+          <div className="flex space-x-2">
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size={"sm"}
+                    variant={
+                      post.status === "published" ? "outline" : undefined
+                    }
+                    className={
+                      post.status === "published"
+                        ? ""
+                        : "to-brand-blue-secondary from-brand-blue-primary bg-gradient-to-r border-blue-500 shadow-md border"
+                    }
+                    onClick={() =>
+                      router.push(
+                        post.status === "published"
+                          ? `/draft/${post.id}`
+                          : `/draft/${post.id}`
+                      )
+                    }
+                  >
+                    {post.status === "published" ? (
+                      <Eye size={15} />
+                    ) : (
+                      <PenSquare size={15} />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{post.status === "published" ? "View" : "Edit"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+
+            {post.status === "scheduled" && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
+                      variant={"outline"}
                       size={"sm"}
-                      className="to-brand-blue-secondary  from-brand-blue-primary bg-gradient-to-r border-blue-500 shadow-md border"
-                      onClick={() => router.push(`/draft/${post.id}`)}
+                      onClick={() => cancelSchedule(post.id)}
                     >
-                      <PenSquare size={15} />
+                      <Clock size={15} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Edit</p>
+                    <p>Cancel</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            )}
 
-              {post.status === "scheduled" && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        size={"sm"}
-                        onClick={() => cancelSchedule(post.id)}
-                      >
-                        <Clock size={15} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Cancel</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-
-              {post.status !== "scheduled" && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={"outline"}
-                        size={"sm"}
-                        onClick={() => onDeleteDraft(post.id)}
-                      >
-                        <Trash size={15} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Delete</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-          )}
+            {post.status !== "scheduled" && post.status !== "published" && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      size={"sm"}
+                      onClick={() => onDeleteDraft(post.id)}
+                    >
+                      <Trash size={15} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Delete</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 
   return (
@@ -199,29 +207,17 @@ export const ParallaxScroll = ({
       <div className="grid grid-cols-1 items-start gap-6  py-4 md:grid-cols-2 lg:grid-cols-3">
         <div className="grid gap-6">
           {firstPart.map((post, idx) => (
-            <PostCard
-              key={`grid-1-${idx}`}
-              post={post}
-              translateY={translateFirst}
-            />
+            <PostCard key={`grid-1-${idx}`} post={post} />
           ))}
         </div>
         <div className="grid gap-6">
           {secondPart.map((post, idx) => (
-            <PostCard
-              key={`grid-2-${idx}`}
-              post={post}
-              translateY={translateSecond}
-            />
+            <PostCard key={`grid-2-${idx}`} post={post} />
           ))}
         </div>
         <div className="grid gap-6">
           {thirdPart.map((post, idx) => (
-            <PostCard
-              key={`grid-3-${idx}`}
-              post={post}
-              translateY={translateThird}
-            />
+            <PostCard key={`grid-3-${idx}`} post={post} />
           ))}
         </div>
       </div>

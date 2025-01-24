@@ -15,6 +15,8 @@ import CommentIcon from "@/components/icons/comment-icon";
 import RepostIcon from "@/components/icons/repost-icon";
 import SendIcon from "@/components/icons/send-icon";
 import { toast } from "sonner";
+import { getActiveWorkspace } from "@/actions/user";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const PdfViewerComponent = dynamic(() => import("./pdf-viewer"), {
   ssr: false,
@@ -31,7 +33,6 @@ interface LinkedInPostPreviewProps {
   device: "mobile" | "tablet" | "desktop";
   postId: string;
 }
-
 const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
   content,
   device: initialDevice,
@@ -49,11 +50,17 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [documentTitle, setDocumentTitle] = useState<string | null>(null);
   const [isHovering, setIsHovering] = useState(false);
+  const [sessionClaims, setSessionClaims] = useState<any>(null);
 
   const fetchUser = useCallback(async () => {
     try {
       const userData = await getUser();
       setUser(userData);
+
+      const workspace = await getActiveWorkspace();
+      if (workspace) {
+        setSessionClaims({ activeWorkspace: workspace });
+      }
     } catch (error) {
       console.error("Error fetching user:", error);
       setError("Failed to fetch user data");
@@ -207,6 +214,8 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
     return <div>Error: {error || "Failed to load user data"}</div>;
   }
 
+  const activeWorkspace = sessionClaims?.activeWorkspace;
+
   return (
     <div className="flex w-full flex-col items-center justify-center">
       <div className="mb-4 flex items-center justify-center">
@@ -239,7 +248,7 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
       </div>
       <div
         ref={containerRef}
-        className={`w-full rounded bg-white shadow ${
+        className={`w-full rounded bg-white shadow transition-all duration-300 ease-in-out ${
           device === "mobile"
             ? "max-w-[320px]"
             : device === "tablet"
@@ -249,22 +258,30 @@ const LinkedInPostPreview: React.FC<LinkedInPostPreviewProps> = ({
       >
         <div className="mb-2 flex items-center p-4">
           <div className="relative mr-2 h-12 w-12 flex-shrink-0">
-            <Image
-              height={48}
-              width={48}
-              src={user.image || "/placeholder.svg"}
-              alt="Profile"
-              className="h-full w-full rounded-full object-cover"
-              quality={100}
-            />
+            <Avatar className="h-full w-full">
+              <AvatarImage
+                src={
+                  activeWorkspace
+                    ? activeWorkspace.linkedInImageUrl
+                    : user.image
+                }
+                alt="Profile"
+                className="object-cover"
+              />
+              <AvatarFallback>
+                {(activeWorkspace?.linkedInName || user.name || "U").charAt(0)}
+              </AvatarFallback>
+            </Avatar>
           </div>
           <div className="min-w-0 flex-grow">
             <p className="text-sm font-semibold text-black">
-              {user.name || ""}
+              {activeWorkspace?.linkedInName || user.name || ""}
             </p>
 
             <p className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs font-normal text-muted-foreground">
-              {user.headline}
+              {activeWorkspace
+                ? activeWorkspace.linkedInHeadline || ""
+                : user.headline || ""}
             </p>
 
             <p className="flex items-center text-xs text-muted-foreground">

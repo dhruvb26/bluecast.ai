@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "next/navigation";
 import { v4 as uuid } from "uuid";
 import { PenSquare } from "lucide-react";
-import { HourglassSimpleHigh } from "@phosphor-icons/react";
+import { HourglassSimpleHigh, Sparkle } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { saveDraft } from "@/actions/draft";
@@ -41,18 +41,7 @@ export function NavCreate({
   const pathname = usePathname();
   const router = useRouter();
 
-  const menuItems = [
-    {
-      name: "Dashboard",
-      url: "/dashboard",
-      activeIcon: <House className="text-blue-600" />,
-      inactiveIcon: <HouseOutline />,
-    },
-  ];
-
-  const renderMenuItem = (
-    item: (typeof menuItems)[0] | (typeof projects)[0]
-  ) => {
+  const renderMenuItem = (item: (typeof projects)[0]) => {
     const isActive = pathname === item.url;
     return (
       <SidebarMenuItem
@@ -62,14 +51,7 @@ export function NavCreate({
         <Tooltip>
           <TooltipTrigger asChild>
             <SidebarMenuButton asChild>
-              <a
-                href={item.url}
-                className={`flex items-center ${
-                  "comingSoon" in item && item.comingSoon
-                    ? "pointer-events-none"
-                    : ""
-                }`}
-              >
+              <a href={item.url} className={`flex items-center`}>
                 {isActive ? item.activeIcon : item.inactiveIcon}
                 {!isCollapsed && (
                   <span
@@ -82,11 +64,8 @@ export function NavCreate({
                 )}
                 {"comingSoon" in item && item.comingSoon && !isCollapsed && (
                   <Badge className="ml-1 opacity-80 font-normal text-xs hover:bg-indigo-100 text-indigo-600 hover:text-indigo-600 bg-indigo-100">
-                    <HourglassSimpleHigh
-                      weight="fill"
-                      className="inline w-3 h-3"
-                    />
-                    Soon
+                    <Sparkle weight="duotone" className="inline w-3 h-3" />
+                    New
                   </Badge>
                 )}
               </a>
@@ -115,7 +94,7 @@ export function NavCreate({
           <TooltipTrigger asChild>
             <Button
               className={cn(
-                "w-full mb-4 rounded-md bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-none hover:shadow-sm transition-all duration-300 flex items-center justify-center",
+                "w-full rounded-md bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-none hover:shadow-sm transition-all duration-300 flex items-center justify-center",
                 isCollapsed ? "px-2" : "px-5"
               )}
               onClick={handleCreateDraft}
@@ -130,7 +109,7 @@ export function NavCreate({
             </TooltipContent>
           )}
         </Tooltip>
-        <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu>
+        {/* <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu> */}
       </SidebarGroup>
       <SidebarGroup>
         {!isCollapsed && (

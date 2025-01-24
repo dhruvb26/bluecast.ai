@@ -1,28 +1,39 @@
 "use client";
 import { getUser } from "@/actions/user";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { env } from "@/env";
-import { Cardholder, Check } from "@phosphor-icons/react";
-import { CheckIcon, ChevronLeft } from "lucide-react";
+import { Check, X } from "@phosphor-icons/react";
+import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 const PricingPage = () => {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadingPriceId, setLoadingPriceId] = useState<string | null>(null);
   const [isAnnual, setIsAnnual] = useState(false);
-  const annualPrice = "$200.00";
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const annualPrice = "$23.00";
   const monthlyPrice = "$29.00";
-  const annualSavingsPercentage = Math.round((1 - 200 / (29 * 12)) * 100);
+  const proMonthlyPrice = "$49.00";
+  const proAnnualPrice = "$39.00";
+  const annualSavingsPercentage = Math.round((1 - 279 / (29 * 12)) * 100);
+  const proAnnualSavingsPercentage = Math.round((1 - 470 / (49 * 12)) * 100);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const user = await getUser();
+      setCurrentUser(user);
+    };
+    fetchUser();
+  }, []);
 
   const handleSubscribe = async (priceId: string) => {
     const user = await getUser();
-    setIsLoading(true);
+    setLoadingPriceId(priceId);
 
     try {
       const response = await fetch("/api/webhook/session", {
@@ -56,19 +67,60 @@ const PricingPage = () => {
       console.error("Error creating checkout session:", error);
       toast.error("Failed to create checkout session. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoadingPriceId(null);
     }
   };
 
-  const getPriceId = () => {
+  const getPriceId = (isGrowPlan: boolean = false) => {
+    if (isGrowPlan) {
+      return isAnnual
+        ? env.NEXT_PUBLIC_NODE_ENV === "development"
+          ? "price_1QMOYXRrqqSKPUNWcFVWJIs4" // monthly grow plan dev
+          : "price_1QN9NyRrqqSKPUNWWwB1zAXa" // monthly grow plan prod
+        : env.NEXT_PUBLIC_NODE_ENV === "development"
+        ? "price_1QLXONRrqqSKPUNW7s5FxANR" // annual grow plan dev
+        : "price_1QN9JoRrqqSKPUNWuTZBJWS1"; // annual grow plan prod
+    }
     return isAnnual
       ? env.NEXT_PUBLIC_NODE_ENV === "development"
-        ? "price_1Q32GdRrqqSKPUNWN1sG48XI"
-        : "price_1Q1VQ4RrqqSKPUNWMMbGj3yh"
+        ? "price_1QMOWRRrqqSKPUNWRV27Uiv7"
+        : "price_1QN9MVRrqqSKPUNWHqv3bcMM"
       : env.NEXT_PUBLIC_NODE_ENV === "development"
       ? "price_1Q32F1RrqqSKPUNWkMQXCrVC"
       : "price_1Pb0w5RrqqSKPUNWGX1T2G3O";
   };
+
+  const isCurrentPlan = (isGrowPlan: boolean) => {
+    const priceId = getPriceId(isGrowPlan);
+    return currentUser?.priceId === priceId;
+  };
+
+  const renderFeature = (
+    feature: string,
+    isAvailable: boolean,
+    isGrowPlan: boolean
+  ) => (
+    <div className="flex items-center w-full">
+      <div
+        className={`rounded-full p-1 ${
+          isAvailable
+            ? isGrowPlan
+              ? "bg-white text-blue-600"
+              : "bg-blue-600 text-white"
+            : "bg-red-100 text-red-500"
+        }`}
+      >
+        {isAvailable ? (
+          <Check weight="bold" size={12} />
+        ) : (
+          <X weight="bold" size={12} />
+        )}
+      </div>
+      <span className={`mx-4 ${!isAvailable && "text-gray-400 line-through"}`}>
+        {feature}
+      </span>
+    </div>
+  );
 
   return (
     <main className="p-8">
@@ -98,61 +150,123 @@ const PricingPage = () => {
           <Switch checked={isAnnual} onCheckedChange={setIsAnnual} />
           <span className="text-sm">Annual</span>
         </div>
-        <div className="max-w-sm w-full border rounded-lg dark:border-gray-700">
-          <div className="p-6">
-            <h1 className="text-lg font-semibold tracking-tight capitalize dark:text-white">
-              {isAnnual ? "Annual" : "Monthly"} Launch Plan
-              {isAnnual && (
-                <Badge className="ml-2 space-x-1 bg-indigo-50 font-normal text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500">
-                  Save {20}%
-                </Badge>
-              )}
-            </h1>
+        <div className="grid grid-cols-2 gap-8 justify-center">
+          {/* <div className="flex flex-row items-center justify-center"> */}
+          <div className="max-w-sm w-full border rounded-lg dark:border-gray-700">
+            <div className="p-6">
+              <h1 className="text-lg font-semibold tracking-tight capitalize dark:text-white">
+                {isAnnual ? "Annual Pro Plan" : "Monthly Pro Plan"}
+                {isAnnual && (
+                  <Badge className="ml-2 space-x-1 bg-indigo-50 font-normal text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500">
+                    {`Save ${annualSavingsPercentage}%`}
+                  </Badge>
+                )}
+              </h1>
 
-            <p className="text-sm text-muted-foreground">
-              Our most popular plan for creators.
-            </p>
+              <p className="text-sm text-muted-foreground">
+                For individual creators.
+              </p>
 
-            <h2 className="mt-2 text-lg font-semibold sm:text-2xl">
-              {isAnnual ? annualPrice : monthlyPrice}{" "}
-              <span className="text-sm font-normal text-muted-foreground">
-                /{isAnnual ? "Year" : "Month"}
-              </span>
-            </h2>
-            <Button
-              loading={isLoading}
-              onClick={() => handleSubscribe(getPriceId())}
-              className="mt-4 w-full"
-            >
-              Start Now
-            </Button>
+              <h2 className="mt-2 text-lg font-semibold sm:text-2xl">
+                {isAnnual ? annualPrice : monthlyPrice}{" "}
+                <span className="text-sm font-normal text-muted-foreground">
+                  /{isAnnual ? "Month" : "Month"}
+                </span>
+              </h2>
+              <Button
+                loading={loadingPriceId === getPriceId()}
+                onClick={() => handleSubscribe(getPriceId())}
+                className="mt-4 w-full"
+                disabled={isCurrentPlan(false)}
+              >
+                {isCurrentPlan(false) ? "Current Plan" : "Start Now"}
+              </Button>
+            </div>
+
+            <hr className="border-gray-200 dark:border-gray-700" />
+
+            <div className="p-6 text-sm">
+              <h1 className="text-base font-semibold tracking-tight capitalize dark:text-white">
+                What's included:
+              </h1>
+
+              <div className="mt-4 space-y-4">
+                {[
+                  { feature: "Post Generator (50K words)", available: true },
+                  {
+                    feature:
+                      "Repurpose Content from YouTube, Blogs, PDF, and Audio",
+                    available: true,
+                  },
+                  { feature: "Create Your Own Voice", available: true },
+                  { feature: "Idea Generator", available: true },
+                  {
+                    feature: "Inspiration from Top LinkedIn Influencers",
+                    available: true,
+                  },
+                  { feature: "Save Ideas and Posts", available: true },
+                  { feature: "Post Preview and Formatter", available: true },
+                  { feature: "Content Scheduler", available: true },
+                ].map((item, index) => (
+                  <div key={index}>
+                    {renderFeature(item.feature, item.available, false)}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <hr className="border-gray-200 dark:border-gray-700" />
+          <div className="max-w-sm w-full border bg-blue-600 text-white rounded-lg dark:border-gray-700">
+            <div className="p-6">
+              <h1 className="text-lg font-semibold tracking-tight capitalize dark:text-white">
+                {isAnnual ? "Annual Grow Plan" : "Monthly Grow Plan"}
+                <Badge className="ml-2 space-x-1 bg-indigo-50 font-normal text-indigo-500 hover:bg-indigo-50 hover:text-indigo-500">
+                  {isAnnual
+                    ? `Save ${proAnnualSavingsPercentage}%`
+                    : `Most Value`}
+                </Badge>
+              </h1>
 
-          <div className="p-6 text-sm">
-            <h1 className="text-base font-semibold tracking-tight capitalize  dark:text-white">
-              What's included:
-            </h1>
+              <p className="text-sm text-white">For teams and power users.</p>
 
-            <div className="mt-4 space-y-4">
-              {[
-                "Post Generator (50K words)",
-                "Repurpose from YouTube, Blogs, PDF, & Audio",
-                "Create Your Own Voice",
-                "Idea Generator",
-                "Inspiration from Top LinkedIn Influencers",
-                "Save Ideas and Posts",
-                "Post Preview and Formatter",
-                "Content Scheduler",
-              ].map((feature, index) => (
-                <div key={index} className="flex items-center w-full">
-                  <div className="bg-primary text-white rounded-full p-1">
-                    <Check weight="bold" size={12} />
+              <h2 className="mt-2 text-lg font-semibold sm:text-2xl">
+                {isAnnual ? proAnnualPrice : proMonthlyPrice}{" "}
+                <span className="text-sm font-normal text-white">
+                  /{isAnnual ? "Month" : "Month"}
+                </span>
+              </h2>
+              <Button
+                loading={loadingPriceId === getPriceId(true)}
+                variant={"outline"}
+                onClick={() => handleSubscribe(getPriceId(true))}
+                className="mt-4 w-full text-blue-600 hover:text-blue-600"
+                disabled={isCurrentPlan(true)}
+              >
+                {isCurrentPlan(true) ? "Current Plan" : "Start Now"}
+              </Button>
+            </div>
+
+            <hr className="border-gray border-white" />
+
+            <div className="p-6 text-sm">
+              <h1 className="text-base font-semibold tracking-tight capitalize dark:text-white">
+                Everything in Pro+
+              </h1>
+
+              <div className="mt-4 space-y-4">
+                {[
+                  {
+                    feature: "Post Generator (75K words per workspace)",
+                    available: true,
+                  },
+                  { feature: "3 Workspaces", available: true },
+                  { feature: "Priority Email Support", available: true },
+                ].map((item, index) => (
+                  <div key={index}>
+                    {renderFeature(item.feature, item.available, true)}
                   </div>
-                  <span className="mx-4 dark:">{feature}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>

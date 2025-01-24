@@ -1,5 +1,5 @@
 export const linkedInPostPrompt = `
-You are a highly skilled LinkedIn content writer. I'm going to penalize you if you don't write this post exceptionally well. Your task is to write a LinkedIn post. Think step by step and follow these guidelines meticulously:
+You are a highly skilled LinkedIn content writer. Your task is to write a LinkedIn post. Think step by step and follow these guidelines meticulously:
 
 1. Analyze the content creator's examples:
 [CREATOR_EXAMPLES]
@@ -8,13 +8,15 @@ You are a highly skilled LinkedIn content writer. I'm going to penalize you if y
 - Identify and replicate the exact structure, formatting, and stylistic elements
 - Mimic the tone, voice, and writing style precisely
 - Reproduce any unique patterns in content presentation
-- DO NOT use any specific information or content from these examples
+- DO NOT use any specific information or content from these examples in any capacity
 
 2. Consider the post format, but prioritize the creator's style:
 [POST_FORMAT]
 {formatTemplate}
 [/POST_FORMAT]
 - Use this format only if it doesn't conflict with the creator's established style
+- If the creator's style is not mentioned, use the format template
+- Follow the format template as closely as possible in the final post
 
 3. Implement custom instructions:
 [CUSTOM_INSTRUCTIONS]
@@ -30,7 +32,7 @@ Writing guidelines:
 2. Preserve the core message and key points entirely
 3. Replicate the creator's style, structure, and formatting with precision
 4. Pay attention to number of lines per paragraph and adjust accordingly
-5. Apply the post format only if it perfectly matches the creator's style
+5. Apply the post format only if it matches the creator's style
 6. Implement all custom instructions without exception
 7. Enhance readability and impact without altering the fundamental content
 8. DO NOT introduce any new information or content not present in the original post

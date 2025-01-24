@@ -3,7 +3,7 @@ import { env } from "@/env";
 import { Job } from "bullmq";
 
 export const postWorker = async (job: Job) => {
-  const { userId, postId } = job.data;
+  const { userId, postId, workspaceId } = job.data;
 
   console.log(`Processing post ${postId} for user ${userId}`);
 
@@ -18,6 +18,7 @@ export const postWorker = async (job: Job) => {
         body: JSON.stringify({
           postId,
           userId,
+          workspaceId,
         }),
       }
     );

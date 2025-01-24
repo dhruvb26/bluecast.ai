@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { getLinkedInId, checkAccess, getUser } from "@/actions/user";
 import { RouteHandlerResponse } from "@/types";
 import { updateDraftField } from "@/actions/draft";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/server/db";
 import { accounts } from "@/server/db/schema";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(req: Request): Promise<
   NextResponse<
@@ -18,27 +19,43 @@ export async function POST(req: Request): Promise<
     console.log("Starting image upload process");
     await checkAccess();
     console.log("Access checked");
-    // const linkedInId = await getLinkedInId();
-    // console.log("LinkedIn ID retrieved:", linkedInId);
+
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
+
     const formData = await req.formData();
     console.log("Form data parsed");
     const user = await getUser();
     const userId = user.id;
     console.log("User ID:", userId);
 
+    // Get account based on userId and workspaceId
+    const conditions = [eq(accounts.userId, userId)];
+    if (workspaceId) {
+      conditions.push(eq(accounts.workspaceId, workspaceId));
+    } else {
+      conditions.push(isNull(accounts.workspaceId));
+    }
+
     const account = await db
       .select()
       .from(accounts)
-      .where(eq(accounts.userId, userId))
+      .where(and(...conditions))
       .limit(1);
-    const linkedInId = await db
-      .select({ providerAccountId: accounts.providerAccountId })
-      .from(accounts)
-      .where(eq(accounts.userId, userId))
-      .limit(1);
-    const accessToken = account[0].access_token;
 
-    console.log("Initializing upload with LinkedIn API");
+    if (!account || account.length === 0) {
+      throw new Error("No LinkedIn account found");
+    }
+
+    const accessToken = account[0].access_token;
+    const linkedInId = account[0].providerAccountId;
+
+    console.log(
+      "Initializing upload with LinkedIn API for linkedinId:",
+      linkedInId
+    );
     const initResponse = await fetch(
       "https://api.linkedin.com/rest/images?action=initializeUpload",
       {
@@ -50,7 +67,7 @@ export async function POST(req: Request): Promise<
         },
         body: JSON.stringify({
           initializeUploadRequest: {
-            owner: `urn:li:person:${linkedInId[0].providerAccountId}`,
+            owner: `urn:li:person:${linkedInId}`,
           },
         }),
       }

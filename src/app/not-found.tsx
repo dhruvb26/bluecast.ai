@@ -24,7 +24,7 @@ export default function NotFound() {
             variant={"link"}
             className="px-0 text-foreground hover:text-foreground hover:underline group"
           >
-            <Link href={"/dashboard"}>Go to Dashboard</Link>
+            <Link href={"/create/posts"}>Explore our templates</Link>
           </Button>
         </div>
       </div>

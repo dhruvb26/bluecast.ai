@@ -25,20 +25,23 @@ export default function EditDraft() {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const [value, setValue] = useState<Descendant[]>(initialValue);
   const [fileType, setFileType] = useState(null);
-
+  const [workspaceId, setWorkspaceId] = useState<string | undefined>(undefined);
   const [documentUrn, setDocumentUrn] = useState<string | null>(null);
   const [device, setDevice] = useState<"mobile" | "tablet" | "desktop">(
     "mobile"
   );
+  const [status, setStatus] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
-
+  const [initialName, setInitialName] = useState<string | null>(null);
   useEffect(() => {
     const fetchDraft = async () => {
       setIsLoading(true);
       try {
         const draft = await getDraft(id);
         if (draft.success && draft.data) {
+          setInitialName(draft.data.name);
+          setWorkspaceId(draft.data.workspaceId);
           let newValue: Descendant[];
           if (typeof draft.data.content === "string") {
             try {
@@ -60,10 +63,12 @@ export default function EditDraft() {
           setUpdatedAt(
             draft.data.updatedAt ? new Date(draft.data.updatedAt) : null
           );
+          setStatus(draft.data.status);
         } else {
           setValue(initialValue);
           setDocumentUrn(null);
           setUpdatedAt(null);
+          setStatus(null);
         }
       } catch (error) {
         console.error("Error fetching draft:", error);
@@ -122,7 +127,9 @@ export default function EditDraft() {
         <div className="flex w-full flex-col min-h-full lg:flex-row">
           <div className="w-full lg:w-1/2 border-input">
             <EditorSection
+              status={status}
               id={id}
+              workspaceId={workspaceId}
               initialValue={value}
               setValue={setValue}
               editor={editor}
@@ -130,6 +137,7 @@ export default function EditDraft() {
               initialDocumentUrn={documentUrn}
               setFileType={setFileType}
               updateAt={updatedAt}
+              initialName={initialName || ""}
             />
           </div>
 

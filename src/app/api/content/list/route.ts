@@ -6,6 +6,7 @@ import { RouteHandlerResponse } from "@/types";
 import { v4 as uuidv4 } from "uuid";
 import { getUser } from "@/actions/user";
 import { eq, isNull } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(
   req: Request
@@ -13,8 +14,10 @@ export async function POST(
   try {
     const user = await getUser();
     const { url, listName } = (await req.json()) as any;
-
-    const isPublic = false;
+    const { sessionClaims } = auth();
+    const workspaceId = sessionClaims?.metadata?.activeWorkspaceId as
+      | string
+      | undefined;
 
     if (!url || !listName) {
       return NextResponse.json(
@@ -22,15 +25,21 @@ export async function POST(
         { status: 400 }
       );
     }
-    // 1. Find or create the creator_list
+
+    // 1. Find or create the creator_list with workspace conditions
     let creatorList = await db.query.creatorLists.findFirst({
-      where: (creatorLists, { eq, and }) =>
-        and(
-          eq(creatorLists.name, listName),
-          isPublic
-            ? isNull(creatorLists.userId)
-            : eq(creatorLists.userId, user.id)
-        ),
+      where: (creatorLists, { eq, and }) => {
+        const conditions = [eq(creatorLists.name, listName)];
+
+        if (workspaceId) {
+          conditions.push(eq(creatorLists.workspaceId, workspaceId));
+        } else {
+          conditions.push(eq(creatorLists.userId, user.id));
+          conditions.push(isNull(creatorLists.workspaceId));
+        }
+
+        return and(...conditions);
+      },
     });
 
     let creatorListId;
@@ -39,7 +48,10 @@ export async function POST(
       await db.insert(creatorLists).values({
         id: creatorListId,
         name: listName,
-        userId: isPublic ? null : user.id,
+        userId: user.id,
+        workspaceId: workspaceId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
     } else {
       creatorListId = creatorList.id;
@@ -97,6 +109,7 @@ export async function POST(
         id: uuidv4(),
         creatorListId,
         creatorId: creator.id,
+        createdAt: new Date(),
       });
     }
 

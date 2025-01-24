@@ -11,6 +11,8 @@ export const env = createEnv({
     REDIS_CLOUD_PASSWORD: z.string(),
     DATABASE_PASSWORD: z.string(),
 
+    TRIGGER_SECRET_KEY: z.string(),
+
     LINKEDIN_CLIENT_ID: z.string(),
     LINKEDIN_CLIENT_SECRET: z.string(),
     CALLBACK_URL: z.string(),
@@ -40,6 +42,7 @@ export const env = createEnv({
 
     CLERK_SECRET_KEY: z.string(),
     WEBHOOK_SECRET: z.string(),
+    FILE_URL: z.string(),
   },
 
   /**
@@ -54,8 +57,8 @@ export const env = createEnv({
     NEXT_PUBLIC_POSTHOG_KEY: z.string(),
     NEXT_PUBLIC_POSTHOG_HOST: z.string(),
     NEXT_PUBLIC_BASE_URL: z.string(),
-    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string(),
-    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
+    // NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL: z.string(),
+    // NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL: z.string(),
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string(),
   },
 
@@ -68,20 +71,22 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
-    NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL,
-    NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL:
-      process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL,
+    // NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL:
+    //   process.env.NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL,
+    // NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL:
+    //   process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FORCE_REDIRECT_URL,
     DATABASE_URL: process.env.DATABASE_URL,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
     DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
     CRON_SECRET: process.env.CRON_SECRET,
     MODEL: process.env.MODEL,
     UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
+    FILE_URL: process.env.FILE_URL,
     UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
     AIGATEWAY_ACCOUNT_ID: process.env.AIGATEWAY_ACCOUNT_ID,
     AIGATEWAY_ID: process.env.AIGATEWAY_ID,
     NODE_ENV: process.env.NODE_ENV,
+    TRIGGER_SECRET_KEY: process.env.TRIGGER_SECRET_KEY,
     RAPIDAPI_KEY: process.env.RAPIDAPI_KEY,
     ASSEMBLY_API_KEY: process.env.ASSEMBLY_API_KEY,
     BASE_URL: process.env.BASE_URL,

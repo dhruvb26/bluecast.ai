@@ -19,23 +19,6 @@ const BlogLinkedInPage = () => {
           for you.
         </p>
       </div>
-      {/* <div className="mb-4 rounded-md bg-indigo-50 p-4 text-left text-sm text-indigo-500 border border-indigo-200">
-        <span>
-          <strong>NOTE: </strong>
-          If you encounter a{" "}
-          <span className="text-red-500 font-medium">
-            Failed to submit. Try again later.
-          </span>{" "}
-          Consider converting the page to PDF, and then proceed to our{" "}
-          <Link
-            href="/create/posts/pdf"
-            className="text-indigo-600 font-medium hover:underline"
-          >
-            PDF Repurpose Template
-          </Link>
-          . We're working on a fix right now.
-        </span>
-      </div> */}
       <div className="flex w-full flex-grow flex-col gap-8 lg:flex-row">
         <div className="w-full lg:w-1/2">
           <BlogForm />
