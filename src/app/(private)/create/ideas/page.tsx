@@ -6,7 +6,7 @@ export default function IdeasPage() {
   return (
     <main className="p-8">
       <div className="mb-8">
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">
+        {/* <h1 className="text-lg font-semibold tracking-tight text-foreground">
           Content Ideation
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -14,9 +14,18 @@ export default function IdeasPage() {
           develop your marketing funnel. Choose between free-form idea
           generation or structured prompts to shape your content strategy.
         </p>
+         */}
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">
+          Generate Ideas
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Generate fresh ideas for your next blog post, social media campaign,
+          or marketing strategy. Our AI-powered idea generator will help you
+          break through writer's block and get your creative juices flowing.
+        </p>
       </div>
 
-      <Tabs defaultValue="generate" className="w-full">
+      {/* <Tabs defaultValue="generate" className="w-full">
         <TabsList>
           <TabsTrigger className="w-1/2" value="generate">
             Generate Ideas
@@ -25,15 +34,15 @@ export default function IdeasPage() {
             Answer Prompts
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="generate">
-          <IdeasContent />
-        </TabsContent>
+        <TabsContent value="generate"> */}
+      <IdeasContent />
+      {/* </TabsContent>
         <TabsContent value="answer-prompts">
           <div className="mt-4">
             <FunnelPromptsSection />
           </div>
-        </TabsContent>
-      </Tabs>
+        </TabsContent> */}
+      {/* </Tabs> */}
     </main>
   );
 }

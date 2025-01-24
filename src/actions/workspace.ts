@@ -248,7 +248,6 @@ export async function switchWorkspace(workspaceId: string) {
     });
     return { success: true, data: undefined };
   } else {
-    console.log("switching to workspace", workspaceId);
     const workspaceAccess = await db.query.workspaces.findFirst({
       where: and(eq(workspaces.id, workspaceId)),
     });

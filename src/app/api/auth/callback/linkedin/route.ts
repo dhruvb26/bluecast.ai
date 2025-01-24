@@ -12,7 +12,6 @@ export async function GET(request: NextRequest) {
     | string
     | undefined;
 
-  console.log("User: ", user);
   const searchParams = request.nextUrl.searchParams;
   const code = searchParams.get("code");
   const state = searchParams.get("state");
@@ -50,7 +49,6 @@ export async function GET(request: NextRequest) {
 
     const tokenData: any = await tokenResponse.json();
 
-    console.log("Response from LinkedIn: ", tokenData);
     const access_token = tokenData.access_token;
     const expires_in = tokenData.expires_in;
     const expires_at = Date.now() + tokenData.expires_in * 1000;
@@ -107,6 +105,31 @@ export async function GET(request: NextRequest) {
     }
 
     if (user) {
+      // First check if this LinkedIn account is already connected to another user
+      const existingAccount = await db
+        .select()
+        .from(accounts)
+        .where(
+          and(
+            eq(accounts.provider, "linkedin"),
+            eq(accounts.providerAccountId, linkedInId),
+            workspaceId
+              ? eq(accounts.workspaceId, workspaceId)
+              : isNull(accounts.workspaceId)
+          )
+        )
+        .limit(1);
+
+      if (existingAccount.length > 0 && existingAccount[0].userId !== user.id) {
+        return NextResponse.json(
+          {
+            error: "This LinkedIn account is already connected to another user",
+          },
+          { status: 403 }
+        );
+      }
+
+      // Only proceed with updates if the account is not connected or belongs to current user
       if (!workspaceId) {
         await db
           .update(users)
@@ -127,43 +150,10 @@ export async function GET(request: NextRequest) {
           })
           .where(eq(workspaces.userId, user.id));
       }
-    }
 
-    if (user) {
-      // Check if the account already exists
-      const existingAccount = await db
-        .select()
-        .from(accounts)
-        .where(
-          and(
-            eq(accounts.userId, user.id),
-            eq(accounts.provider, "linkedin"),
-            eq(accounts.providerAccountId, linkedInId),
-            workspaceId
-              ? eq(accounts.workspaceId, workspaceId)
-              : isNull(accounts.workspaceId)
-          )
-        )
-        .limit(1);
-
-      if (existingAccount.length === 0) {
-        // If the account doesn't exist, insert it
-        await db.insert(accounts).values({
-          userId: user.id,
-          provider: "linkedin",
-          providerAccountId: linkedInId,
-          access_token,
-          expires_in,
-          refresh_token,
-          refresh_token_expires_in,
-          scope,
-          expires_at,
-          token_type,
-          id_token,
-          workspaceId: workspaceId || null,
-        });
-      } else {
-        // If the account exists, update it
+      // Proceed with account connection/update
+      if (existingAccount.length > 0) {
+        // Update existing account
         await db
           .update(accounts)
           .set({
@@ -186,6 +176,22 @@ export async function GET(request: NextRequest) {
                 : isNull(accounts.workspaceId)
             )
           );
+      } else {
+        // Create new account
+        await db.insert(accounts).values({
+          userId: user.id,
+          provider: "linkedin",
+          providerAccountId: linkedInId,
+          access_token,
+          expires_in,
+          refresh_token,
+          refresh_token_expires_in,
+          scope,
+          expires_at,
+          token_type,
+          id_token,
+          workspaceId: workspaceId || null,
+        });
       }
     }
 

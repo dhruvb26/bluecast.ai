@@ -142,7 +142,7 @@ const PostsPage = () => {
           </h2>
         </>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <Link href={"/create/posts/funnel"}>
+          {/* <Link href={"/create/posts/funnel"}>
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">
                 <CardTitle className="text-base font-semibold tracking-tight">
@@ -163,7 +163,7 @@ const PostsPage = () => {
                 </p>
               </CardContent>
             </Card>
-          </Link>
+          </Link> */}
           <Link href={"/create/posts/refresh"} id="tour-2">
             <Card className="group bg-gray-25 h-full overflow-hidden border-input transition-all hover:-translate-y-1 hover:shadow-sm relative">
               <CardContent className="flex h-[calc(100%-80px)] flex-col p-4 text-foreground relative ">

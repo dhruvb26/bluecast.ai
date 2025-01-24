@@ -334,6 +334,21 @@ const SettingsPage = async () => {
             <LinkedInSignInButton buttonText="Connect LinkedIn" />
           </div>
         </section>
+        <section className="flex space-x-4">
+          <div className="w-1/3">
+            <h2 className="text-base font-semibold tracking-tight text-foreground">
+              Having issues?
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Contact us at support@bluecast.ai
+            </p>
+          </div>
+          <div className="flex w-2/3 items-center justify-start">
+            <Link href="https://bluecast.canny.io/feedback" target="_blank">
+              <Button variant={"outline"}>Feedback</Button>
+            </Link>
+          </div>
+        </section>
       </div>
     </main>
   );
