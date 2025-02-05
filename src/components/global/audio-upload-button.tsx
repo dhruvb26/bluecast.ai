@@ -12,6 +12,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { toast } from "sonner";
+import { RecordAudioModal } from "../audio/record-audio-modal";
 
 export default function AudioUploadButton() {
   const { url, setUrl } = useUploadStore();
@@ -39,10 +40,13 @@ export default function AudioUploadButton() {
   };
 
   return (
-    <main className="flex w-full items-start space-x-4">
+    <main className="flex w-full items-start gap-2">
       <UploadButton
         className="ut-button:bg-primary ut-button:w-full ut-button:mx-0 ut-button:h-9 ut-button:hover:bg-primary/90 ut-button:rounded-md ut-button:px-4 ut-button:py-2 ut-button:font-normal ut-button:ring-0"
         endpoint="audioUploader"
+        content={{
+          button: "Choose",
+        }}
         onClientUploadComplete={(res) => {
           console.log("Files: ", res);
           if (res && res[0]?.url) {
@@ -53,6 +57,7 @@ export default function AudioUploadButton() {
           alert(`ERROR! ${error.message}`);
         }}
       />
+      <RecordAudioModal />
       <Input
         type="text"
         value={url}
@@ -60,18 +65,12 @@ export default function AudioUploadButton() {
         className="w-fit flex-grow"
         placeholder="Uploaded file URL will appear here"
       />
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {url && (
-              <Button onClick={handleDelete} size="icon" variant="outline">
-                <X size={20} weight="regular" />
-              </Button>
-            )}
-          </TooltipTrigger>
-          <TooltipContent>Remove</TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+
+      {url && (
+        <Button onClick={handleDelete} size="icon" variant="outline">
+          <TrashSimple />
+        </Button>
+      )}
     </main>
   );
 }

@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { usePostStore } from "@/store/post";
-import FileUploadButton from "@/components/global/file-upload-button";
 import { useUploadStore } from "@/store/post";
 import {
   PostFormatField,
@@ -15,7 +14,7 @@ import {
   InstructionsField,
 } from "./form-fields";
 import AudioUploadButton from "../global/audio-upload-button";
-
+import { RecordAudioModal } from "../audio/record-audio-modal";
 export const RepurposeFormSchema = z.object({
   url: z.string().url(),
   instructions: z.string().optional(),
@@ -38,7 +37,6 @@ export function TranscribeForm() {
     },
   });
   const [selectedFormat, setSelectedFormat] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
   const {
     handleSubmit: storeHandleSubmit,
     handleGenerateInstructions,
@@ -65,21 +63,6 @@ export function TranscribeForm() {
   const handleSelectFormat = (format: string) => {
     setSelectedFormat(format);
     form.setValue("formatTemplate", format);
-  };
-
-  const handleFormatChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setSelectedFormat(e.target.value);
-    form.setValue("formatTemplate", e.target.value);
-  };
-
-  const handleClearFormat = () => {
-    setSelectedFormat(null);
-    form.setValue("formatTemplate", "");
-  };
-
-  const handleToggleCollapsible = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsOpen(!isOpen);
   };
 
   const onSubmit = (data: z.infer<typeof RepurposeFormSchema>) => {
@@ -112,81 +95,6 @@ export function TranscribeForm() {
         <div className="flex w-full items-center justify-start">
           <AudioUploadButton />
         </div>
-        {/* <Collapsible
-          open={isOpen}
-          onOpenChange={setIsOpen}
-          className="w-full max-w-full rounded-lg bg-blue-50"
-        >
-          <CollapsibleTrigger asChild>
-            <div className="flex items-center justify-between px-4 py-4">
-              <h2 className="flex items-center text-sm font-medium text-black">
-                <Lightning
-                  weight="duotone"
-                  className="mr-1 text-blue-500"
-                  size={22}
-                />
-                Add more information
-              </h2>
-
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-6 w-6 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
-                onClick={handleToggleCollapsible}
-              >
-                <CaretDown
-                  className={`h-4 w-4 transition-transform ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
-                />
-                <span className="sr-only">Toggle</span>
-              </Button>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-4 px-4 pb-4">
-            <FormField
-              control={form.control}
-              name="engagementQuestion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Engagement question</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Enter your question here"
-                      className="resize-none"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Ask a question to encourage discussion and comments on your
-                    post.
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="CTA"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Call to Action refinement</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Refine your CTA here"
-                      className="resize-none"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Refine the call to action to be more specific to your
-                    audience's needs.
-                  </FormDescription>
-                </FormItem>
-              )}
-            />
-          </CollapsibleContent>
-        </Collapsible> */}
         <InstructionsField
           form={form}
           isGeneratingInstructions={isGeneratingInstructions}

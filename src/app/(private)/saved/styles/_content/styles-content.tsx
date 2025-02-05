@@ -223,7 +223,7 @@ export default function StylesContent() {
         </div>
       </div>
       <div className="mt-4 rounded-md text-indigo-500 p-4 text-left text-sm bg-indigo-50 border border-indigo-200">
-        <span>
+        <span className="text-indigo-400">
           <span className="font-semibold">NOTE: </span>
           Curate high-quality post examples for optimal results. Remember, the
           quality of your examples directly impacts the generated posts. Don't

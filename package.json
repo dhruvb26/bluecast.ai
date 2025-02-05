@@ -23,6 +23,8 @@
     "@auth/drizzle-adapter": "^1.4.2",
     "@clerk/nextjs": "^5.5.2",
     "@extractus/article-extractor": "^8.0.10",
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@floating-ui/react": "^0.26.24",
     "@frigade/react": "^2.5.0",
     "@hookform/resolvers": "^3.9.0",

@@ -95,7 +95,7 @@ export function NavCreate({
             <Button
               className={cn(
                 "w-full rounded-md bg-gradient-to-r to-brand-blue-secondary from-brand-blue-primary hover:from-blue-500 hover:to-blue-500 hover:via-blue-500 border border-blue-500 text-white shadow-none hover:shadow-sm transition-all duration-300 flex items-center justify-center",
-                isCollapsed ? "px-2" : "px-5"
+                isCollapsed ? "px-2 h-8" : "px-5"
               )}
               onClick={handleCreateDraft}
             >
@@ -109,7 +109,6 @@ export function NavCreate({
             </TooltipContent>
           )}
         </Tooltip>
-        {/* <SidebarMenu>{menuItems.map(renderMenuItem)}</SidebarMenu> */}
       </SidebarGroup>
       <SidebarGroup>
         {!isCollapsed && (
