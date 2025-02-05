@@ -251,8 +251,8 @@ export function RecordAudioModal() {
                       } opacity-75 bg-blue-300`}
                     />
                     {/* Microphone button */}
-                    <div className="relative bg-accent rounded-full p-6 cursor-pointer">
-                      <Mic className="h-8 w-8 text-gray-600" />
+                    <div className="relative bg-accent rounded-full p-4 cursor-pointer">
+                      <Microphone size={24} weight="duotone" />
                     </div>
                   </div>
                   <div className="space-x-3">

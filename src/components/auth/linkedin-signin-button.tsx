@@ -88,7 +88,7 @@ export default function LinkedInSignInButton({
     <Button
       variant={"outline"}
       onClick={handleLinkedInClick}
-      disabled={isDisabled}
+      // disabled={isDisabled}
     >
       <Image
         src="/icons/linkedin.svg"
@@ -97,7 +97,7 @@ export default function LinkedInSignInButton({
         alt="LinkedIn Logo"
         className="mr-2"
       />
-      <span>{isDisabled ? "Connected" : buttonText}</span>
+      <span>{buttonText}</span>
     </Button>
   );
 }
