@@ -124,10 +124,6 @@ const FileAttachmentButton = ({
           body: formData,
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
         const result: any = await response.json();
 
         if (result.success) {
@@ -148,15 +144,33 @@ const FileAttachmentButton = ({
           setDocumentName("");
           setIsOpen(false);
         } else {
-          console.error(
-            result.message || "Upload failed. Try a smaller size file."
-          );
+          // Check specifically for expired token error
+          if (result.error && result.error.includes("EXPIRED_ACCESS_TOKEN")) {
+            toast.error(
+              "The token used in the request has expired. Try connecting to LinkedIn again."
+            );
+            setShowLinkedInConnect(true);
+            setIsOpen(false);
+            return;
+          }
+
+          // Handle other errors
           toast.error(
-            result.message || "Upload failed. Try a smaller size file."
+            result.error || "Upload failed. Try a smaller size file."
           );
         }
       } catch (error: any) {
         console.error("Error in file upload process:", error.message);
+        // Check if the error message contains the expired token information
+        if (error.message?.includes("EXPIRED_ACCESS_TOKEN")) {
+          toast.error(
+            "The token used in the request has expired. Try connecting to LinkedIn again."
+          );
+          setShowLinkedInConnect(true);
+          setIsOpen(false);
+          return;
+        }
+        toast.error("Failed to upload file. Please try again.");
       } finally {
         setIsUploading(false);
       }

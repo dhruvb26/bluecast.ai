@@ -38,7 +38,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import FileAttachmentButton from "@/components/buttons/file-attachment- button";
+import FileAttachmentButton from "@/components/buttons/file-attachment-button";
 import {
   CircleCheckBig,
   IndentDecrease,
