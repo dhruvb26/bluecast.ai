@@ -25,7 +25,7 @@ interface VideoDetails {
 
 export const linkedinPost = task({
   id: `linkedin-post`,
-  maxDuration: 400,
+  maxDuration: 1000,
   run: async (
     payload: {
       userId: string;
