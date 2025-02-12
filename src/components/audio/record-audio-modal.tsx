@@ -10,6 +10,7 @@ import {
   DialogFooter,
   DialogTrigger,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Mic, X, Loader2 } from "lucide-react";
 import { useUploadStore } from "@/store/post";
@@ -36,7 +37,7 @@ export function RecordAudioModal() {
   const [isPaused, setIsPaused] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [progress, setProgress] = useState(0);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { startUpload } = useUploadThing("audioUploader");
 
   useEffect(() => {
@@ -175,6 +176,7 @@ export function RecordAudioModal() {
     if (!audioUrl || error) return;
 
     setIsProcessing(true);
+
     try {
       const audioBlob = new Blob(chunksRef.current);
       const audioFile = new File([audioBlob], "recording.mp3", {
@@ -185,6 +187,7 @@ export function RecordAudioModal() {
 
       if (uploadResult && uploadResult[0]) {
         setUrl(uploadResult[0].url);
+        setIsModalOpen(false);
       }
     } catch (error) {
       console.error("Error uploading audio:", error);
@@ -206,7 +209,7 @@ export function RecordAudioModal() {
   }, [audioUrl]);
 
   return (
-    <Dialog>
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon">
           <Microphone size={18} weight="regular" />
@@ -280,7 +283,7 @@ export function RecordAudioModal() {
                 </>
               ) : (
                 <div className="w-full space-y-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  {/* <div className="bg-gray-50 rounded-lg p-4">
                     <div className="flex items-center justify-center space-x-4">
                       <audio
                         ref={audioRef}
@@ -324,7 +327,15 @@ export function RecordAudioModal() {
                         )}
                       </Button>
                     </div>
-                  </div>
+                  </div> */}
+
+                  <audio
+                    ref={audioRef}
+                    src={audioUrl}
+                    className="w-full"
+                    controls // Add this attribute to show the default audio controls
+                    onEnded={() => setIsPlaying(false)}
+                  />
 
                   {error && (
                     <div className="rounded-md text-indigo-500 p-4 text-left text-sm bg-indigo-50 border border-indigo-200">
@@ -341,7 +352,11 @@ export function RecordAudioModal() {
                     <Button variant="outline" onClick={handleReRecord}>
                       Re-record
                     </Button>
-                    <Button onClick={handleUseRecording}>Use It</Button>
+                    <DialogClose asChild>
+                      <Button type="submit" onClick={handleUseRecording}>
+                        Use It
+                      </Button>
+                    </DialogClose>
                   </div>
                 </div>
               )}
