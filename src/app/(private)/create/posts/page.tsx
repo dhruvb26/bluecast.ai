@@ -81,8 +81,8 @@ const PostsPage = () => {
                   LinkedIn
                 </CardTitle>
                 <p className="mt-2 flex-grow text-sm text-muted-foreground text-center">
-                  Upload an audio file and watch as our platform transforms it
-                  into engaging LinkedIn posts.
+                  Record or upload an audio file and watch as our platform
+                  transforms it into engaging LinkedIn posts.
                 </p>
                 <div className="w-full flex justify-center">
                   <Image src="/icons/audio.png" width={45} height={45} alt="" />
