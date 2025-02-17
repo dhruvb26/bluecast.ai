@@ -6,6 +6,7 @@ import { env } from "@/env";
 import { RepurposeRequestBody } from "@/types";
 import { getContentStyle } from "@/actions/style";
 import { joinExamples } from "@/utils/functions";
+import { linkedInPostPrompt } from "@/utils/prompt-template";
 export const maxDuration = 180;
 
 export async function POST(req: Request) {
@@ -53,46 +54,6 @@ export async function POST(req: Request) {
       }
     }
 
-    let prompt = `You are a highly skilled LinkedIn content writer. Your task is to write a LinkedIn post. Think step by step and follow these guidelines meticulously:\n\n`;
-
-    // Incorporate few-shot prompting if examples are present
-    if (examples) {
-      prompt += `**Examples of the creator's previous posts:**\n${examplesString}\n\n`;
-    }
-
-    // Add instructions if present
-    if (instructions) {
-      prompt += `**Custom Instructions:**\n${instructions}\n\n`;
-    }
-
-    // Add format template if present
-    if (formatTemplate) {
-      prompt += `**Post Format:**\n${formatTemplate}\n\n`;
-    }
-
-    prompt += `**Content to base the post on:**\n${transcript.text}\n\n`;
-
-    // Writing guidelines
-    prompt += `**Writing Guidelines:**\n`;
-    prompt += `1. Match the length of the example posts exactly\n`;
-    prompt += `2. Preserve the core message and key points entirely\n`;
-    prompt += `3. Replicate the creator's style, structure, and formatting with precision\n`;
-    prompt += `4. Pay attention to number of lines per paragraph and adjust accordingly\n`;
-    if (formatTemplate) {
-      prompt += `5. Apply the post format only if it matches the creator's style\n`;
-    }
-    if (instructions) {
-      prompt += `6. Implement all custom instructions without exception\n`;
-    }
-    prompt += `7. Enhance readability and impact without altering the fundamental content\n`;
-    prompt += `8. DO NOT introduce any new information or content not present in the original post\n`;
-    prompt += `9. Adapt the content structure to match the examples, even if it means reorganizing bullet points into paragraphs or vice versa\n`;
-    prompt += `10. NEVER start with a one liner idea or a hook, get right into the post\n`;
-    prompt += `11. NEVER use emojis or hashtags unless specifically mentioned in the custom instructions\n`;
-    prompt += `12. If the examples don't use bullet points, don't use bullet points\n`;
-    prompt += `13. DO NOT use any information outside of the given content\n\n`;
-    prompt += `Provide only the rewritten post, without any explanations or additional comments.`;
-
     // Create the stream for generating LinkedIn post
     const stream = await anthropic.messages.create({
       model: env.MODEL,
@@ -101,7 +62,11 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
-          content: prompt,
+          content: linkedInPostPrompt
+            .replace("{examples}", examplesString || "")
+            .replace("<content>{content}</content>", transcript.text)
+            .replace("{formatTemplate}", formatTemplate || "")
+            .replace("{instructions}", instructions || ""),
         },
       ],
     });

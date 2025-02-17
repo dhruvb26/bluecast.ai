@@ -428,7 +428,7 @@ export async function POST(request: Request) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "LinkedIn-Version": "202401",
+          "LinkedIn-Version": "202501",
           Authorization: `Bearer ${accessToken}`,
           "X-Restli-Protocol-Version": "2.0.0",
         },
