@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/server/db";
-import { users } from "@/server/db/schema";
-import { and, isNotNull } from "drizzle-orm";
+import { users, workspaces } from "@/server/db/schema";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { env } from "@/env";
 export const dynamic = "force-dynamic";
 
@@ -11,19 +11,30 @@ export async function GET(req: NextRequest): Promise<Response> {
       return NextResponse.json({ error: "Not authorized" }, { status: 401 });
     }
 
-    // Update users with subscriptions in the database
-    const result = await db
-      .update(users)
-      .set({ generatedWords: 0, forYouGeneratedPosts: 0 })
+    const usersWithSubscriptions = await db
+      .select()
+      .from(users)
       .where(
-        and(
-          isNotNull(users.stripeSubscriptionId),
-          isNotNull(users.stripeCustomerId),
-          isNotNull(users.priceId)
-        )
+        and(isNotNull(users.stripeSubscriptionId), isNotNull(users.stripeCustomerId), isNotNull(users.priceId))
       );
 
-    return NextResponse.json({ updated: result.count }, { status: 200 });
+
+      for (const user of usersWithSubscriptions) {
+      await db.update(users).set({ generatedWords: 0, forYouGeneratedPosts: 0 }).where(eq(users.id, user.id));
+      }
+
+      let workspacesUpdated = 0;
+      // Find if users have any workspaces
+      for (const user of usersWithSubscriptions) {
+        const workspacesResult = await db.select().from(workspaces).where(eq(workspaces.userId, user.id));
+        if (workspacesResult.length > 0) {
+          await db.update(workspaces).set({ usage: 0 }).where(eq(workspaces.userId, user.id));
+          workspacesUpdated++;
+        }
+      }
+
+
+    return NextResponse.json({ updated: usersWithSubscriptions.length, workspacesUpdated }, { status: 200 });
   } catch (error) {
     console.error("Error resetting generated words:", error);
     return NextResponse.json(
