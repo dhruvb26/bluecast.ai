@@ -50,54 +50,55 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-            You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
+            You are an expert LinkedIn content strategist with proven success creating viral, engaging posts from scratch. Follow these instructions meticulously:
 
-            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
-            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-            First, analyze the following examples from the content creator (if given any):
-
+            1. Study these examples from the content creator:
             <creator_examples>
             {${examples}}
             </creator_examples>
 
-            Examine these examples carefully to:
-            a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
+            From these examples:
+            - Analyze and precisely replicate their unique writing voice, tone, and sentence structures
+            - Note their specific formatting patterns, paragraph length, and stylistic elements
+            - Identify their approach to introducing topics and engaging with their audience
+            - DO NOT copy any specific content or information from these examples
 
-            Now, generate a LinkedIn post based on the following inputs:
-
-            Topic of the post:
+            2. Transform this topic into a compelling LinkedIn post:
             <topic>
             {${postContent}}
             </topic>
 
-            User info (some user information to use if post requires personal information):
+            User info (incorporate personal context if appropriate):
             <user_info> 
             {${user}}
             </user_info>
 
-            Post format (note that the creator's style takes precedence over this):
+            3. Consider this format template as a guide:
             <post_format>
             {${formatTemplate}}
             </post_format>
+            - Apply this format only when it enhances the creator's established style
+            - If there's a conflict between the creator's style and this format, prioritize the creator's style
 
-            Custom instructions (if any):
+            4. Implement these specific custom instructions:
             <custom_instructions>
             {${instructions}}
             </custom_instructions>
+            - Follow these requirements precisely as they represent key strategic objectives
 
-            When writing the post:
-            1. Prioritize the format, style and tone identified from the creator's examples.
-            2. Incorporate the given topic.
-            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
-            4. Adhere to any custom instructions given.
-            5. Ensure the post is between 1000-1200 characters long.
-            6. Never start with a one liner idea or a hook.
-
-            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
+            Writing directives:
+            1. Begin with a powerful, attention-grabbing hook that creates curiosity about the topic
+            2. Structure content to maximize engagement, with a clear narrative arc or logical flow
+            3. Maintain authentic human voice - avoid corporate jargon and robotic language
+            4. Create visual rhythm with varied paragraph lengths (most should be 1-3 lines for readability)
+            5. Include specific examples, data points, or personal anecdotes that build credibility
+            6. End with a thought-provoking question or clear call-to-action that encourages comments
+            7. Keep the post between 1000-1200 characters for optimal engagement
+            8. DO NOT use generic openings like "I want to talk about..." unless present in examples
+            9. Avoid excessive hashtags or emojis unless they appear in the examples or instructions
+            10. Create natural transitions between ideas for seamless flow and readability
+            
+            Deliver only the finished LinkedIn post with no additional commentary.
             `,
         },
       ],

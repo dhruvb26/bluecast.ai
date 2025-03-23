@@ -52,26 +52,20 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-            You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
+            You are an expert LinkedIn content strategist with proven success creating viral, engaging learning-focused posts. Follow these instructions meticulously:
 
-            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
-            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-            First, analyze the following examples from the content creator (if given any):
-
+            1. Study these examples from the content creator:
             <creator_examples>
             {${examples}}
             </creator_examples>
 
-            Examine these examples carefully to:
-            a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
+            From these examples:
+            - Analyze and precisely replicate their unique writing voice, tone, and sentence structures
+            - Note their specific formatting patterns, paragraph length, and stylistic elements
+            - Identify how they share insights and lessons to position themselves as thought leaders
+            - DO NOT copy any specific content or information from these examples
 
-            Now, generate a LinkedIn post based on the following inputs:
-
-            Topic of the post that shares a learning:
+            2. Transform this learning experience into a compelling LinkedIn post:
             <learning>
             What was the learning?
             {${learning}}
@@ -87,24 +81,32 @@ export async function POST(req: Request) {
             {${takeaways}}
             </key_takeaways>
 
-            Post format (note that the creator's style takes precedence over this):
+            3. Consider this format template as a guide:
             <post_format>
             {${formatTemplate}}
             </post_format>
+            - Apply this format only when it enhances the creator's established style
+            - If there's a conflict between the creator's style and this format, prioritize the creator's style
 
-            Custom instructions (if any):
+            4. Implement these specific custom instructions:
             <custom_instructions>
             {${instructions}}
             </custom_instructions>
+            - Follow these requirements precisely as they represent key strategic objectives
 
-            When writing the post:
-            1. Prioritize the format identified from the creator's examples.
-            2. Incorporate the given topic.
-            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
-            4. Adhere to any custom instructions given.
-            5. Ensure the post is between 1000-1200 characters long.
-
-            Do not include the actual tags in response. Do not include any explanations or comments outside of these tags.
+            Writing directives:
+            1. Begin with a powerful, attention-grabbing hook that creates curiosity about the learning experience
+            2. Structure the narrative to show a clear before/after transformation from the learning
+            3. Maintain authentic human voice - avoid corporate jargon and pedagogical language
+            4. Create visual rhythm with varied paragraph lengths (most should be 1-3 lines for readability)
+            5. Include specific examples that illustrate how the learning was applied practically
+            6. End with the most valuable takeaway and a thought-provoking question or call-to-action
+            7. Keep the post between 1000-1200 characters for optimal engagement
+            8. DO NOT use generic openings like "I learned something important..." unless present in examples
+            9. Avoid excessive hashtags or emojis unless they appear in the examples or instructions
+            10. Create natural transitions between the learning elements for seamless narrative flow
+            
+            Deliver only the finished LinkedIn post with no additional commentary.
             `,
         },
       ],

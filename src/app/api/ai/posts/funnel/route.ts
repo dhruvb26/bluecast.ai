@@ -51,59 +51,60 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-            You are a copywriter tasked with writing a 1000-1200 character LinkedIn post based on a marketing funnel question and answer. Follow these guidelines:
+            You are an expert LinkedIn content strategist specializing in marketing funnel conversion. Your task is to craft a compelling LinkedIn post that strategically answers a key prospect question. Follow these instructions meticulously:
 
-            1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
-            2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-            First, analyze the following examples from the content creator (if given any):
-
+            1. Study these examples from the content creator:
             <creator_examples>
             {${examples}}
             </creator_examples>
 
-            Examine these examples carefully to:
-            a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions.
+            From these examples:
+            - Analyze and precisely replicate their unique writing voice, tone, and sentence structures
+            - Note their specific formatting patterns, paragraph length, and stylistic elements
+            - Identify how they establish authority and present solutions to audience problems
+            - DO NOT copy any specific content or information from these examples
 
-            Now, generate a LinkedIn post based on the following inputs:
-
-            Marketing Question:
+            2. Transform this marketing Q&A into a compelling LinkedIn post:
             <question>
             {${question}}
             </question>
 
-            Answer:
             <answer>
             {${answer}}
             </answer>
 
-            User info (some user information to use if post requires personal information):
+            User info (incorporate personal context if appropriate):
             <user_info>
             {${user}}
             </user_info>
 
-            Post format (note that the creator's style takes precedence over this):
+            3. Consider this format template as a guide:
             <post_format>
             {${formatTemplate}}
             </post_format>
+            - Apply this format only when it enhances the creator's established style
+            - If there's a conflict between the creator's style and this format, prioritize the creator's style
 
-            Custom instructions (if any):
+            4. Implement these specific custom instructions:
             <custom_instructions>
             {${instructions}}
             </custom_instructions>
+            - Follow these requirements precisely as they represent key strategic objectives
 
-            When writing the post:
-            1. Prioritize the format, style and tone identified from the creator's examples.
-            2. Incorporate insights from both the question and answer provided.
-            3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
-            4. Adhere to any custom instructions given.
-            5. Ensure the post is between 1000-1200 characters long.
-            6. Never start with a one liner idea or a hook.
-
-            Do not include the tags in response. Do not include any explanations or comments outside of these tags.
+            Writing directives:
+            1. Begin by acknowledging the pain point or challenge reflected in the question
+            2. Position the answer as a valuable insight that addresses the specific problem
+            3. Maintain authentic human voice - avoid sales-heavy language or marketing jargon
+            4. Create visual rhythm with varied paragraph lengths (most should be 1-3 lines for readability)
+            5. Include specific examples or mini-case studies that validate your solution approach
+            6. Balance providing valuable information with creating curiosity for more (content tension)
+            7. End with a subtle, non-aggressive call-to-action that encourages engagement
+            8. Keep the post between 1000-1200 characters for optimal engagement
+            9. DO NOT use obvious marketing language or direct sales pitches that feel inauthentic
+            10. Avoid excessive hashtags or emojis unless they appear in the examples or instructions
+            11. Create natural transitions between question context and solution for seamless flow
+            
+            Deliver only the finished LinkedIn post with no additional commentary.
             `,
         },
       ],

@@ -59,50 +59,52 @@ export async function POST(req: Request) {
         {
           role: "user",
           content: `
-          You are a copywriter tasked with writing a 1000-1200 character LinkedIn post. Follow these guidelines:
+          You are an expert LinkedIn content strategist with proven success creating viral, engaging story-based posts. Follow these instructions meticulously:
 
-          1. Do not include a starting idea (one liner) or hook unless one is extracted from the examples provided. Start writing the post directly.
-          2. Do not include emojis or hashtags unless specifically mentioned in the custom instructions.
-
-          First, analyze the following examples from the content creator (if given any):
-
+          1. Study these examples from the content creator:
           <creator_examples>
           {${examples}}
           </creator_examples>
 
-          Examine these examples carefully to:
-          a) Identify a common format or structure used across the posts
-            b) Identify any common hooks or CTAs in the examples and use those for post generation unless explicitly asked not to
-            c) Determine the overall tone and writing style of the creator
-            d) Do not pull any sensitive or proprietary information from the examples unless explicitly asked for by the user in instructions. 
+          From these examples:
+          - Analyze and precisely replicate their unique writing voice, tone, and sentence structures
+          - Note their specific formatting patterns, paragraph length, and stylistic elements
+          - Identify their storytelling approach, especially how they introduce challenges and resolutions
+          - DO NOT copy any specific content or information from these examples
 
-          Now, generate a LinkedIn post based on the following story elements:
-
+          2. Transform this story into a compelling LinkedIn post:
           <story_type>{${storyType}}</story_type>
           <story_content>{${storyContent}}</story_content>
           <outcome>{${outcome}}</outcome>
           <feeling>{${feeling}}</feeling>
           <lesson>{${lesson}}</lesson>
 
-          Consider the following post format (note that the creator's style takes precedence over this):
+          3. Consider this format template as a guide:
           <post_format>
           {${formatTemplate}}
           </post_format>
+          - Apply this format only when it enhances the creator's established style
+          - If there's a conflict between the creator's style and this format, prioritize the creator's style
 
-          Adhere to any custom instructions given:
+          4. Implement these specific custom instructions:
           <custom_instructions>
           {${instructions}}
           </custom_instructions>
+          - Follow these requirements precisely as they represent key strategic objectives
 
-          When writing the post:
-          1. Prioritize the format and tone identified from the creator's examples.
-          2. Incorporate all the given story elements seamlessly into the narrative.
-          3. Follow the post format provided, but allow the creator's style to override if there are conflicts.
-          4. Adhere to any custom instructions given.
-          5. Ensure the post is between 1000-1200 characters long.
-          6. Create a compelling narrative that engages the reader and conveys the lesson learned.
+          Writing directives:
+          1. Begin with a powerful, attention-grabbing hook that creates curiosity or addresses a pain point
+          2. Structure the narrative in a way that builds tension before revealing the outcome
+          3. Maintain authentic human voice - avoid corporate jargon and robotic language
+          4. Create visual rhythm with varied paragraph lengths (most should be 1-3 lines for readability)
+          5. Connect the personal story to universal professional challenges or opportunities
+          6. End with the key lesson learned and a thought-provoking question or call-to-action
+          7. Keep the post between 1000-1200 characters for optimal engagement
+          8. DO NOT use generic openings like "Here's a story that taught me..." unless present in examples
+          9. Avoid excessive hashtags or emojis unless they appear in the examples or instructions
+          10. Create natural transitions between the story elements for seamless narrative flow
           
-          Do not include any explanations or comments outside of these tags.`,
+          Deliver only the finished LinkedIn post with no additional commentary.`,
         },
       ],
     });
