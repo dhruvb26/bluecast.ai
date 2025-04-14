@@ -297,24 +297,17 @@ function EditorSection({
         setValue(newValue);
         setCharCount(newCharCount);
       } else {
-        // If the new content exceeds 3000 characters, truncate it
-        const truncatedContent = content.slice(0, 3000);
-        const truncatedValue = [
-          { type: "paragraph", children: [{ text: truncatedContent }] },
-        ];
-        setInternalValue(truncatedValue as Descendant[]);
-        setValue(truncatedValue as Descendant[]);
-        setCharCount(3000);
-
-        // Optionally, you can show a toast only when the limit is first reached
+        // Keep the previous value if the limit would be exceeded
+        setInternalValue(value);
+        setValue(value);
+        
+        // Show a toast notification only when attempting to exceed the limit
         if (charCount < 3000) {
-          toast.error(
-            "Character limit reached. Maximum 3000 characters allowed."
-          );
+          toast.error("Character limit reached. Maximum 3000 characters allowed.");
         }
       }
     },
-    [setValue, charCount]
+    [setValue, charCount, value]
   );
 
   const [isPublishing, setIsPublishing] = useState(false);
@@ -417,6 +410,11 @@ function EditorSection({
 
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (charCount >= 3000 && !event.metaKey && !event.ctrlKey && !event.key.match(/^(Backspace|Delete|Arrow.*|Tab|Enter)$/)) {
+        event.preventDefault();
+        return;
+      }
+
       if (!event.ctrlKey && !event.metaKey) return;
 
       switch (event.key) {
@@ -448,7 +446,7 @@ function EditorSection({
           break;
       }
     },
-    [editor]
+    [editor, charCount]
   );
   const handleRewrite = useCallback(
     async (option: string) => {
