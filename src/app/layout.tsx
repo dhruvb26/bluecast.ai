@@ -21,7 +21,6 @@ const inter = Inter({
 export const metadata = {
   title: "Bluecast - LinkedIn Growth Made Easy",
   description: "Growing on LinkedIn made easy.",
-  icons: [{ rel: "icon", url: "/brand/favicon.png" }],
 };
 
 export default async function RootLayout({
